@@ -4,3 +4,4 @@ type = "bin"
 authors = [""]
 
 [dependencies]
+zkemail = { git = "https://github.com/zkemail/zkemail.nr", tag = "v.1.0.1-beta.5", directory = "lib" }
