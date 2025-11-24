@@ -1,0 +1,6 @@
+[package]
+name = "mintmarksfun_circuits"
+type = "bin"
+authors = [""]
+
+[dependencies]
