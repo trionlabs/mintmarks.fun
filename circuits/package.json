@@ -1,0 +1,14 @@
+{
+  "name": "@mintmarksfun/circuits",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "inputs": "node scripts/prepare.js",
+    "prove": "node scripts/generateProof.js"
+  },
+  "dependencies": {
+    "@aztec/bb.js": "0.84.0",
+    "@noir-lang/noir_js": "1.0.0-beta.5",
+    "@zk-email/zkemail-nr": "^1.3.2"
+  }
+}
