@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "inputs": "node scripts/prepare.js",
-    "prove": "node scripts/generateProof.js"
+    "prove": "node scripts/generateProof.js",
+    "solidity-verifier": "node scripts/generateSolidityVerifier.js"
   },
   "dependencies": {
     "@aztec/bb.js": "0.84.0",
