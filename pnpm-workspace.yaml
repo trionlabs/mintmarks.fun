@@ -1,0 +1,4 @@
+packages:
+  - 'circuits'
+  - 'contracts'
+  - 'web'

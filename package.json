@@ -1,0 +1,13 @@
+{
+  "name": "mintmarksfun",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test"
+  },
+  "license": "MIT",
+  "packageManager": "pnpm@10.23.0",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
