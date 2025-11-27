@@ -10,6 +10,7 @@ import {
   useSendEvmTransaction,
   useSignOut,
 } from '@coinbase/cdp-hooks'
+import { isAddress } from 'viem'
 import type { WalletAdapter, TransactionRequest, TransactionResult } from '../../types'
 import { ACTIVE_NETWORK } from '@/config/contracts'
 import { normalizeError } from '../../utils/errorUtils'
@@ -32,6 +33,11 @@ export function useCdpWallet(): WalletAdapter {
     async (tx: TransactionRequest): Promise<TransactionResult> => {
       if (!evmAddress) {
         throw normalizeError(new Error('CDP wallet not connected'))
+      }
+
+      // CRITICAL: Validate recipient address before sending
+      if (!isAddress(tx.to)) {
+        throw normalizeError(new Error('Invalid recipient address'))
       }
 
       try {

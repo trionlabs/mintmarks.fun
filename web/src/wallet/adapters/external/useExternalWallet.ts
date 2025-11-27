@@ -8,6 +8,7 @@
 
 import { useCallback, useMemo } from 'react'
 import { useAccount, useDisconnect, useSendTransaction } from 'wagmi'
+import { isAddress } from 'viem'
 import type {
   WalletAdapter,
   TransactionRequest,
@@ -45,6 +46,11 @@ export function useExternalWallet(): WalletAdapter {
     async (tx: TransactionRequest): Promise<TransactionResult> => {
       if (!address) {
         throw normalizeError(new Error('External wallet not connected'))
+      }
+
+      // CRITICAL: Validate recipient address before sending
+      if (!isAddress(tx.to)) {
+        throw normalizeError(new Error('Invalid recipient address'))
       }
 
       // CRITICAL: Block transactions on wrong network
