@@ -7,9 +7,14 @@ import { privateKeyToAccount } from 'viem/accounts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Contract addresses, hardcoded!!!
-const VERIFIER_ADDRESS = '0xDB80797A62948Bc1189e46De13Cf3B1d5Ee60936';
-const MINTMARKS_ADDRESS = '0x40f6771df4ec587a2afc2946362d560b05954559';
+// Contract addresses from env
+const VERIFIER_ADDRESS = process.env.VERIFIER_ADDRESS;
+const MINTMARKS_ADDRESS = process.env.MINTMARKS_ADDRESS;
+
+if (!VERIFIER_ADDRESS || !MINTMARKS_ADDRESS) {
+  console.error('[ERROR]: VERIFIER_ADDRESS and MINTMARKS_ADDRESS must be set in .env');
+  process.exit(1);
+}
 
 const VERIFIER_ABI = [
   {

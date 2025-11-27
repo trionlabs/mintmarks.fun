@@ -5,16 +5,19 @@ import {Script, console} from "forge-std/Script.sol";
 import {Mintmarks} from "../src/Mintmarks.sol";
 
 contract DeployMintmarksScript is Script {
-    // Deployed HonkVerifier on Base Sepolia
-    address constant VERIFIER = 0xDB80797A62948Bc1189e46De13Cf3B1d5Ee60936;
-
     function run() external returns (Mintmarks) {
+        address verifier = vm.envAddress("VERIFIER_ADDRESS");
+
         vm.startBroadcast();
-        Mintmarks mintmarks = new Mintmarks(VERIFIER);
+        Mintmarks mintmarks = new Mintmarks(verifier);
         vm.stopBroadcast();
 
         console.log("Mintmarks deployed at:", address(mintmarks));
-        console.log("Using verifier:", VERIFIER);
+        console.log("Using verifier:", verifier);
+        console.log("");
+        console.log("Add to .env:");
+        console.log("MINTMARKS_ADDRESS=%s", address(mintmarks));
+
         return mintmarks;
     }
 }
