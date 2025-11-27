@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "inputs": "node scripts/inputs.js",
+    "prepare-inputs": "node scripts/prepareInputs.js",
     "prove": "node scripts/generateProof.js",
     "solidity-verifier": "node scripts/generateSolidityVerifier.js"
   },
