@@ -1,66 +1,67 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { WagmiProvider } from 'wagmi'
+import { baseSepolia } from 'wagmi/chains'
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import { CDPReactProvider } from '@coinbase/cdp-react'
-import './index.css'
+import { WalletProvider } from './wallet'
+import { wagmiConfig } from './config/wagmi'
 import App from './App.tsx'
+import './index.css'
 
-// CDP Configuration for Base chain with EOA wallet
+// Import RainbowKit styles
+import '@rainbow-me/rainbowkit/styles.css'
+
+// QueryClient with recommended defaults
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute - prevents refetch on mount
+      gcTime: 1000 * 60 * 60, // 1 hour garbage collection
+      retry: 1, // Only retry failed queries once
+    },
+  },
+})
+
+// CDP Configuration (existing)
 const cdpConfig = {
   projectId: import.meta.env.VITE_CDP_PROJECT_ID || '',
   appName: import.meta.env.VITE_CDP_APP_NAME || 'mintmarks',
   ethereum: {
-    createOnLogin: 'eoa' as const, // EOA wallet on Base
+    createOnLogin: 'eoa' as const,
   },
-}
-
-// Error component when CDP Project ID is missing
-function CDPConfigError() {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '2rem',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        textAlign: 'center',
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-        color: '#f0f0f0',
-      }}
-    >
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem', color: '#ff6b6b' }}>
-        CDP Configuration Missing
-      </h1>
-      <p style={{ marginBottom: '1rem', color: '#a0a0a0' }}>
-        VITE_CDP_PROJECT_ID is not set in your .env file.
-      </p>
-      <code
-        style={{
-          padding: '1rem',
-          background: 'rgba(0,0,0,0.3)',
-          borderRadius: '8px',
-          fontSize: '0.875rem',
-        }}
-      >
-        VITE_CDP_PROJECT_ID=your-project-id
-      </code>
-    </div>
-  )
 }
 
 // Check if CDP is configured
 const isCDPConfigured = !!import.meta.env.VITE_CDP_PROJECT_ID
 
+/**
+ * Provider hierarchy (outer to inner):
+ * 1. QueryClientProvider - TanStack Query (shared by wagmi)
+ * 2. WagmiProvider - External wallet state
+ * 3. RainbowKitProvider - Wallet connection UI
+ * 4. CDPReactProvider - CDP embedded wallet (optional)
+ * 5. WalletProvider - Unified wallet abstraction
+ */
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {isCDPConfigured ? (
-      <CDPReactProvider config={cdpConfig}>
-        <App />
-      </CDPReactProvider>
-    ) : (
-      <CDPConfigError />
-    )}
-  </StrictMode>,
+    <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={wagmiConfig}>
+        <RainbowKitProvider initialChain={baseSepolia}>
+          {isCDPConfigured ? (
+            <CDPReactProvider config={cdpConfig}>
+              <WalletProvider>
+                <App />
+              </WalletProvider>
+            </CDPReactProvider>
+          ) : (
+            <WalletProvider>
+              <App />
+            </WalletProvider>
+          )}
+        </RainbowKitProvider>
+      </WagmiProvider>
+    </QueryClientProvider>
+  </StrictMode>
 )
