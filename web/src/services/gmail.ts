@@ -1,7 +1,8 @@
 /**
  * Gmail API Service
- * 
+ *
  * Functions for interacting with Gmail API to fetch event emails.
+ * Supports dynamic filtering via Gmail queries and registration status detection.
  */
 
 import {
@@ -16,6 +17,8 @@ import {
   type EmailSource,
   type RawEmailData,
 } from '@/types/gmail'
+import type { RegistrationStatus } from '@/types/filters'
+import { detectRegistrationStatus as detectStatus } from '@/config/emailFilters'
 
 // ============================================
 // Helper Functions
@@ -36,17 +39,28 @@ function getHeader(message: GmailMessage, headerName: string): string | null {
  */
 function detectEmailSource(from: string | null): EmailSource {
   if (!from) return 'unknown'
-  
+
   const fromLower = from.toLowerCase()
-  
+
   for (const [source, config] of Object.entries(EMAIL_SOURCES)) {
     if (source === 'unknown') continue
     if (config.domains.some((domain) => fromLower.includes(domain))) {
       return source as EmailSource
     }
   }
-  
+
   return 'unknown'
+}
+
+/**
+ * Detect registration status from email content
+ */
+function detectRegistrationStatus(
+  subject: string | null,
+  snippet: string,
+  source: EmailSource
+): RegistrationStatus {
+  return detectStatus(subject, snippet, source)
 }
 
 /**
@@ -133,18 +147,22 @@ export async function getEmailMetadata(
     accessToken,
     `/messages/${messageId}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Date`
   )
-  
+
   const from = getHeader(message, 'From')
-  
+  const subject = getHeader(message, 'Subject')
+  const source = detectEmailSource(from)
+  const registrationStatus = detectRegistrationStatus(subject, message.snippet, source)
+
   return {
     id: message.id,
     threadId: message.threadId,
-    subject: getHeader(message, 'Subject'),
+    subject,
     from,
     to: getHeader(message, 'To'),
     date: getHeader(message, 'Date'),
     snippet: message.snippet,
-    source: detectEmailSource(from),
+    source,
+    registrationStatus,
   }
 }
 
@@ -241,22 +259,21 @@ export async function searchSubstackEmails(
 }
 
 /**
- * Search for all event emails (Luma + Substack + Eventbrite)
- * 
- * TODO: Restore event-specific query after testing:
- * const query = 'from:(lu.ma OR luma.co OR substack.com OR eventbrite.com)'
+ * Search for event emails with dynamic query support
+ *
+ * @param accessToken - Gmail API access token
+ * @param query - Gmail search query (use buildGmailQuery from emailFilters.ts)
+ * @param maxResults - Maximum number of results per page (default: 20)
+ * @param pageToken - Token for pagination
  */
 export async function searchEventEmails(
   accessToken: string,
+  query: string,
   maxResults: number = 20,
   pageToken?: string
 ): Promise<EmailSearchResult> {
-  // DEBUG: Temporarily fetch all emails for testing
-  // Remove 'in:inbox' to get all recent emails
-  const query = 'in:inbox'
-  
   const response = await searchEmails(accessToken, query, maxResults, pageToken)
-  
+
   if (!response.messages || response.messages.length === 0) {
     return {
       emails: [],
@@ -264,17 +281,31 @@ export async function searchEventEmails(
       totalResults: 0,
     }
   }
-  
+
   // Fetch metadata for each message
   const emails = await Promise.all(
     response.messages.map((msg) => getEmailMetadata(accessToken, msg.id))
   )
-  
+
   return {
     emails,
     nextPageToken: response.nextPageToken,
     totalResults: response.resultSizeEstimate ?? emails.length,
   }
+}
+
+/**
+ * Search for all event emails using default query (all sources)
+ * Convenience wrapper for searchEventEmails with default filter query
+ */
+export async function searchAllEventEmails(
+  accessToken: string,
+  maxResults: number = 20,
+  pageToken?: string
+): Promise<EmailSearchResult> {
+  // Default query: all event sources
+  const query = 'from:(lu.ma OR luma.co OR luma-mail.com OR substack.com OR eventbrite.com)'
+  return searchEventEmails(accessToken, query, maxResults, pageToken)
 }
 
 /**

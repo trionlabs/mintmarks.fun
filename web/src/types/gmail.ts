@@ -1,8 +1,10 @@
 /**
  * Gmail API TypeScript Definitions
- * 
+ *
  * Types for Gmail API responses and internal data structures.
  */
+
+import type { RegistrationStatus } from './filters'
 
 // ============================================
 // Gmail API Response Types
@@ -86,6 +88,7 @@ export interface EmailMetadata {
   date: string | null
   snippet: string
   source: EmailSource
+  registrationStatus: RegistrationStatus
 }
 
 /**
@@ -160,7 +163,7 @@ export const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1/users/me'
  */
 export const EMAIL_SOURCES: Record<EmailSource, { domains: string[]; keywords: string[] }> = {
   luma: {
-    domains: ['lu.ma', 'luma.co'],
+    domains: ['lu.ma', 'luma.co', 'luma-mail.com'],
     keywords: ['registered', 'confirmed', 'rsvp', 'event'],
   },
   substack: {
@@ -176,4 +179,7 @@ export const EMAIL_SOURCES: Record<EmailSource, { domains: string[]; keywords: s
     keywords: [],
   },
 }
+
+// Re-export RegistrationStatus for convenience
+export type { RegistrationStatus } from './filters'
 
