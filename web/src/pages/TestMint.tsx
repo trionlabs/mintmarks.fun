@@ -13,7 +13,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import { SignInModal } from '@coinbase/cdp-react'
 import { useIsSignedIn, useEvmAddress, useSendEvmTransaction } from '@coinbase/cdp-hooks'
-import { encodeFunctionData } from 'viem'
+import { encodeFunctionData, formatEther, createPublicClient, http } from 'viem'
+import { baseSepolia } from 'viem/chains'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
@@ -40,10 +41,25 @@ import {
 } from 'lucide-react'
 
 // ============================================
+// Constants
+// ============================================
+
+// Viem public client for reading blockchain data
+const publicClient = createPublicClient({
+  chain: baseSepolia,
+  transport: http(),
+})
+
+// Minimum balance required for minting (mint fee + estimated gas)
+// 0.00001 ETH mint fee + ~0.0001 ETH gas buffer = ~0.00011 ETH
+const MIN_BALANCE_FOR_MINT = 110000000000000n // 0.00011 ETH in wei
+
+// ============================================
 // Types
 // ============================================
 
 type MintStatus = 'idle' | 'pending' | 'success' | 'error'
+type BalanceStatus = 'idle' | 'loading' | 'loaded' | 'error'
 
 interface MintResult {
   transactionHash: string
@@ -69,11 +85,53 @@ export function TestMint() {
   // NFT Preview state
   const [nftImageUrl, setNftImageUrl] = useState<string | null>(null)
 
+  // Balance state
+  const [balance, setBalance] = useState<bigint | null>(null)
+  const [balanceStatus, setBalanceStatus] = useState<BalanceStatus>('idle')
+
+  // Derived state: check if balance is sufficient for minting
+  const hasEnoughBalance = balance !== null && balance >= MIN_BALANCE_FOR_MINT
+  const balanceFormatted = balance !== null ? formatEther(balance) : '0'
+
   // Check if contract is configured
   const contractConfigured = isContractConfigured(TEST_MINTMARKS.address)
 
   // Check if we're in development mode
   const isDevelopment = import.meta.env.DEV
+
+  // Fetch balance from blockchain
+  const fetchBalance = useCallback(async () => {
+    if (!evmAddress) {
+      setBalance(null)
+      setBalanceStatus('idle')
+      return
+    }
+
+    setBalanceStatus('loading')
+    try {
+      const balanceWei = await publicClient.getBalance({
+        address: evmAddress as `0x${string}`,
+      })
+      setBalance(balanceWei)
+      setBalanceStatus('loaded')
+    } catch {
+      // Silently fail - balance status will show error state
+      setBalanceStatus('error')
+    }
+  }, [evmAddress])
+
+  // Fetch balance when address changes or on mount
+  useEffect(() => {
+    fetchBalance()
+  }, [fetchBalance])
+
+  // Refetch balance periodically (every 30 seconds) when wallet is connected
+  useEffect(() => {
+    if (!evmAddress) return
+
+    const interval = setInterval(fetchBalance, 30000)
+    return () => clearInterval(interval)
+  }, [evmAddress, fetchBalance])
 
   // Copy address to clipboard
   const copyAddress = useCallback(async () => {
@@ -127,6 +185,12 @@ export function TestMint() {
       return
     }
 
+    // Pre-mint balance check
+    if (!hasEnoughBalance) {
+      showToast('Insufficient balance. Please get testnet ETH from the faucet first.', 'warning')
+      return
+    }
+
     setMintStatus('pending')
     setError(null)
     setMintResult(null)
@@ -162,6 +226,9 @@ export function TestMint() {
       })
       setNftImageUrl(generateNftPreview(estimatedTokenId))
       showToast('NFT minted successfully! 🎉', 'success')
+
+      // Refresh balance after successful mint
+      fetchBalance()
     } catch (err) {
       setMintStatus('error')
       
@@ -183,7 +250,7 @@ export function TestMint() {
       setError(message)
       showToast(message, 'error')
     }
-  }, [evmAddress, contractConfigured, sendEvmTransaction, showToast, generateNftPreview])
+  }, [evmAddress, contractConfigured, hasEnoughBalance, sendEvmTransaction, showToast, generateNftPreview, fetchBalance])
 
   // Reset state
   const handleReset = useCallback(() => {
@@ -310,11 +377,11 @@ export function TestMint() {
             <span
               className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
               style={{
-                background: 'var(--Controls-Idle)',
-                color: 'var(--page-text-secondary)',
+                background: hasEnoughBalance ? 'var(--Controls-Selected)' : 'var(--Controls-Idle)',
+                color: hasEnoughBalance ? 'white' : 'var(--page-text-secondary)',
               }}
             >
-              2
+              {hasEnoughBalance ? <CheckCircle className="h-4 w-4" /> : '2'}
             </span>
             Get Testnet ETH
           </CardTitle>
@@ -323,32 +390,101 @@ export function TestMint() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div
-            className="p-4 rounded-lg"
-            style={{ background: 'var(--glass-bg-secondary)' }}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <Coins className="h-8 w-8 text-yellow-500" />
-              <div>
-                <p className="font-medium" style={{ color: 'var(--page-text-primary)' }}>
-                  Coinbase Faucet
-                </p>
-                <p className="text-sm" style={{ color: 'var(--page-text-secondary)' }}>
-                  Get free testnet ETH (requires Coinbase account)
-                </p>
+          {/* Balance Display */}
+          {isWalletConnected && evmAddress && (
+            <div
+              className={`p-4 rounded-lg ${
+                hasEnoughBalance 
+                  ? 'bg-green-500/10 dark:bg-green-500/10' 
+                  : 'bg-red-500/10 dark:bg-red-500/10'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                      hasEnoughBalance 
+                        ? 'bg-green-500/20 dark:bg-green-500/20' 
+                        : 'bg-red-500/20 dark:bg-red-500/20'
+                    }`}
+                  >
+                    <Coins className={`h-5 w-5 ${hasEnoughBalance ? 'text-green-500' : 'text-red-500'}`} />
+                  </div>
+                  <div>
+                    <p className="text-sm" style={{ color: 'var(--page-text-secondary)' }}>
+                      Your Balance
+                    </p>
+                    <p className="font-mono font-bold text-lg" style={{ color: 'var(--page-text-primary)' }}>
+                      {balanceStatus === 'loading' ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading...
+                        </span>
+                      ) : balanceStatus === 'error' ? (
+                        'Error fetching'
+                      ) : (
+                        `${parseFloat(balanceFormatted).toFixed(6)} ETH`
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={fetchBalance}
+                  disabled={balanceStatus === 'loading'}
+                  title="Refresh balance"
+                >
+                  <RefreshCw className={`h-4 w-4 ${balanceStatus === 'loading' ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+              
+              {/* Balance status message */}
+              <div className="mt-3 pt-3 border-t border-white/10">
+                {hasEnoughBalance ? (
+                  <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4" />
+                    Sufficient balance for minting
+                  </p>
+                ) : (
+                  <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />
+                    Need at least ~0.00011 ETH (mint fee + gas)
+                  </p>
+                )}
               </div>
             </div>
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={() => window.open(ACTIVE_NETWORK.faucet, '_blank')}
+          )}
+
+          {/* Faucet Section */}
+          {(!hasEnoughBalance || !isWalletConnected) && (
+            <div
+              className="p-4 rounded-lg"
+              style={{ background: 'var(--glass-bg-secondary)' }}
             >
-              <ExternalLink className="h-4 w-4" />
-              Open Faucet
-            </Button>
-          </div>
+              <div className="flex items-center gap-3 mb-3">
+                <Coins className="h-8 w-8 text-yellow-500" />
+                <div>
+                  <p className="font-medium" style={{ color: 'var(--page-text-primary)' }}>
+                    Coinbase Faucet
+                  </p>
+                  <p className="text-sm" style={{ color: 'var(--page-text-secondary)' }}>
+                    Get free testnet ETH (requires Coinbase account)
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => window.open(ACTIVE_NETWORK.faucet, '_blank')}
+              >
+                <ExternalLink className="h-4 w-4" />
+                Open Faucet
+              </Button>
+            </div>
+          )}
           
-          {evmAddress && (
+          {evmAddress && !hasEnoughBalance && (
             <div className="text-sm" style={{ color: 'var(--page-text-muted)' }}>
               <p className="mb-1">Your wallet address (paste in faucet):</p>
               <code
@@ -406,16 +542,21 @@ export function TestMint() {
               <Button
                 className="w-full gap-2"
                 onClick={handleMint}
-                disabled={!isWalletConnected || !contractConfigured}
+                disabled={!isWalletConnected || !contractConfigured || !hasEnoughBalance}
               >
                 <Rocket className="h-4 w-4" />
-                Mint Test NFT
+                {!hasEnoughBalance && isWalletConnected ? 'Insufficient Balance' : 'Mint Test NFT'}
               </Button>
 
-              {/* Insufficient balance hint */}
-              {isWalletConnected && (
-                <p className="text-xs text-center" style={{ color: 'var(--page-text-muted)' }}>
-                  Make sure you have testnet ETH before minting
+              {/* Balance status hint */}
+              {isWalletConnected && !hasEnoughBalance && (
+                <p className="text-xs text-center text-red-500">
+                  Get testnet ETH from the faucet above to enable minting
+                </p>
+              )}
+              {isWalletConnected && hasEnoughBalance && (
+                <p className="text-xs text-center text-green-500">
+                  Ready to mint! Click the button above.
                 </p>
               )}
             </>
@@ -455,10 +596,7 @@ export function TestMint() {
                 </div>
               )}
 
-              <div
-                className="p-4 rounded-lg text-center"
-                style={{ background: 'rgba(34, 197, 94, 0.1)' }}
-              >
+              <div className="p-4 rounded-lg text-center bg-green-500/10 dark:bg-green-500/10">
                 <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-500" />
                 <p className="font-medium text-green-600 dark:text-green-400">
                   NFT Minted Successfully! 🎉
