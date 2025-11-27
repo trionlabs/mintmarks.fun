@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sparkles, Moon, Sun, Mail, LogOut, Home, Plus, Bookmark, Wallet } from 'lucide-react'
+import { Sparkles, Moon, Sun, Mail, LogOut, Home, Plus, Bookmark, Wallet, FlaskConical } from 'lucide-react'
 import { SignInModal } from '@coinbase/cdp-react'
 import { useIsSignedIn, useEvmAddress } from '@coinbase/cdp-hooks'
 import { Button } from '@/components/ui/button'
@@ -16,13 +16,18 @@ interface NavItem {
   path: string
   label: string
   icon: React.ReactNode
+  devOnly?: boolean // Only show in development mode
 }
 
-const navItems: NavItem[] = [
+const allNavItems: NavItem[] = [
   { path: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
   { path: '/create', label: 'Create', icon: <Plus className="h-4 w-4" /> },
   { path: '/marks', label: 'My Marks', icon: <Bookmark className="h-4 w-4" /> },
+  { path: '/test', label: 'Test', icon: <FlaskConical className="h-4 w-4" />, devOnly: true },
 ]
+
+// Filter nav items based on environment
+const navItems = allNavItems.filter(item => !item.devOnly || import.meta.env.DEV)
 
 export function Layout({ children }: LayoutProps) {
   const [isScrolled, setIsScrolled] = useState(false)
