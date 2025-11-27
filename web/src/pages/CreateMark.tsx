@@ -1,37 +1,49 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { SignInModal } from '@coinbase/cdp-react'
 import { useIsSignedIn, useEvmAddress } from '@coinbase/cdp-hooks'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { EmailFilter, FilterPills } from '@/components/EmailFilter'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
+import { useFilterParams } from '@/hooks/useFilterParams'
 import { searchEventEmails } from '@/services/gmail'
-import type { EmailMetadata, EmailSource } from '@/types/gmail'
-import { 
-  Mail, 
-  Wallet, 
-  RefreshCw, 
-  Sparkles, 
-  Calendar, 
+import {
+  buildGmailQuery,
+  getDefaultGmailQuery,
+  SOURCE_COLORS,
+  STATUS_COLORS,
+} from '@/config/emailFilters'
+import type { EmailMetadata } from '@/types/gmail'
+import type { RegistrationStatus } from '@/types/filters'
+import {
+  Mail,
+  Wallet,
+  RefreshCw,
+  Sparkles,
+  Calendar,
   ExternalLink,
   AlertCircle,
   Loader2,
   CheckCircle,
+  ChevronDown,
+  FilterX,
 } from 'lucide-react'
 
-// Email source badge colors
-const SOURCE_COLORS: Record<EmailSource, { bg: string; text: string }> = {
-  luma: { bg: 'rgba(139, 92, 246, 0.15)', text: '#8B5CF6' },
-  substack: { bg: 'rgba(249, 115, 22, 0.15)', text: '#F97316' },
-  eventbrite: { bg: 'rgba(239, 68, 68, 0.15)', text: '#EF4444' },
-  unknown: { bg: 'var(--glass-bg-secondary)', text: 'var(--page-text-secondary)' },
-}
+// ============================================
+// Constants
+// ============================================
 
-// Format date for display
+const EMAILS_PER_PAGE = 20
+
+// ============================================
+// Helper Functions
+// ============================================
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return 'Unknown date'
-  
+
   try {
     const date = new Date(dateStr)
     return date.toLocaleDateString('en-US', {
@@ -45,60 +57,157 @@ function formatDate(dateStr: string | null): string {
   }
 }
 
-// Extract sender name from email address
 function extractSenderName(from: string | null): string {
   if (!from) return 'Unknown sender'
-  
+
   // Try to extract name from "Name <email@example.com>" format
   const match = from.match(/^([^<]+)\s*</)
   if (match) {
     return match[1].trim().replace(/"/g, '')
   }
-  
+
   // Return email without domain
   return from.split('@')[0]
 }
 
+function formatStatusLabel(status: RegistrationStatus): string {
+  if (status === 'unknown') return ''
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
+// ============================================
+// Component
+// ============================================
+
 export function CreateMark() {
+  // Auth & Wallet
   const { accessToken, isAuthenticated: isGmailConnected, login: gmailLogin } = useAuth()
   const { isSignedIn: isWalletConnected } = useIsSignedIn()
   const { evmAddress } = useEvmAddress()
   const { showToast } = useToast()
 
+  // Filter state (synced with URL)
+  const {
+    filters,
+    toggleSource,
+    toggleStatus,
+    clearFilters,
+    hasActiveFilters,
+    activeFilterCount,
+  } = useFilterParams()
+
+  // Email state
   const [emails, setEmails] = useState<EmailMetadata[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null)
 
+  // Pagination state
+  const [nextPageToken, setNextPageToken] = useState<string | undefined>()
+  const [hasMore, setHasMore] = useState(true)
+
+  // Ref for infinite scroll trigger element
+  const loadMoreRef = useRef<HTMLDivElement | null>(null)
+
+  // Build Gmail query from filters
+  const gmailQuery = useMemo(() => {
+    return hasActiveFilters ? buildGmailQuery(filters) : getDefaultGmailQuery()
+  }, [filters, hasActiveFilters])
+
   // Fetch emails from Gmail
-  const fetchEmails = useCallback(async () => {
-    if (!accessToken) return
+  const fetchEmails = useCallback(
+    async (pageToken?: string) => {
+      if (!accessToken) return
 
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const result = await searchEventEmails(accessToken, 20)
-      setEmails(result.emails)
-      
-      if (result.emails.length === 0) {
-        showToast('No event emails found. Try registering for some events!', 'info')
+      const isInitialLoad = !pageToken
+      if (isInitialLoad) {
+        setIsLoading(true)
+        setEmails([])
+      } else {
+        setIsLoadingMore(true)
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch emails'
-      setError(message)
-      showToast(message, 'error')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [accessToken, showToast])
+      setError(null)
 
-  // Fetch emails when Gmail is connected
+      try {
+        const result = await searchEventEmails(
+          accessToken,
+          gmailQuery,
+          EMAILS_PER_PAGE,
+          pageToken
+        )
+
+        if (isInitialLoad) {
+          setEmails(result.emails)
+        } else {
+          setEmails((prev) => [...prev, ...result.emails])
+        }
+
+        setNextPageToken(result.nextPageToken)
+        setHasMore(!!result.nextPageToken && result.emails.length === EMAILS_PER_PAGE)
+
+        if (isInitialLoad && result.emails.length === 0) {
+          showToast('No event emails found matching your filters.', 'info')
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to fetch emails'
+        setError(message)
+        showToast(message, 'error')
+      } finally {
+        setIsLoading(false)
+        setIsLoadingMore(false)
+      }
+    },
+    [accessToken, gmailQuery, showToast]
+  )
+
+  // Load more emails
+  const loadMoreEmails = useCallback(() => {
+    if (!isLoadingMore && hasMore && nextPageToken) {
+      fetchEmails(nextPageToken)
+    }
+  }, [fetchEmails, hasMore, isLoadingMore, nextPageToken])
+
+  // Initial fetch when Gmail is connected or query changes
   useEffect(() => {
-    if (isGmailConnected && accessToken && emails.length === 0) {
+    if (isGmailConnected && accessToken) {
       fetchEmails()
     }
-  }, [isGmailConnected, accessToken, emails.length, fetchEmails])
+  }, [isGmailConnected, accessToken, fetchEmails])
+
+  // Ref to hold latest loadMoreEmails without causing effect re-runs
+  const loadMoreEmailsRef = useRef(loadMoreEmails)
+  loadMoreEmailsRef.current = loadMoreEmails
+
+  // Refs for loading states to avoid effect dependencies
+  const stateRef = useRef({ hasMore, isLoadingMore, isLoading })
+  stateRef.current = { hasMore, isLoadingMore, isLoading }
+
+  // Setup IntersectionObserver for infinite scroll (created once)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries
+        const { hasMore, isLoadingMore, isLoading } = stateRef.current
+        if (entry.isIntersecting && hasMore && !isLoadingMore && !isLoading) {
+          loadMoreEmailsRef.current()
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    )
+
+    const currentRef = loadMoreRef.current
+    if (currentRef) {
+      observer.observe(currentRef)
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef)
+      }
+      observer.disconnect()
+    }
+  }, []) // Empty deps - observer created once, uses refs for latest values
 
   // Handle "Mark It" button click
   const handleMarkIt = (emailId: string) => {
@@ -109,11 +218,15 @@ export function CreateMark() {
 
     setSelectedEmail(emailId)
     showToast('Minting coming soon! ZK proof generation in progress...', 'info')
-    
+
     // TODO: Implement ZK proof generation and NFT minting
-    // 1. Fetch raw email
-    // 2. Generate ZK proof
-    // 3. Mint NFT
+  }
+
+  // Handle refresh
+  const handleRefresh = () => {
+    setNextPageToken(undefined)
+    setHasMore(true)
+    fetchEmails()
   }
 
   // Not connected state
@@ -128,7 +241,7 @@ export function CreateMark() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
-            <div 
+            <div
               className="w-20 h-20 rounded-full flex items-center justify-center"
               style={{ background: 'var(--Controls-Idle)' }}
             >
@@ -138,12 +251,12 @@ export function CreateMark() {
               <Mail className="h-5 w-5" />
               Connect Gmail
             </Button>
-            <p 
+            <p
               className="text-sm text-center max-w-md"
               style={{ color: 'var(--page-text-muted)' }}
             >
-              We only read event confirmation emails from Luma, Substack, and Eventbrite. 
-              Your data stays private.
+              We only read event confirmation emails from Luma, Substack, and Eventbrite. Your data
+              stays private.
             </p>
           </CardContent>
         </Card>
@@ -156,7 +269,7 @@ export function CreateMark() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 
+          <h1
             className="text-2xl sm:text-3xl font-bold"
             style={{ color: 'var(--page-text-primary)' }}
           >
@@ -166,13 +279,8 @@ export function CreateMark() {
             Select an event email to create a verified NFT
           </p>
         </div>
-        
-        <Button 
-          variant="outline" 
-          onClick={fetchEmails} 
-          disabled={isLoading}
-          className="gap-2"
-        >
+
+        <Button variant="outline" onClick={handleRefresh} disabled={isLoading} className="gap-2">
           <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
@@ -206,6 +314,28 @@ export function CreateMark() {
         </Alert>
       )}
 
+      {/* Filter Section */}
+      <EmailFilter
+        filters={filters}
+        onToggleSource={toggleSource}
+        onToggleStatus={toggleStatus}
+        onClearFilters={clearFilters}
+        hasActiveFilters={hasActiveFilters}
+        activeFilterCount={activeFilterCount}
+        disabled={isLoading}
+      />
+
+      {/* Quick Filter Pills (Mobile) */}
+      <div className="sm:hidden">
+        <FilterPills
+          filters={filters}
+          onToggleSource={toggleSource}
+          onClearFilters={clearFilters}
+          hasActiveFilters={hasActiveFilters}
+          disabled={isLoading}
+        />
+      </div>
+
       {/* Error State */}
       {error && (
         <Alert variant="destructive">
@@ -215,13 +345,11 @@ export function CreateMark() {
         </Alert>
       )}
 
-      {/* Loading State */}
-      {isLoading && (
+      {/* Loading State (Initial) */}
+      {isLoading && emails.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-[var(--Controls-Selected)]" />
-          <p style={{ color: 'var(--page-text-secondary)' }}>
-            Searching your emails...
-          </p>
+          <p style={{ color: 'var(--page-text-secondary)' }}>Searching your emails...</p>
         </div>
       )}
 
@@ -229,74 +357,105 @@ export function CreateMark() {
       {!isLoading && emails.length === 0 && !error && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
-            <div 
+            <div
               className="w-16 h-16 rounded-full flex items-center justify-center"
               style={{ background: 'var(--Controls-Idle)' }}
             >
-              <Mail className="h-8 w-8 text-[var(--Controls-Selected)]" />
+              {hasActiveFilters ? (
+                <FilterX className="h-8 w-8 text-[var(--Controls-Selected)]" />
+              ) : (
+                <Mail className="h-8 w-8 text-[var(--Controls-Selected)]" />
+              )}
             </div>
-            <h3 
-              className="text-lg font-semibold"
-              style={{ color: 'var(--page-text-primary)' }}
-            >
-              No Event Emails Found
+            <h3 className="text-lg font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+              {hasActiveFilters ? 'No Matching Emails' : 'No Event Emails Found'}
             </h3>
-            <p 
+            <p
               className="text-center max-w-md"
               style={{ color: 'var(--page-text-secondary)' }}
             >
-              We couldn't find any event confirmation emails from Luma, Substack, or Eventbrite.
-              Register for some events and check back!
+              {hasActiveFilters
+                ? 'No emails match your current filters. Try adjusting or clearing filters.'
+                : "We couldn't find any event confirmation emails from Luma, Substack, or Eventbrite. Register for some events and check back!"}
             </p>
-            <Button variant="outline" onClick={fetchEmails} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Try Again
-            </Button>
+            <div className="flex gap-2">
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={clearFilters} className="gap-2">
+                  <FilterX className="h-4 w-4" />
+                  Clear Filters
+                </Button>
+              )}
+              <Button variant="outline" onClick={handleRefresh} className="gap-2">
+                <RefreshCw className="h-4 w-4" />
+                Try Again
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
 
       {/* Email List */}
-      {!isLoading && emails.length > 0 && (
+      {emails.length > 0 && (
         <div className="space-y-4">
+          {/* Email Count */}
+          <div className="flex items-center justify-between">
+            <p className="text-sm" style={{ color: 'var(--page-text-secondary)' }}>
+              Showing {emails.length} email{emails.length !== 1 ? 's' : ''}
+              {hasMore && ' • Scroll for more'}
+            </p>
+          </div>
+
+          {/* Email Cards */}
           {emails.map((email) => (
-            <Card 
+            <Card
               key={email.id}
               className="transition-all hover:scale-[1.01]"
               style={{
-                borderColor: selectedEmail === email.id 
-                  ? 'var(--Controls-Selected)' 
-                  : undefined,
+                borderColor:
+                  selectedEmail === email.id ? 'var(--Controls-Selected)' : undefined,
               }}
             >
               <CardContent className="p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                   {/* Email Icon */}
-                  <div 
+                  <div
                     className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{ background: SOURCE_COLORS[email.source].bg }}
                   >
-                    <Mail 
-                      className="h-6 w-6" 
-                      style={{ color: SOURCE_COLORS[email.source].text }} 
-                    />
+                    <Mail className="h-6 w-6" style={{ color: SOURCE_COLORS[email.source].text }} />
                   </div>
 
                   {/* Email Details */}
                   <div className="flex-1 min-w-0">
-                    {/* Source Badge */}
-                    <span
-                      className="inline-block px-2 py-0.5 rounded-full text-xs font-medium mb-2"
-                      style={{
-                        background: SOURCE_COLORS[email.source].bg,
-                        color: SOURCE_COLORS[email.source].text,
-                      }}
-                    >
-                      {email.source.charAt(0).toUpperCase() + email.source.slice(1)}
-                    </span>
+                    {/* Badges */}
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      {/* Source Badge */}
+                      <span
+                        className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
+                        style={{
+                          background: SOURCE_COLORS[email.source].bg,
+                          color: SOURCE_COLORS[email.source].text,
+                        }}
+                      >
+                        {email.source.charAt(0).toUpperCase() + email.source.slice(1)}
+                      </span>
+
+                      {/* Status Badge */}
+                      {email.registrationStatus !== 'unknown' && (
+                        <span
+                          className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
+                          style={{
+                            background: STATUS_COLORS[email.registrationStatus].bg,
+                            color: STATUS_COLORS[email.registrationStatus].text,
+                          }}
+                        >
+                          {formatStatusLabel(email.registrationStatus)}
+                        </span>
+                      )}
+                    </div>
 
                     {/* Subject */}
-                    <h3 
+                    <h3
                       className="font-semibold text-lg truncate"
                       style={{ color: 'var(--page-text-primary)' }}
                       title={email.subject ?? undefined}
@@ -305,7 +464,7 @@ export function CreateMark() {
                     </h3>
 
                     {/* From & Date */}
-                    <div 
+                    <div
                       className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm"
                       style={{ color: 'var(--page-text-secondary)' }}
                     >
@@ -320,7 +479,7 @@ export function CreateMark() {
                     </div>
 
                     {/* Snippet */}
-                    <p 
+                    <p
                       className="mt-2 text-sm line-clamp-2"
                       style={{ color: 'var(--page-text-muted)' }}
                     >
@@ -343,6 +502,29 @@ export function CreateMark() {
               </CardContent>
             </Card>
           ))}
+
+          {/* Load More Trigger / Button */}
+          <div ref={loadMoreRef} className="flex flex-col items-center py-4 gap-4">
+            {isLoadingMore && (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin text-[var(--Controls-Selected)]" />
+                <span style={{ color: 'var(--page-text-secondary)' }}>Loading more emails...</span>
+              </div>
+            )}
+
+            {!isLoadingMore && hasMore && (
+              <Button variant="outline" onClick={loadMoreEmails} className="gap-2">
+                <ChevronDown className="h-4 w-4" />
+                Load More
+              </Button>
+            )}
+
+            {!hasMore && emails.length > 0 && (
+              <p className="text-sm" style={{ color: 'var(--page-text-muted)' }}>
+                You've reached the end
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>
