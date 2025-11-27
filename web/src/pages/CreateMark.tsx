@@ -1,12 +1,17 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { SignInModal } from '@coinbase/cdp-react'
-import { useIsSignedIn, useEvmAddress } from '@coinbase/cdp-hooks'
 import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { EmailFilter, FilterPills } from '@/components/EmailFilter'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
+import { useWallet, ConnectWalletModal } from '@/wallet'
 import { useFilterParams } from '@/hooks/useFilterParams'
 import { searchEventEmails } from '@/services/gmail'
 import {
@@ -29,6 +34,7 @@ import {
   CheckCircle,
   ChevronDown,
   FilterX,
+  AlertTriangle,
 } from 'lucide-react'
 
 // ============================================
@@ -80,11 +86,21 @@ function formatStatusLabel(status: RegistrationStatus): string {
 // ============================================
 
 export function CreateMark() {
-  // Auth & Wallet
-  const { accessToken, isAuthenticated: isGmailConnected, login: gmailLogin } = useAuth()
-  const { isSignedIn: isWalletConnected } = useIsSignedIn()
-  const { evmAddress } = useEvmAddress()
+  // Auth & Unified Wallet
+  const {
+    accessToken,
+    isAuthenticated: isGmailConnected,
+    login: gmailLogin,
+  } = useAuth()
+  const {
+    isConnected: isWalletConnected,
+    address: walletAddress,
+    error: walletError,
+  } = useWallet()
   const { showToast } = useToast()
+
+  // Check for wrong network
+  const isWrongNetwork = walletError?.type === 'WRONG_NETWORK'
 
   // Filter state (synced with URL)
   const {
@@ -145,13 +161,16 @@ export function CreateMark() {
         }
 
         setNextPageToken(result.nextPageToken)
-        setHasMore(!!result.nextPageToken && result.emails.length === EMAILS_PER_PAGE)
+        setHasMore(
+          !!result.nextPageToken && result.emails.length === EMAILS_PER_PAGE
+        )
 
         if (isInitialLoad && result.emails.length === 0) {
           showToast('No event emails found matching your filters.', 'info')
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to fetch emails'
+        const message =
+          err instanceof Error ? err.message : 'Failed to fetch emails'
         setError(message)
         showToast(message, 'error')
       } finally {
@@ -217,6 +236,11 @@ export function CreateMark() {
       return
     }
 
+    if (isWrongNetwork) {
+      showToast('Please switch to the correct network first', 'warning')
+      return
+    }
+
     setSelectedEmail(emailId)
     showToast('Minting coming soon! ZK proof generation in progress...', 'info')
 
@@ -256,8 +280,8 @@ export function CreateMark() {
               className="text-sm text-center max-w-md"
               style={{ color: 'var(--page-text-muted)' }}
             >
-              We only read event confirmation emails from Luma, Substack, and Eventbrite. Your data
-              stays private.
+              We only read event confirmation emails from Luma, Substack, and
+              Eventbrite. Your data stays private.
             </p>
           </CardContent>
         </Card>
@@ -281,36 +305,55 @@ export function CreateMark() {
           </p>
         </div>
 
-        <Button variant="outline" onClick={handleRefresh} disabled={isLoading} className="gap-2">
+        <Button
+          variant="outline"
+          onClick={handleRefresh}
+          disabled={isLoading}
+          className="gap-2"
+        >
           <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
 
+      {/* Wrong Network Warning */}
+      {isWrongNetwork && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Wrong Network</AlertTitle>
+          <AlertDescription>
+            Please switch to the correct network to mint NFTs.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Wallet Warning */}
-      {!isWalletConnected && (
+      {!isWalletConnected && !isWrongNetwork && (
         <Alert variant="warning">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Wallet Not Connected</AlertTitle>
           <AlertDescription className="flex items-center justify-between">
             <span>Connect your wallet to mint NFTs</span>
-            <SignInModal>
-              <Button variant="outline" size="sm" className="gap-1.5">
-                <Wallet className="h-4 w-4" />
-                Connect
-              </Button>
-            </SignInModal>
+            <ConnectWalletModal
+              trigger={
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Wallet className="h-4 w-4" />
+                  Connect
+                </Button>
+              }
+            />
           </AlertDescription>
         </Alert>
       )}
 
       {/* Wallet Connected Info */}
-      {isWalletConnected && evmAddress && (
+      {isWalletConnected && walletAddress && !isWrongNetwork && (
         <Alert variant="success">
           <CheckCircle className="h-4 w-4" />
           <AlertTitle>Wallet Connected</AlertTitle>
           <AlertDescription>
-            Ready to mint on Base • {evmAddress.slice(0, 6)}...{evmAddress.slice(-4)}
+            Ready to mint on Base • {walletAddress.slice(0, 6)}...
+            {walletAddress.slice(-4)}
           </AlertDescription>
         </Alert>
       )}
@@ -351,7 +394,9 @@ export function CreateMark() {
       {isLoading && emails.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-[var(--Controls-Selected)]" />
-          <p style={{ color: 'var(--page-text-secondary)' }}>Searching your emails...</p>
+          <p style={{ color: 'var(--page-text-secondary)' }}>
+            Searching your emails...
+          </p>
         </div>
       )}
 
@@ -369,7 +414,10 @@ export function CreateMark() {
                 <Mail className="h-8 w-8 text-[var(--Controls-Selected)]" />
               )}
             </div>
-            <h3 className="text-lg font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+            <h3
+              className="text-lg font-semibold"
+              style={{ color: 'var(--page-text-primary)' }}
+            >
               {hasActiveFilters ? 'No Matching Emails' : 'No Event Emails Found'}
             </h3>
             <p
@@ -382,7 +430,11 @@ export function CreateMark() {
             </p>
             <div className="flex gap-2">
               {hasActiveFilters && (
-                <Button variant="outline" onClick={clearFilters} className="gap-2">
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="gap-2"
+                >
                   <FilterX className="h-4 w-4" />
                   Clear Filters
                 </Button>
@@ -401,7 +453,10 @@ export function CreateMark() {
         <div className="space-y-4">
           {/* Email Count */}
           <div className="flex items-center justify-between">
-            <p className="text-sm" style={{ color: 'var(--page-text-secondary)' }}>
+            <p
+              className="text-sm"
+              style={{ color: 'var(--page-text-secondary)' }}
+            >
               Showing {emails.length} email{emails.length !== 1 ? 's' : ''}
               {hasMore && ' • Scroll for more'}
             </p>
@@ -414,7 +469,9 @@ export function CreateMark() {
               className="transition-all hover:scale-[1.01]"
               style={{
                 borderColor:
-                  selectedEmail === email.id ? 'var(--Controls-Selected)' : undefined,
+                  selectedEmail === email.id
+                    ? 'var(--Controls-Selected)'
+                    : undefined,
               }}
             >
               <CardContent className="p-4 sm:p-6">
@@ -424,7 +481,10 @@ export function CreateMark() {
                     className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{ background: SOURCE_COLORS[email.source].bg }}
                   >
-                    <Mail className="h-6 w-6" style={{ color: SOURCE_COLORS[email.source].text }} />
+                    <Mail
+                      className="h-6 w-6"
+                      style={{ color: SOURCE_COLORS[email.source].text }}
+                    />
                   </div>
 
                   {/* Email Details */}
@@ -439,7 +499,8 @@ export function CreateMark() {
                           color: SOURCE_COLORS[email.source].text,
                         }}
                       >
-                        {email.source.charAt(0).toUpperCase() + email.source.slice(1)}
+                        {email.source.charAt(0).toUpperCase() +
+                          email.source.slice(1)}
                       </span>
 
                       {/* Status Badge */}
@@ -447,7 +508,8 @@ export function CreateMark() {
                         <span
                           className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
                           style={{
-                            background: STATUS_COLORS[email.registrationStatus].bg,
+                            background:
+                              STATUS_COLORS[email.registrationStatus].bg,
                             color: STATUS_COLORS[email.registrationStatus].text,
                           }}
                         >
@@ -493,7 +555,7 @@ export function CreateMark() {
                   <div className="flex-shrink-0">
                     <Button
                       onClick={() => handleMarkIt(email.id)}
-                      disabled={!isWalletConnected}
+                      disabled={!isWalletConnected || isWrongNetwork}
                       className="gap-2"
                     >
                       <Sparkles className="h-4 w-4" />
@@ -506,23 +568,35 @@ export function CreateMark() {
           ))}
 
           {/* Load More Trigger / Button */}
-          <div ref={loadMoreRef} className="flex flex-col items-center py-4 gap-4">
+          <div
+            ref={loadMoreRef}
+            className="flex flex-col items-center py-4 gap-4"
+          >
             {isLoadingMore && (
               <div className="flex items-center gap-2">
                 <Loader2 className="h-5 w-5 animate-spin text-[var(--Controls-Selected)]" />
-                <span style={{ color: 'var(--page-text-secondary)' }}>Loading more emails...</span>
+                <span style={{ color: 'var(--page-text-secondary)' }}>
+                  Loading more emails...
+                </span>
               </div>
             )}
 
             {!isLoadingMore && hasMore && (
-              <Button variant="outline" onClick={loadMoreEmails} className="gap-2">
+              <Button
+                variant="outline"
+                onClick={loadMoreEmails}
+                className="gap-2"
+              >
                 <ChevronDown className="h-4 w-4" />
                 Load More
               </Button>
             )}
 
             {!hasMore && emails.length > 0 && (
-              <p className="text-sm" style={{ color: 'var(--page-text-muted)' }}>
+              <p
+                className="text-sm"
+                style={{ color: 'var(--page-text-muted)' }}
+              >
                 You've reached the end
               </p>
             )}

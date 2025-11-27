@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sparkles, Moon, Sun, Mail, LogOut, Home, Plus, Bookmark, Wallet, FlaskConical } from 'lucide-react'
-import { SignInModal } from '@coinbase/cdp-react'
-import { useIsSignedIn, useEvmAddress } from '@coinbase/cdp-hooks'
+import {
+  Sparkles,
+  Moon,
+  Sun,
+  Mail,
+  LogOut,
+  Home,
+  Plus,
+  Bookmark,
+  FlaskConical,
+  Wallet,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
+import { useWallet, ConnectWalletModal, WalletStatus } from '@/wallet'
 import { cn } from '@/lib/utils'
 
 interface LayoutProps {
@@ -23,24 +33,35 @@ const allNavItems: NavItem[] = [
   { path: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
   { path: '/create', label: 'Create', icon: <Plus className="h-4 w-4" /> },
   { path: '/marks', label: 'My Marks', icon: <Bookmark className="h-4 w-4" /> },
-  { path: '/test', label: 'Test', icon: <FlaskConical className="h-4 w-4" />, devOnly: true },
+  {
+    path: '/test',
+    label: 'Test',
+    icon: <FlaskConical className="h-4 w-4" />,
+    devOnly: true,
+  },
 ]
 
 // Filter nav items based on environment
-const navItems = allNavItems.filter(item => !item.devOnly || import.meta.env.DEV)
+const navItems = allNavItems.filter(
+  (item) => !item.devOnly || import.meta.env.DEV
+)
 
 export function Layout({ children }: LayoutProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
-  
+
   // Google OAuth (Gmail)
-  const { isAuthenticated: isGmailConnected, userInfo, login: gmailLogin, logout: gmailLogout } = useAuth()
-  
-  // CDP Wallet
-  const { isSignedIn: isWalletConnected } = useIsSignedIn()
-  const { evmAddress } = useEvmAddress()
+  const {
+    isAuthenticated: isGmailConnected,
+    userInfo,
+    login: gmailLogin,
+    logout: gmailLogout,
+  } = useAuth()
+
+  // Unified Wallet (CDP + External)
+  const { isConnected: isWalletConnected } = useWallet()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,12 +72,6 @@ export function Layout({ children }: LayoutProps) {
   }, [])
 
   const showGradient = isScrolled || isHovered
-
-  // Format wallet address for display
-  const formatAddress = (address: string | undefined) => {
-    if (!address) return ''
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
-  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -77,9 +92,10 @@ export function Layout({ children }: LayoutProps) {
             showGradient ? 'opacity-100' : 'opacity-0'
           )}
           style={{
-            background: theme === 'dark'
-              ? 'linear-gradient(to bottom, rgba(9, 66, 223, 0.2), rgba(4, 54, 224, 0.15))'
-              : 'linear-gradient(to bottom, rgba(240, 244, 249, 0.4), rgba(247, 249, 252, 0.3))',
+            background:
+              theme === 'dark'
+                ? 'linear-gradient(to bottom, rgba(9, 66, 223, 0.2), rgba(4, 54, 224, 0.15))'
+                : 'linear-gradient(to bottom, rgba(240, 244, 249, 0.4), rgba(247, 249, 252, 0.3))',
             backdropFilter: 'blur(12px)',
           }}
         />
@@ -95,7 +111,8 @@ export function Layout({ children }: LayoutProps) {
               className="font-bold text-lg sm:text-xl"
               style={{
                 color: 'var(--page-text-primary)',
-                textShadow: theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
+                textShadow:
+                  theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
               }}
             >
               mintmarks
@@ -167,35 +184,25 @@ export function Layout({ children }: LayoutProps) {
               </Button>
             )}
 
-            {/* CDP Wallet Button */}
-            {isWalletConnected && evmAddress ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5"
-                title={evmAddress}
-              >
-                <Wallet className="h-4 w-4 text-green-500" />
-                <span className="hidden sm:inline text-xs font-mono">
-                  {formatAddress(evmAddress)}
-                </span>
-              </Button>
+            {/* Wallet Button - Uses unified wallet system */}
+            {isWalletConnected ? (
+              <WalletStatus />
             ) : (
-              <SignInModal>
-                <Button variant="outline" size="sm" className="gap-1.5">
-                  <Wallet className="h-4 w-4" />
-                  <span className="hidden sm:inline">Wallet</span>
-                </Button>
-              </SignInModal>
+              <ConnectWalletModal
+                trigger={
+                  <Button variant="outline" size="sm" className="gap-1.5">
+                    <Wallet className="h-4 w-4" />
+                    <span className="hidden sm:inline">Wallet</span>
+                  </Button>
+                }
+              />
             )}
           </div>
         </nav>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
 
       {/* Footer */}
       <footer className="mt-auto border-t border-transparent py-4 sm:py-6">
