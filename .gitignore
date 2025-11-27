@@ -14,6 +14,11 @@ circuits/Prover.toml
 *.vkey
 *.eml
 
+# Foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast
+
 # Environment
 .env
 .env.local

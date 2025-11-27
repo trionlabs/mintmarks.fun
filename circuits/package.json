@@ -3,8 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "inputs": "node scripts/prepare.js",
-    "prove": "node scripts/generateProof.js"
+    "prepare:inputs": "node scripts/prepareInputs.js",
+    "generate:proof": "node scripts/generateProof.js",
+    "generate:verifier": "node scripts/generateSolidityVerifier.js"
   },
   "dependencies": {
     "@aztec/bb.js": "0.84.0",

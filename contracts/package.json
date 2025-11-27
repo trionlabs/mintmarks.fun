@@ -1,0 +1,11 @@
+{
+  "name": "@mintmarksfun/contracts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "verify-onchain": "node script/verifyOnChain.js"
+  },
+  "dependencies": {
+    "viem": "^2.21.0"
+  }
+}
