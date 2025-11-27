@@ -265,6 +265,11 @@ function App() {
       // Set event name from metadata
       setEventName(result.metadata.eventName)
 
+      // Clear passport proof since it's bound to the email nullifier
+      // User must re-verify passport for new email
+      setPassportProof(null)
+      setPassportUrl(null)
+
       setProofProgress({ message: 'Proof ready!', percent: 100 })
     } catch (err) {
       console.error('Failed to generate proof:', err)
@@ -323,6 +328,7 @@ function App() {
       })
 
       const { url, onProofGenerated, onResult } = queryBuilder
+        .gte('age', 18) // Required for valid proof structure?
         .bind('user_address', account)
         .bind('chain', 'ethereum_sepolia')
         .bind('custom_data', emailNullifier)
@@ -366,12 +372,29 @@ function App() {
     setMintStatus('Preparing transaction...')
 
     try {
+      const emailNullifierFromProof = emailPublicInputs[1]
       console.log('Mint parameters:', {
         emailProof: emailProof.slice(0, 50) + '...',
         emailPublicInputsLength: emailPublicInputs.length,
+        emailNullifier: emailNullifierFromProof,
         passportProof,
         account,
       })
+
+      // Pre-check: is this email nullifier already used?
+      setMintStatus('Checking eligibility...')
+      const isNullifierUsed = await publicClient.readContract({
+        address: CONTRACTS.mintmarks,
+        abi: MINTMARKS_ABI,
+        functionName: 'emailNullifierUsed',
+        args: [emailNullifierFromProof],
+      })
+
+      if (isNullifierUsed) {
+        setMintStatus('Error: This email has already been used to mint')
+        console.error('Email nullifier already used:', emailNullifierFromProof)
+        return
+      }
 
       setMintStatus('Simulating transaction...')
       try {
@@ -571,7 +594,7 @@ function App() {
           Verify Passport
         </h2>
         <p style={{ marginBottom: '1rem', color: '#888', fontSize: '0.85rem' }}>
-          Prove personhood and link your passport to the email proof
+          Verify you're 18+ and link your passport to the email proof
         </p>
 
         {!passportUrl ? (

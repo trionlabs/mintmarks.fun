@@ -143,6 +143,13 @@ export const MINTMARKS_ABI = [
     type: 'function',
   },
   {
+    inputs: [{ name: '', type: 'bytes32' }],
+    name: 'emailNullifierUsed',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [],
     name: 'name',
     outputs: [{ name: '', type: 'string' }],
