@@ -1,0 +1,277 @@
+@import "tailwindcss";
+
+/* ============================================
+   MINTMARKS THEME - tweakcn customized
+   Primary: #6396F4 (Blue)
+   Style: Glassmorphic
+   ============================================ */
+
+:root {
+  /* Core Theme Colors */
+  --background: oklch(1.0000 0 0);
+  --foreground: oklch(0.2126 0.0231 246.3010);
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.2126 0.0231 246.3010);
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.2126 0.0231 246.3010);
+  --primary: oklch(0.6396 0.1928 262.1643);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0.01 246);
+  --secondary-foreground: oklch(0.205 0.02 246);
+  --muted: oklch(0.97 0.01 246);
+  --muted-foreground: oklch(0.556 0.02 246);
+  --accent: oklch(0.97 0.01 246);
+  --accent-foreground: oklch(0.205 0.02 246);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.9324 0.0168 230.9139);
+  --input: oklch(0.9324 0.0168 230.9139);
+  --ring: oklch(0.6396 0.1928 262.1643);
+  --radius: 0.625rem;
+
+  /* Page Content Colors */
+  --page-text-primary: oklch(0.15 0.02 246);
+  --page-text-secondary: oklch(0.4 0.02 246);
+  --page-text-muted: oklch(0.55 0.02 246);
+  --page-badge-bg: rgba(255, 255, 255, 0.85);
+  --page-badge-border: rgba(255, 255, 255, 0.5);
+  --page-border-color: rgba(255, 255, 255, 0.4);
+  --page-content-bg: rgba(247, 249, 252, 0.8);
+  --page-content-border: rgba(240, 244, 249, 0.5);
+
+  /* Glassmorphic System */
+  --glass-bg-primary: rgba(255, 255, 255, 0.75);
+  --glass-bg-secondary: rgba(255, 255, 255, 0.65);
+  --glass-bg-tertiary: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-blur: 16px;
+  --glass-saturate: 180%;
+  --glass-shadow: 0 8px 32px rgba(99, 150, 244, 0.08);
+
+  /* Figma Card System */
+  --figma-card-stroke: rgba(255, 255, 255, 0.3);
+  --figma-card-blur: 16px;
+  --figma-card-radius: 12px;
+  --figma-ultra-dark: rgba(255, 255, 255, 0.85);
+
+  /* CTA Button Tokens (Light Mode) */
+  --figma-cta1-bg: #1E1D1F;
+  --figma-cta1-border: #F7F9FC;
+  --figma-cta1-text: #F7F9FC;
+  --figma-cta1-hover-bg: #7B797D;
+  --figma-cta1-hover-border: #F7F9FC;
+  --figma-cta1-hover-text: #F7F9FC;
+  --figma-cta1-active-bg: #7B797D;
+
+  /* Outline Button (cta2) */
+  --figma-cta2-bg: #F7FBFF;
+  --figma-cta2-border: #FFFFFF;
+  --figma-cta2-text: rgba(30, 29, 31, 0.92);
+
+  /* Secondary Button (cta3) */
+  --figma-cta3-bg: rgba(10, 75, 255, 0.08);
+  --figma-cta3-border: rgba(10, 75, 255, 0.2);
+  --figma-cta3-text: #0A4BFF;
+
+  /* CTA Outline Card */
+  --cta-outline-card-border: rgba(100, 116, 139, 0.25);
+  --cta-outline-card-bg: rgba(255, 255, 255, 0.85);
+  --cta-outline-card-blur: 16px;
+  --cta-outline-card-blend: normal;
+
+  /* Background Animation Colors */
+  --bg-animation-gradient-start: #F0F4F9;
+  --bg-animation-gradient-mid: #F7F9FC;
+  --bg-animation-gradient-end: #F0F4F9;
+  --bg-animation-bar-color-light: rgba(247, 249, 252, 0.6);
+  --bg-animation-bar-color-mid: rgba(240, 244, 249, 0.5);
+  --bg-animation-bar-color-dark: rgba(240, 244, 249, 0.5);
+  --bg-animation-line-color: rgba(230, 244, 249, 0.15);
+
+  /* Controls */
+  --Controls-Selected: #6396F4;
+  --Controls-Idle: rgba(99, 150, 244, 0.1);
+}
+
+.dark {
+  /* Core Theme Colors */
+  --background: oklch(0.05 0.01 246);
+  --foreground: oklch(0.9323 0.0042 236.4998);
+  --card: oklch(0.1 0.01 246);
+  --card-foreground: oklch(0.9323 0.0042 236.4998);
+  --popover: oklch(0.1 0.01 246);
+  --popover-foreground: oklch(0.9323 0.0042 236.4998);
+  --primary: oklch(1.0000 0 0);
+  --primary-foreground: oklch(0.205 0.02 246);
+  --secondary: oklch(0.269 0.01 246);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0.01 246);
+  --muted-foreground: oklch(0.708 0.01 246);
+  --accent: oklch(0.269 0.01 246);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.2668 0.0071 248.0940);
+  --input: oklch(0.2668 0.0071 248.0940);
+  --ring: oklch(0.6396 0.1928 262.1643);
+
+  /* Page Content Colors */
+  --page-text-primary: oklch(0.9 0.02 246);
+  --page-text-secondary: oklch(0.78 0.02 246);
+  --page-text-muted: oklch(0.68 0.02 246);
+  --page-badge-bg: rgba(15, 27, 54, 0.95);
+  --page-badge-border: rgba(99, 150, 244, 0.4);
+  --page-border-color: rgba(99, 150, 244, 0.3);
+  --page-content-bg: rgba(15, 27, 54, 0.85);
+  --page-content-border: rgba(99, 150, 244, 0.3);
+
+  /* Glassmorphic System */
+  --glass-bg-primary: rgba(15, 27, 54, 0.85);
+  --glass-bg-secondary: rgba(15, 27, 54, 0.75);
+  --glass-bg-tertiary: rgba(15, 27, 54, 0.65);
+  --glass-border: rgba(99, 150, 244, 0.2);
+  --glass-blur: 20px;
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  /* Figma Card System */
+  --figma-card-stroke: rgba(168, 168, 168, 0.71);
+  --figma-card-blur: 8px;
+  --figma-card-radius: 10px;
+  --figma-ultra-dark: rgba(162, 162, 162, 0.92);
+
+  /* CTA Button Tokens (Dark Mode) */
+  --figma-cta1-bg: #F7FBFF;
+  --figma-cta1-border: #FFFFFF;
+  --figma-cta1-text: rgba(30, 29, 31, 0.92);
+  --figma-cta1-hover-bg: #F7FBFF;
+  --figma-cta1-hover-border: #FFFFFF;
+  --figma-cta1-hover-text: rgba(30, 29, 31, 0.92);
+  --figma-cta1-active-bg: rgba(232, 236, 241, 0.91);
+
+  /* Outline Button (cta2) - Dark */
+  --figma-cta2-bg: #1E1D1F;
+  --figma-cta2-border: #F7F9FC;
+  --figma-cta2-text: #F7F9FC;
+
+  /* Secondary Button (cta3) - Dark */
+  --figma-cta3-bg: rgba(31, 31, 31, 0.9);
+  --figma-cta3-border: rgba(210, 213, 224, 0.3);
+  --figma-cta3-text: #F7F9FC;
+
+  /* CTA Outline Card - Dark */
+  --cta-outline-card-border: rgba(100, 130, 180, 0.3);
+  --cta-outline-card-bg: rgba(20, 30, 50, 0.8);
+  --cta-outline-card-blur: 14px;
+  --cta-outline-card-blend: normal;
+
+  /* Background Animation Colors */
+  --bg-animation-gradient-start: #0942DF;
+  --bg-animation-gradient-mid: #0436E0;
+  --bg-animation-gradient-end: #0942DF;
+  --bg-animation-bar-color-light: rgba(21, 78, 235, 0.6);
+  --bg-animation-bar-color-mid: rgba(4, 54, 224, 0.5);
+  --bg-animation-bar-color-dark: rgba(3, 45, 210, 0.4);
+  --bg-animation-line-color: rgba(9, 66, 223, 0.4);
+
+  /* Controls */
+  --Controls-Selected: #6396F4;
+  --Controls-Idle: rgba(99, 150, 244, 0.2);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Glassmorphic Utility Classes */
+@layer utilities {
+  .glass-primary {
+    background: var(--glass-bg-primary);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-secondary {
+    background: var(--glass-bg-secondary);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    border: 1px solid var(--glass-border);
+  }
+
+  .glass-tertiary {
+    background: var(--glass-bg-tertiary);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    border: 1px solid var(--glass-border);
+  }
+
+  .card-figma {
+    border-radius: var(--figma-card-radius);
+    border: 1px solid var(--cta-outline-card-border);
+    background: var(--cta-outline-card-bg);
+    backdrop-filter: blur(var(--cta-outline-card-blur));
+    position: relative;
+    overflow: hidden;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-figma-with-blur {
+    border-radius: var(--figma-card-radius);
+    border: 1px solid var(--cta-outline-card-border);
+    background: var(--cta-outline-card-bg);
+    backdrop-filter: blur(var(--cta-outline-card-blur));
+    position: relative;
+    overflow: hidden;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-figma-hover:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: scale(1.02);
+  }
+
+  .card-glass {
+    background: var(--page-badge-bg);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--page-border-color);
+    border-radius: var(--figma-card-radius);
+    color: var(--page-text-primary);
+  }
+
+  /* Light mode specific fixes */
+  :root .card-figma,
+  :root .card-figma-with-blur {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  }
+}
+}
