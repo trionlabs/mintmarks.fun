@@ -17,6 +17,7 @@ circuits/Prover.toml
 # Foundry
 contracts/out/
 contracts/cache/
+contracts/broadcast
 
 # Environment
 .env
