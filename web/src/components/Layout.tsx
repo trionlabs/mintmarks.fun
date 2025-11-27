@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sparkles, Moon, Sun, Mail, LogOut, Home, Plus, Bookmark } from 'lucide-react'
+import { Sparkles, Moon, Sun, Mail, LogOut, Home, Plus, Bookmark, Wallet } from 'lucide-react'
+import { SignInModal } from '@coinbase/cdp-react'
+import { useIsSignedIn, useEvmAddress } from '@coinbase/cdp-hooks'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 
 interface LayoutProps {
@@ -26,6 +29,13 @@ export function Layout({ children }: LayoutProps) {
   const [isHovered, setIsHovered] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
+  
+  // Google OAuth (Gmail)
+  const { isAuthenticated: isGmailConnected, userInfo, login: gmailLogin, logout: gmailLogout } = useAuth()
+  
+  // CDP Wallet
+  const { isSignedIn: isWalletConnected } = useIsSignedIn()
+  const { evmAddress } = useEvmAddress()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,6 +46,12 @@ export function Layout({ children }: LayoutProps) {
   }, [])
 
   const showGradient = isScrolled || isHovered
+
+  // Format wallet address for display
+  const formatAddress = (address: string | undefined) => {
+    if (!address) return ''
+    return `${address.slice(0, 6)}...${address.slice(-4)}`
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -67,17 +83,13 @@ export function Layout({ children }: LayoutProps) {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <Sparkles
-              className={cn(
-                'h-5 w-5 sm:h-6 sm:w-6 transition-colors',
-                theme === 'dark' ? 'text-white' : 'text-[#1A1A1A]'
-              )}
+              className="h-5 w-5 sm:h-6 sm:w-6 transition-colors"
+              style={{ color: 'var(--page-text-primary)' }}
             />
             <span
-              className={cn(
-                'font-bold text-lg sm:text-xl',
-                theme === 'dark' ? 'text-white' : 'text-[#1A1A1A]'
-              )}
+              className="font-bold text-lg sm:text-xl"
               style={{
+                color: 'var(--page-text-primary)',
                 textShadow: theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
               }}
             >
@@ -98,13 +110,10 @@ export function Layout({ children }: LayoutProps) {
                     'text-xs sm:text-sm font-medium rounded-md',
                     'transition-all',
                     isActive
-                      ? theme === 'dark'
-                        ? 'bg-white/10 text-white backdrop-blur-md'
-                        : 'bg-black/5 text-[#1A1A1A] backdrop-blur-md'
-                      : theme === 'dark'
-                        ? 'text-white/70 hover:bg-white/10 hover:text-white'
-                        : 'text-[#1A1A1A]/70 hover:bg-black/5 hover:text-[#1A1A1A]'
+                      ? 'bg-primary/10 backdrop-blur-md'
+                      : 'opacity-70 hover:opacity-100 hover:bg-primary/5'
                   )}
+                  style={{ color: 'var(--page-text-primary)' }}
                 >
                   {item.icon}
                   <span className="hidden sm:inline">{item.label}</span>
@@ -126,11 +135,54 @@ export function Layout({ children }: LayoutProps) {
               )}
             </Button>
 
-            {/* Auth Button (placeholder) */}
-            <Button variant="outline" size="sm">
-              <Mail className="h-4 w-4" />
-              <span className="hidden sm:inline ml-1.5">Sign In</span>
-            </Button>
+            {/* Gmail Auth Button */}
+            {isGmailConnected ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={gmailLogout}
+                className="gap-1.5"
+                title={userInfo?.email ?? 'Gmail Connected'}
+              >
+                <Mail className="h-4 w-4 text-green-500" />
+                <span className="hidden sm:inline text-xs">
+                  {userInfo?.email?.split('@')[0] ?? 'Gmail'}
+                </span>
+                <LogOut className="h-3 w-3 opacity-50" />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={gmailLogin}
+                className="gap-1.5"
+              >
+                <Mail className="h-4 w-4" />
+                <span className="hidden sm:inline">Gmail</span>
+              </Button>
+            )}
+
+            {/* CDP Wallet Button */}
+            {isWalletConnected && evmAddress ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5"
+                title={evmAddress}
+              >
+                <Wallet className="h-4 w-4 text-green-500" />
+                <span className="hidden sm:inline text-xs font-mono">
+                  {formatAddress(evmAddress)}
+                </span>
+              </Button>
+            ) : (
+              <SignInModal>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Wallet className="h-4 w-4" />
+                  <span className="hidden sm:inline">Wallet</span>
+                </Button>
+              </SignInModal>
+            )}
           </div>
         </nav>
       </header>
@@ -154,4 +206,3 @@ export function Layout({ children }: LayoutProps) {
     </div>
   )
 }
-
