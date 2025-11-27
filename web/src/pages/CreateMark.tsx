@@ -92,6 +92,7 @@ export function CreateMark() {
     toggleSource,
     toggleStatus,
     clearFilters,
+    clearStatuses,
     hasActiveFilters,
     activeFilterCount,
   } = useFilterParams()
@@ -320,6 +321,7 @@ export function CreateMark() {
         onToggleSource={toggleSource}
         onToggleStatus={toggleStatus}
         onClearFilters={clearFilters}
+        onClearStatuses={clearStatuses}
         hasActiveFilters={hasActiveFilters}
         activeFilterCount={activeFilterCount}
         disabled={isLoading}

@@ -1,25 +1,21 @@
 /**
  * EmailFilter Component
  *
- * Modular filter UI with collapsible categories and subcategories.
- * Supports source filtering (Luma, Substack, Eventbrite) and status filtering.
+ * Minimal, fast filter UI with micro-interactions.
+ * - Single row of source pills with smooth transitions
+ * - Click source to toggle selection
+ * - Click chevron (when selected) to open status dropdown
+ * - Uses CSS variables for light/dark mode consistency
  */
 
-import { useState, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { EMAIL_FILTER_CATEGORIES, getFilterSummary, SOURCE_COLORS } from '@/config/emailFilters'
+import { useCallback, useMemo, useState } from 'react'
+import {
+  EMAIL_FILTER_CATEGORIES,
+  getStatusLabelForSource,
+} from '@/config/emailFilters'
 import type { EmailSource } from '@/types/gmail'
 import type { ActiveFilters, RegistrationStatus } from '@/types/filters'
-import {
-  Filter,
-  ChevronDown,
-  ChevronUp,
-  X,
-  Check,
-  Calendar,
-  Mail,
-  Ticket,
-} from 'lucide-react'
+import { X, Check, ChevronDown } from 'lucide-react'
 
 // ============================================
 // Types
@@ -30,232 +26,151 @@ interface EmailFilterProps {
   onToggleSource: (source: EmailSource) => void
   onToggleStatus: (status: RegistrationStatus) => void
   onClearFilters: () => void
+  onClearStatuses: () => void
   hasActiveFilters: boolean
   activeFilterCount: number
   disabled?: boolean
 }
 
 // ============================================
-// Source Icons
+// Minimal Source Pill
 // ============================================
 
-const SOURCE_ICONS: Record<EmailSource, React.ReactNode> = {
-  luma: <Calendar className="h-4 w-4" />,
-  substack: <Mail className="h-4 w-4" />,
-  eventbrite: <Ticket className="h-4 w-4" />,
-  unknown: <Mail className="h-4 w-4" />,
+interface SourcePillProps {
+  label: string
+  isSelected: boolean
+  isExpanded: boolean
+  onToggle: () => void
+  onExpandToggle: () => void
+  onClearStatuses: () => void
+  disabled?: boolean
+  statuses: { id: RegistrationStatus; label: string }[]
+  selectedStatuses: RegistrationStatus[]
+  onToggleStatus: (status: RegistrationStatus) => void
 }
 
-// ============================================
-// Component
-// ============================================
-
-export function EmailFilter({
-  filters,
-  onToggleSource,
+function SourcePill({
+  label,
+  isSelected,
+  isExpanded,
+  onToggle,
+  onExpandToggle,
+  onClearStatuses,
+  disabled,
+  statuses,
+  selectedStatuses,
   onToggleStatus,
-  onClearFilters,
-  hasActiveFilters,
-  activeFilterCount,
-  disabled = false,
-}: EmailFilterProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
-
-  // Toggle category expansion
-  const toggleCategory = useCallback((categoryId: string) => {
-    setExpandedCategories((prev) => {
-      const next = new Set(prev)
-      if (next.has(categoryId)) {
-        next.delete(categoryId)
-      } else {
-        next.add(categoryId)
-      }
-      return next
-    })
-  }, [])
-
-  // Check if source is selected
-  const isSourceSelected = (source: EmailSource) => filters.sources.includes(source)
-
-  // Check if status is selected
-  const isStatusSelected = (status: RegistrationStatus) => filters.statuses.includes(status)
-
+}: SourcePillProps) {
   return (
-    <div
-      className="rounded-lg overflow-hidden"
-      style={{
-        background: 'var(--glass-bg-secondary)',
-        border: '1px solid var(--glass-border)',
-      }}
-    >
-      {/* Filter Header */}
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        disabled={disabled}
-        aria-expanded={isExpanded}
-        aria-controls="email-filter-content"
-        className="w-full flex items-center justify-between p-3 sm:p-4 transition-colors hover:bg-[var(--glass-bg-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4" style={{ color: 'var(--Controls-Selected)' }} />
-          <span
-            className="font-medium text-sm sm:text-base"
-            style={{ color: 'var(--page-text-primary)' }}
-          >
-            Filters
-          </span>
-          {hasActiveFilters && (
-            <span
-              className="px-2 py-0.5 rounded-full text-xs font-medium"
-              style={{
-                background: 'var(--Controls-Idle)',
-                color: 'var(--Controls-Selected)',
-              }}
-            >
-              {activeFilterCount}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {hasActiveFilters && (
-            <span
-              className="text-xs sm:text-sm hidden sm:block"
-              style={{ color: 'var(--page-text-secondary)' }}
-            >
-              {getFilterSummary(filters)}
-            </span>
-          )}
-          {isExpanded ? (
-            <ChevronUp className="h-4 w-4" style={{ color: 'var(--page-text-secondary)' }} />
-          ) : (
-            <ChevronDown className="h-4 w-4" style={{ color: 'var(--page-text-secondary)' }} />
-          )}
-        </div>
-      </button>
-
-      {/* Filter Content */}
-      {isExpanded && (
-        <div
-          id="email-filter-content"
-          className="border-t p-3 sm:p-4 space-y-4"
-          style={{ borderColor: 'var(--glass-border)' }}
+    <div className="relative">
+      <div className="flex items-center">
+        {/* Main pill - toggles selection */}
+        <button
+          type="button"
+          onClick={onToggle}
+          disabled={disabled}
+          className={`
+            relative px-3 py-1.5 text-sm font-medium
+            transition-all duration-200 ease-out
+            disabled:opacity-50 disabled:cursor-not-allowed
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1
+            ${isSelected 
+              ? 'bg-[var(--Controls-Idle)] text-[var(--Controls-Selected)]' 
+              : 'bg-transparent text-[var(--page-text-secondary)] hover:text-[var(--page-text-primary)] hover:bg-[var(--glass-bg-tertiary)]'
+            }
+            ${isSelected ? 'rounded-l-full' : 'rounded-full'}
+            active:scale-95
+          `}
         >
-          {/* Clear Filters Button */}
-          {hasActiveFilters && (
-            <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClearFilters}
-                disabled={disabled}
-                className="gap-1.5 text-xs"
-              >
-                <X className="h-3 w-3" />
-                Clear All
-              </Button>
-            </div>
-          )}
+          {label}
+        </button>
 
-          {/* Source Categories */}
-          <div className="space-y-2">
-            <h4
-              className="text-xs font-semibold uppercase tracking-wider"
-              style={{ color: 'var(--page-text-muted)' }}
-            >
-              Sources
-            </h4>
+        {/* Chevron button - only shows when selected, opens dropdown */}
+        {isSelected && (
+          <button
+            type="button"
+            onClick={onExpandToggle}
+            disabled={disabled}
+            className={`
+              px-1.5 py-1.5 rounded-r-full text-sm
+              bg-[var(--Controls-Idle)] text-[var(--Controls-Selected)]
+              transition-all duration-200 ease-out
+              hover:bg-[var(--Controls-Idle)] hover:opacity-80
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]
+              active:scale-95
+            `}
+            aria-label="Toggle status filter"
+          >
+            <ChevronDown 
+              className={`h-3.5 w-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+            />
+          </button>
+        )}
+      </div>
 
-            <div className="flex flex-wrap gap-2">
-              {EMAIL_FILTER_CATEGORIES.map((category) => (
-                <button
-                  key={category.id}
-                  type="button"
-                  onClick={() => onToggleSource(category.id)}
-                  disabled={disabled}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: isSourceSelected(category.id)
-                      ? SOURCE_COLORS[category.id].bg
-                      : 'var(--glass-bg-tertiary)',
-                    border: `1px solid ${
-                      isSourceSelected(category.id)
-                        ? SOURCE_COLORS[category.id].border
-                        : 'var(--glass-border)'
-                    }`,
-                    color: isSourceSelected(category.id)
-                      ? SOURCE_COLORS[category.id].text
-                      : 'var(--page-text-secondary)',
-                  }}
-                >
-                  {SOURCE_ICONS[category.id]}
-                  {category.label}
-                  {isSourceSelected(category.id) && <Check className="h-3 w-3" />}
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* Status Dropdown */}
+      {isSelected && isExpanded && (
+        <div 
+          className={`
+            absolute top-full left-0 mt-2 z-10
+            flex flex-col gap-1 p-1.5 rounded-lg min-w-[120px]
+            bg-[var(--glass-bg-primary)] border border-[var(--glass-border)]
+            shadow-lg backdrop-blur-md
+            animate-in fade-in slide-in-from-top-1 duration-150
+          `}
+        >
+          {/* All option - shows all emails from this source */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onClearStatuses()
+            }}
+            className={`
+              px-2.5 py-1.5 rounded-md text-xs font-medium text-left
+              transition-all duration-150
+              ${selectedStatuses.length === 0 
+                ? 'bg-[var(--Controls-Idle)] text-[var(--Controls-Selected)]' 
+                : 'text-[var(--page-text-secondary)] hover:bg-[var(--glass-bg-tertiary)] hover:text-[var(--page-text-primary)]'
+              }
+              active:scale-95
+            `}
+          >
+            <span className="flex items-center justify-between gap-2">
+              All
+              {selectedStatuses.length === 0 && <Check className="h-3 w-3" />}
+            </span>
+          </button>
 
-          {/* Status Subcategories */}
-          {EMAIL_FILTER_CATEGORIES.map((category) => {
-            const isSelected = isSourceSelected(category.id)
-            const isCategoryExpanded = expandedCategories.has(category.id)
+          {/* Divider */}
+          <div className="h-px my-0.5 bg-[var(--glass-border)]" />
 
-            // Only show subcategories if source is selected or no sources selected
-            if (filters.sources.length > 0 && !isSelected) return null
-
+          {/* Status options */}
+          {statuses.map((status) => {
+            const isStatusSelected = selectedStatuses.includes(status.id)
             return (
-              <div key={`${category.id}-status`} className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() => toggleCategory(category.id)}
-                  className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider w-full"
-                  style={{ color: 'var(--page-text-muted)' }}
-                >
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ background: SOURCE_COLORS[category.id].text }}
-                  />
-                  {category.label} Status
-                  {isCategoryExpanded ? (
-                    <ChevronUp className="h-3 w-3 ml-auto" />
-                  ) : (
-                    <ChevronDown className="h-3 w-3 ml-auto" />
-                  )}
-                </button>
-
-                {isCategoryExpanded && (
-                  <div className="flex flex-wrap gap-2 pl-4">
-                    {category.subcategories.map((subcategory) => (
-                      <button
-                        key={`${category.id}-${subcategory.id}`}
-                        type="button"
-                        onClick={() => onToggleStatus(subcategory.id)}
-                        disabled={disabled}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-all text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{
-                          background: isStatusSelected(subcategory.id)
-                            ? 'var(--Controls-Idle)'
-                            : 'transparent',
-                          border: `1px solid ${
-                            isStatusSelected(subcategory.id)
-                              ? 'var(--Controls-Selected)'
-                              : 'var(--glass-border)'
-                          }`,
-                          color: isStatusSelected(subcategory.id)
-                            ? 'var(--Controls-Selected)'
-                            : 'var(--page-text-secondary)',
-                        }}
-                      >
-                        {subcategory.label}
-                        {isStatusSelected(subcategory.id) && <Check className="h-3 w-3" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <button
+                key={status.id}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onToggleStatus(status.id)
+                }}
+                className={`
+                  px-2.5 py-1.5 rounded-md text-xs font-medium text-left
+                  transition-all duration-150
+                  ${isStatusSelected 
+                    ? 'bg-[var(--Controls-Idle)] text-[var(--Controls-Selected)]' 
+                    : 'text-[var(--page-text-secondary)] hover:bg-[var(--glass-bg-tertiary)] hover:text-[var(--page-text-primary)]'
+                  }
+                  active:scale-95
+                `}
+              >
+                <span className="flex items-center justify-between gap-2">
+                  {status.label}
+                  {isStatusSelected && <Check className="h-3 w-3" />}
+                </span>
+              </button>
             )
           })}
         </div>
@@ -265,7 +180,159 @@ export function EmailFilter({
 }
 
 // ============================================
-// Compact Filter Pills (Alternative UI)
+// Main Component
+// ============================================
+
+export function EmailFilter({
+  filters,
+  onToggleSource,
+  onToggleStatus,
+  onClearFilters,
+  onClearStatuses,
+  hasActiveFilters,
+  activeFilterCount,
+  disabled = false,
+}: EmailFilterProps) {
+  const [expandedSource, setExpandedSource] = useState<EmailSource | null>(null)
+
+  // Get selected categories
+  const activeCategories = useMemo(() => {
+    return EMAIL_FILTER_CATEGORIES.filter((cat) => filters.sources.includes(cat.id))
+  }, [filters.sources])
+
+  // Handle source toggle (select/unselect)
+  const handleToggleSource = useCallback((source: EmailSource) => {
+    onToggleSource(source)
+    // Close dropdown when toggling
+    setExpandedSource(null)
+  }, [onToggleSource])
+
+  // Handle expand toggle (open/close dropdown)
+  const handleExpandToggle = useCallback((source: EmailSource) => {
+    setExpandedSource(prev => prev === source ? null : source)
+  }, [])
+
+  // Close dropdown when clicking outside
+  const handleContainerClick = useCallback(() => {
+    if (expandedSource) {
+      setExpandedSource(null)
+    }
+  }, [expandedSource])
+
+  return (
+    <div 
+      className="flex items-center gap-2 flex-wrap"
+      onClick={handleContainerClick}
+    >
+      {/* All Button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          onClearFilters()
+          setExpandedSource(null)
+        }}
+        disabled={disabled}
+        className={`
+          px-3 py-1.5 rounded-full text-sm font-medium
+          transition-all duration-200 ease-out
+          disabled:opacity-50 disabled:cursor-not-allowed
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1
+          ${!hasActiveFilters 
+            ? 'bg-[var(--Controls-Idle)] text-[var(--Controls-Selected)]' 
+            : 'bg-transparent text-[var(--page-text-secondary)] hover:text-[var(--page-text-primary)] hover:bg-[var(--glass-bg-tertiary)]'
+          }
+          active:scale-95
+        `}
+      >
+        All
+      </button>
+
+      {/* Divider */}
+      <div className="w-px h-5 mx-0.5 bg-[var(--glass-border)]" />
+
+      {/* Source Pills */}
+      {EMAIL_FILTER_CATEGORIES.map((category) => {
+        const isSelected = filters.sources.includes(category.id)
+        const isExpanded = expandedSource === category.id
+        const statuses = category.subcategories.map(sub => ({
+          id: sub.id,
+          label: getStatusLabelForSource(sub.id, category.id)
+        }))
+
+        return (
+          <div key={category.id} onClick={(e) => e.stopPropagation()}>
+            <SourcePill
+              label={category.label}
+              isSelected={isSelected}
+              isExpanded={isExpanded}
+              onToggle={() => handleToggleSource(category.id)}
+              onExpandToggle={() => handleExpandToggle(category.id)}
+              onClearStatuses={onClearStatuses}
+              disabled={disabled}
+              statuses={statuses}
+              selectedStatuses={filters.statuses}
+              onToggleStatus={onToggleStatus}
+            />
+          </div>
+        )
+      })}
+
+      {/* Active Status Pills (inline) */}
+      {filters.statuses.length > 0 && activeCategories.length > 0 && (
+        <>
+          <div className="w-px h-5 mx-0.5 bg-[var(--glass-border)]" />
+          
+          {filters.statuses.map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleStatus(status)
+              }}
+              disabled={disabled}
+              className={`
+                flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium
+                bg-[var(--Controls-Idle)] text-[var(--Controls-Selected)]
+                transition-all duration-150
+                hover:opacity-80 active:scale-95
+              `}
+            >
+              {getStatusLabelForSource(status, activeCategories[0]?.id ?? 'luma')}
+              <X className="h-3 w-3" />
+            </button>
+          ))}
+        </>
+      )}
+
+      {/* Clear All (minimal) */}
+      {hasActiveFilters && activeFilterCount > 1 && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onClearFilters()
+            setExpandedSource(null)
+          }}
+          disabled={disabled}
+          className={`
+            p-1.5 rounded-full text-[var(--page-text-muted)]
+            transition-all duration-150
+            hover:bg-[var(--glass-bg-tertiary)] hover:text-[var(--page-text-primary)]
+            active:scale-95
+          `}
+          title="Clear all filters"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// Compact Filter Pills (for compatibility)
 // ============================================
 
 interface FilterPillsProps {
@@ -285,7 +352,6 @@ export function FilterPills({
 }: FilterPillsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {/* Source Pills */}
       {EMAIL_FILTER_CATEGORIES.map((category) => {
         const isSelected = filters.sources.includes(category.id)
         return (
@@ -294,35 +360,60 @@ export function FilterPills({
             type="button"
             onClick={() => onToggleSource(category.id)}
             disabled={disabled}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              background: isSelected ? SOURCE_COLORS[category.id].bg : 'var(--glass-bg-tertiary)',
-              border: `1px solid ${
-                isSelected ? SOURCE_COLORS[category.id].border : 'var(--glass-border)'
-              }`,
-              color: isSelected ? SOURCE_COLORS[category.id].text : 'var(--page-text-secondary)',
-            }}
+            className={`
+              px-3 py-1.5 rounded-full text-xs font-medium
+              transition-all duration-200
+              ${isSelected 
+                ? 'bg-[var(--Controls-Idle)] text-[var(--Controls-Selected)]' 
+                : 'bg-[var(--glass-bg-tertiary)] text-[var(--page-text-secondary)] border border-[var(--glass-border)]'
+              }
+              active:scale-95
+            `}
           >
-            {SOURCE_ICONS[category.id]}
             {category.label}
           </button>
         )
       })}
 
-      {/* Clear Button */}
       {hasActiveFilters && (
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
+          type="button"
           onClick={onClearFilters}
           disabled={disabled}
-          className="gap-1 text-xs h-7"
+          className="p-1.5 rounded-full text-[var(--page-text-muted)] hover:bg-[var(--glass-bg-tertiary)] transition-all active:scale-95"
         >
-          <X className="h-3 w-3" />
-          Clear
-        </Button>
+          <X className="h-3.5 w-3.5" />
+        </button>
       )}
     </div>
   )
 }
 
+// ============================================
+// Status Badge (for email cards)
+// ============================================
+
+interface StatusBadgeProps {
+  status: RegistrationStatus
+  source: EmailSource
+  size?: 'sm' | 'md'
+}
+
+export function StatusBadge({ status, source, size = 'sm' }: StatusBadgeProps) {
+  if (status === 'unknown') return null
+
+  const label = getStatusLabelForSource(status, source)
+  const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'
+
+  return (
+    <span
+      className={`
+        inline-flex items-center rounded-full font-medium
+        bg-[var(--Controls-Idle)] text-[var(--Controls-Selected)]
+        ${sizeClasses}
+      `}
+    >
+      {label}
+    </span>
+  )
+}

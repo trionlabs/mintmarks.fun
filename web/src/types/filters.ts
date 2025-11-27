@@ -13,7 +13,7 @@ import type { EmailSource } from './gmail'
 /**
  * Registration status detected from email content
  */
-export type RegistrationStatus = 'confirmed' | 'pending' | 'cancelled' | 'unknown'
+export type RegistrationStatus = 'confirmed' | 'pending' | 'attended' | 'unknown'
 
 /**
  * Registration status configuration

@@ -92,9 +92,9 @@ export interface EmailMetadata {
 }
 
 /**
- * Email source type (Luma, Substack, etc.)
+ * Email source type (Luma, Substack, Eventbrite, Amazon)
  */
-export type EmailSource = 'luma' | 'substack' | 'eventbrite' | 'unknown'
+export type EmailSource = 'luma' | 'substack' | 'eventbrite' | 'amazon' | 'unknown'
 
 /**
  * Email search result
@@ -164,7 +164,7 @@ export const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1/users/me'
 export const EMAIL_SOURCES: Record<EmailSource, { domains: string[]; keywords: string[] }> = {
   luma: {
     domains: ['lu.ma', 'luma.co', 'luma-mail.com'],
-    keywords: ['registered', 'confirmed', 'rsvp', 'event'],
+    keywords: ['registered', 'confirmed', 'rsvp', 'event', 'thanks for joining'],
   },
   substack: {
     domains: ['substack.com'],
@@ -173,6 +173,10 @@ export const EMAIL_SOURCES: Record<EmailSource, { domains: string[]; keywords: s
   eventbrite: {
     domains: ['eventbrite.com'],
     keywords: ['registered', 'confirmed', 'ticket'],
+  },
+  amazon: {
+    domains: ['amazon.com', 'amazon.co'],
+    keywords: ['order', 'shipped', 'delivered', 'purchase'],
   },
   unknown: {
     domains: [],

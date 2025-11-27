@@ -33,6 +33,8 @@ interface UseFilterParamsReturn {
   toggleStatus: (status: RegistrationStatus) => void
   /** Clear all filters */
   clearFilters: () => void
+  /** Clear only statuses (keep sources) */
+  clearStatuses: () => void
   /** Check if any filters are active */
   hasActiveFilters: boolean
   /** Number of active filters */
@@ -105,13 +107,21 @@ export function useFilterParams(): UseFilterParamsReturn {
   )
 
   // Toggle source
+  // When selecting Luma, auto-select "attended" status by default
   const toggleSource = useCallback(
     (source: EmailSource) => {
-      const newSources = filters.sources.includes(source)
+      const isRemoving = filters.sources.includes(source)
+      const newSources = isRemoving
         ? filters.sources.filter((s) => s !== source)
         : [...filters.sources, source]
 
-      updateParams({ ...filters, sources: newSources })
+      // Auto-select "attended" when adding Luma (if no status selected)
+      let newStatuses = filters.statuses
+      if (!isRemoving && source === 'luma' && filters.statuses.length === 0) {
+        newStatuses = ['attended']
+      }
+
+      updateParams({ sources: newSources, statuses: newStatuses })
     },
     [filters, updateParams]
   )
@@ -133,6 +143,11 @@ export function useFilterParams(): UseFilterParamsReturn {
     updateParams({ sources: [], statuses: [] })
   }, [updateParams])
 
+  // Clear only statuses (keep sources)
+  const clearStatuses = useCallback(() => {
+    updateParams({ ...filters, statuses: [] })
+  }, [filters, updateParams])
+
   // Computed values
   const hasActiveFilters = filters.sources.length > 0 || filters.statuses.length > 0
   const activeFilterCount = filters.sources.length + filters.statuses.length
@@ -143,6 +158,7 @@ export function useFilterParams(): UseFilterParamsReturn {
     toggleSource,
     toggleStatus,
     clearFilters,
+    clearStatuses,
     hasActiveFilters,
     activeFilterCount,
   }
