@@ -44,3 +44,7 @@ coverage/
 
 # AI
 CLAUDE.md
+
+# Web
+web-poc/public/wasm
+mintmarksfun_circuits.json
