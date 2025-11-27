@@ -91,6 +91,59 @@
   /* Controls */
   --Controls-Selected: #6396F4;
   --Controls-Idle: rgba(99, 150, 244, 0.1);
+
+  /* ===== SEMANTIC TOKENS (Hybrid Layer) ===== */
+  
+  /* Surface Tokens */
+  --surface-base: var(--background);
+  --surface-elevated: var(--glass-bg-primary);
+  --surface-overlay: var(--page-badge-bg);
+  --surface-card: var(--card);
+  
+  /* Text Tokens */
+  --text-primary: var(--page-text-primary);
+  --text-secondary: var(--page-text-secondary);
+  --text-muted: var(--page-text-muted);
+  --text-inverse: var(--primary-foreground);
+  --text-on-primary: var(--primary-foreground);
+  --text-on-destructive: var(--destructive-foreground);
+  
+  /* Border Tokens */
+  --border-subtle: var(--page-border-color);
+  --border-medium: var(--border);
+  --border-strong: var(--page-badge-border);
+  
+  /* Interactive Tokens */
+  --interactive-primary: var(--primary);
+  --interactive-primary-hover: var(--ring);
+  --interactive-secondary: var(--secondary);
+  --interactive-muted: var(--muted);
+  
+  /* ===== BUTTON COMPONENT TOKENS ===== */
+  
+  /* Outline Button */
+  --button-outline-bg: rgba(255, 255, 255, 0.8);
+  --button-outline-border: oklch(0.9324 0.0168 230.9139);
+  --button-outline-text: oklch(0.205 0.02 246);
+  --button-outline-hover-bg: oklch(0.99 0.01 246);
+  --button-outline-hover-border: oklch(0.88 0.02 230);
+  
+  /* Ghost Button */
+  --button-ghost-bg: transparent;
+  --button-ghost-text: oklch(0.35 0.02 246);
+  --button-ghost-hover-bg: oklch(0.98 0.01 246);
+  --button-ghost-hover-text: oklch(0.15 0.02 246);
+  
+  /* Destructive Button */
+  --button-destructive-bg: oklch(0.577 0.245 27.325);
+  --button-destructive-border: oklch(0.52 0.25 27);
+  --button-destructive-text: oklch(0.985 0 0);
+  --button-destructive-hover-bg: oklch(0.52 0.25 27);
+  --button-destructive-hover-border: oklch(0.48 0.25 27);
+  
+  /* Link Button */
+  --button-link-text: oklch(0.6 0.19 262);
+  --button-link-hover-text: oklch(0.55 0.19 262);
 }
 
 .dark {
@@ -139,24 +192,24 @@
   --figma-card-radius: 10px;
   --figma-ultra-dark: rgba(162, 162, 162, 0.92);
 
-  /* CTA Button Tokens (Dark Mode) */
-  --figma-cta1-bg: #F7FBFF;
-  --figma-cta1-border: #FFFFFF;
-  --figma-cta1-text: rgba(30, 29, 31, 0.92);
-  --figma-cta1-hover-bg: #F7FBFF;
-  --figma-cta1-hover-border: #FFFFFF;
-  --figma-cta1-hover-text: rgba(30, 29, 31, 0.92);
-  --figma-cta1-active-bg: rgba(232, 236, 241, 0.91);
+  /* CTA Button Tokens (Dark Mode) - GLASSMORPHIC (consistent with light mode) */
+  --figma-cta1-bg: rgba(99, 150, 244, 0.15);
+  --figma-cta1-border: rgba(99, 150, 244, 0.3);
+  --figma-cta1-text: oklch(0.95 0.01 246);
+  --figma-cta1-hover-bg: rgba(99, 150, 244, 0.25);
+  --figma-cta1-hover-border: rgba(99, 150, 244, 0.4);
+  --figma-cta1-hover-text: oklch(0.98 0 0);
+  --figma-cta1-active-bg: rgba(99, 150, 244, 0.3);
 
-  /* Outline Button (cta2) - Dark */
-  --figma-cta2-bg: #1E1D1F;
-  --figma-cta2-border: #F7F9FC;
-  --figma-cta2-text: #F7F9FC;
+  /* Outline Button (cta2) - Dark - Glassmorphic */
+  --figma-cta2-bg: rgba(99, 150, 244, 0.05);
+  --figma-cta2-border: rgba(99, 150, 244, 0.25);
+  --figma-cta2-text: oklch(0.95 0.01 246);
 
-  /* Secondary Button (cta3) - Dark */
-  --figma-cta3-bg: rgba(31, 31, 31, 0.9);
-  --figma-cta3-border: rgba(210, 213, 224, 0.3);
-  --figma-cta3-text: #F7F9FC;
+  /* Secondary Button (cta3) - Dark - Glassmorphic */
+  --figma-cta3-bg: rgba(99, 150, 244, 0.08);
+  --figma-cta3-border: rgba(99, 150, 244, 0.2);
+  --figma-cta3-text: oklch(0.85 0.01 246);
 
   /* CTA Outline Card - Dark */
   --cta-outline-card-border: rgba(100, 130, 180, 0.3);
@@ -164,18 +217,49 @@
   --cta-outline-card-blur: 14px;
   --cta-outline-card-blend: normal;
 
-  /* Background Animation Colors */
-  --bg-animation-gradient-start: #0942DF;
-  --bg-animation-gradient-mid: #0436E0;
-  --bg-animation-gradient-end: #0942DF;
-  --bg-animation-bar-color-light: rgba(21, 78, 235, 0.6);
-  --bg-animation-bar-color-mid: rgba(4, 54, 224, 0.5);
-  --bg-animation-bar-color-dark: rgba(3, 45, 210, 0.4);
-  --bg-animation-line-color: rgba(9, 66, 223, 0.4);
+  /* Background Animation Colors - OPTIMIZED (Subtle, not aggressive) */
+  --bg-animation-gradient-start: oklch(0.12 0.02 246);
+  --bg-animation-gradient-mid: oklch(0.15 0.02 246);
+  --bg-animation-gradient-end: oklch(0.12 0.02 246);
+  --bg-animation-bar-color-light: rgba(99, 150, 244, 0.08);
+  --bg-animation-bar-color-mid: rgba(99, 150, 244, 0.06);
+  --bg-animation-bar-color-dark: rgba(99, 150, 244, 0.04);
+  --bg-animation-line-color: rgba(99, 150, 244, 0.08);
 
   /* Controls */
   --Controls-Selected: #6396F4;
   --Controls-Idle: rgba(99, 150, 244, 0.2);
+
+  /* ===== SEMANTIC TOKENS ===== */
+  /* Semantic tokens inherit from theme-aware values, no overrides needed for dark mode */
+  /* Values automatically adjust via --background, --foreground, etc. */
+  
+  /* ===== BUTTON COMPONENT TOKENS ===== */
+  
+  /* Outline Button */
+  --button-outline-bg: rgba(99, 150, 244, 0.05);
+  --button-outline-border: oklch(0.4 0.02 246);
+  --button-outline-text: oklch(0.85 0.01 246);
+  --button-outline-hover-bg: rgba(99, 150, 244, 0.1);
+  --button-outline-hover-border: oklch(0.5 0.02 246);
+  --button-outline-hover-text: oklch(0.95 0.01 246);
+  
+  /* Ghost Button */
+  --button-ghost-bg: transparent;
+  --button-ghost-text: oklch(0.78 0.02 246);
+  --button-ghost-hover-bg: rgba(99, 150, 244, 0.1);
+  --button-ghost-hover-text: oklch(0.95 0.01 246);
+  
+  /* Destructive Button */
+  --button-destructive-bg: oklch(0.48 0.18 27);
+  --button-destructive-border: oklch(0.52 0.2 27);
+  --button-destructive-text: oklch(0.985 0 0);
+  --button-destructive-hover-bg: oklch(0.52 0.2 27);
+  --button-destructive-hover-border: oklch(0.48 0.18 27);
+  
+  /* Link Button */
+  --button-link-text: oklch(0.7 0.15 262);
+  --button-link-hover-text: oklch(0.75 0.15 262);
 }
 
 @theme inline {

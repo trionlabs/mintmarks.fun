@@ -22,26 +22,30 @@ const buttonVariants = cva(
           dark:bg-blend-hard-light dark:backdrop-blur-[7.5px]
         `,
         outline: `
-          bg-white/80 border border-gray-300 text-gray-800
+          bg-[var(--button-outline-bg)] 
+          border border-[var(--button-outline-border)] 
+          text-[var(--button-outline-text)]
           backdrop-blur-md backdrop-saturate-150 shadow-sm
-          hover:bg-gray-50 hover:border-gray-400 hover:shadow
-          active:bg-gray-100
-          dark:bg-transparent dark:border-gray-500 dark:text-gray-200
-          dark:hover:bg-gray-700/40 dark:hover:border-gray-400 dark:hover:text-white
-          dark:active:bg-gray-600/50 dark:active:text-white
+          hover:bg-[var(--button-outline-hover-bg)] 
+          hover:border-[var(--button-outline-hover-border)]
+          hover:text-[var(--button-outline-hover-text)]
+          hover:shadow
+          active:bg-[var(--button-outline-hover-bg)]
         `,
         ghost: `
-          bg-transparent border-transparent text-gray-700
-          hover:bg-gray-100 hover:text-gray-900
-          dark:text-gray-300
-          dark:hover:bg-gray-700/40 dark:hover:text-white
+          bg-[var(--button-ghost-bg)] 
+          border-transparent 
+          text-[var(--button-ghost-text)]
+          hover:bg-[var(--button-ghost-hover-bg)] 
+          hover:text-[var(--button-ghost-hover-text)]
         `,
         destructive: `
-          bg-red-500 border border-red-600 text-white
+          bg-[var(--button-destructive-bg)] 
+          border border-[var(--button-destructive-border)] 
+          text-[var(--button-destructive-text)]
           shadow-md
-          hover:bg-red-600 hover:border-red-700
-          dark:bg-red-600 dark:border-red-500
-          dark:hover:bg-red-500
+          hover:bg-[var(--button-destructive-hover-bg)] 
+          hover:border-[var(--button-destructive-hover-border)]
         `,
         secondary: `
           bg-[var(--figma-cta3-bg)] text-[var(--figma-cta3-text)]
@@ -49,10 +53,10 @@ const buttonVariants = cva(
           hover:opacity-90
         `,
         link: `
-          bg-transparent border-none text-blue-500
+          bg-transparent border-none 
+          text-[var(--button-link-text)]
           underline underline-offset-4
-          hover:text-blue-600 hover:no-underline
-          dark:text-blue-400 dark:hover:text-blue-300
+          hover:text-[var(--button-link-hover-text)] hover:no-underline
         `,
       },
       size: {
