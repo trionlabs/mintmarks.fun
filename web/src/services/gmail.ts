@@ -320,3 +320,34 @@ export async function verifyToken(accessToken: string): Promise<boolean> {
   }
 }
 
+/**
+ * Get raw email as Uint8Array for ZK proof generation
+ * Decodes base64url and converts to buffer
+ */
+export async function getEmailRawForProof(
+  accessToken: string,
+  messageId: string
+): Promise<{ buffer: Uint8Array; metadata: RawEmailData['metadata'] }> {
+  const rawData = await getEmailRaw(accessToken, messageId)
+  
+  // Decode base64url to string
+  // Gmail uses base64url: replace - with +, _ with /
+  const base64 = rawData.raw
+    .replace(/-/g, '+')
+    .replace(/_/g, '/')
+  
+  // Decode base64 to binary string
+  const binaryString = atob(base64)
+  
+  // Convert binary string to Uint8Array
+  const buffer = new Uint8Array(binaryString.length)
+  for (let i = 0; i < binaryString.length; i++) {
+    buffer[i] = binaryString.charCodeAt(i)
+  }
+  
+  return {
+    buffer,
+    metadata: rawData.metadata,
+  }
+}
+
