@@ -54,3 +54,7 @@ CLAUDE.md
 .cursor/
 .cursor/rules/*.mdc
 .cursor/rules/*.txt
+
+# Web
+web-poc/public/wasm
+mintmarksfun_circuits.json

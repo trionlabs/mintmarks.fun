@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "nargo compile",
+    "test": "nargo test",
     "prepare:inputs": "node scripts/prepareInputs.js",
     "generate:proof": "node scripts/generateProof.js",
     "generate:verifier": "node scripts/generateSolidityVerifier.js"

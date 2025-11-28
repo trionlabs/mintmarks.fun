@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "forge build",
+    "test": "forge test",
     "verify-onchain": "node script/verifyOnChain.js"
   },
   "dependencies": {

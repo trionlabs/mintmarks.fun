@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
-import {HonkVerifier} from "../src/UltraHonkVerifier.sol";
+import {HonkVerifier} from "@verifier/UltraHonkVerifier.sol";
 
 contract DeployVerifierScript is Script {
     function run() external returns (HonkVerifier) {

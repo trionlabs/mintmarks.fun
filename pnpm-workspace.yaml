@@ -2,3 +2,4 @@ packages:
   - 'circuits'
   - 'contracts'
   - 'web'
+  - 'web-poc'
