@@ -39,6 +39,12 @@ const allNavItems: NavItem[] = [
     icon: <FlaskConical className="h-4 w-4" />,
     devOnly: true,
   },
+  {
+    path: '/marks/test',
+    label: 'Gallery Test',
+    icon: <Bookmark className="h-4 w-4" />,
+    devOnly: true,
+  },
 ]
 
 // Filter nav items based on environment
