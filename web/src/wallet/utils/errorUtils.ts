@@ -64,5 +64,3 @@ export function createWalletError(
     message: customMessage ?? ERROR_MESSAGES[type],
   }
 }
-
-

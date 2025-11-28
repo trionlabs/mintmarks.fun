@@ -4,5 +4,3 @@
 
 export { normalizeError, createWalletError } from './errorUtils'
 export { truncateAddress, isValidAddress, formatAddress } from './addressUtils'
-
-

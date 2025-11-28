@@ -37,6 +37,8 @@ export interface TransactionRequest {
   value?: bigint
   /** Transaction data for contract calls (optional) */
   data?: `0x${string}`
+  /** Target chain ID (optional - defaults to ACTIVE_NETWORK) */
+  chainId?: number
 }
 
 /**

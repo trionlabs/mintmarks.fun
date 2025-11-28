@@ -23,3 +23,11 @@ export {
   DialogTitle,
   DialogTrigger,
 } from './dialog'
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from './dropdown-menu'

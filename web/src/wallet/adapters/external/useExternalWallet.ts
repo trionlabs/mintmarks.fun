@@ -2,12 +2,11 @@
  * @fileoverview External wallet adapter using wagmi.
  * Supports MetaMask, Rabby, Coinbase Extension.
  *
- * CRITICAL: Includes wrong network detection at the adapter level.
- * This ensures useWallet() consumers can block actions on wrong chains.
+ * Supports multichain transactions - will switch chain if needed.
  */
 
 import { useCallback, useMemo } from 'react'
-import { useAccount, useDisconnect, useSendTransaction } from 'wagmi'
+import { useAccount, useDisconnect, useSendTransaction, useSwitchChain } from 'wagmi'
 import { isAddress } from 'viem'
 import type {
   WalletAdapter,
@@ -16,7 +15,14 @@ import type {
   WalletError,
 } from '../../types'
 import { normalizeError } from '../../utils/errorUtils'
-import { ACTIVE_NETWORK } from '@/config/contracts'
+import { ACTIVE_NETWORK, NETWORKS } from '@/config/contracts'
+
+/**
+ * Get network config by chainId
+ */
+function getNetworkByChainId(chainId: number) {
+  return Object.values(NETWORKS).find((n) => n.chainId === chainId)
+}
 
 /**
  * External wallet adapter hook.
@@ -26,9 +32,12 @@ export function useExternalWallet(): WalletAdapter {
   const { address, isConnected, chain } = useAccount()
   const { disconnect: wagmiDisconnect } = useDisconnect()
   const { sendTransactionAsync, isPending } = useSendTransaction()
+  const { switchChainAsync } = useSwitchChain()
 
-  // CRITICAL: Detect wrong network at adapter level
+  // Get connected chain ID
   const connectedChainId = chain?.id
+
+  // For backwards compatibility, still report wrong network if not on ACTIVE_NETWORK
   const isWrongNetwork =
     isConnected &&
     typeof connectedChainId === 'number' &&
@@ -53,11 +62,23 @@ export function useExternalWallet(): WalletAdapter {
         throw normalizeError(new Error('Invalid recipient address'))
       }
 
-      // CRITICAL: Block transactions on wrong network
-      if (isWrongNetwork) {
-        throw normalizeError(
-          new Error(`Wrong network. Please switch to ${ACTIVE_NETWORK.name}`)
-        )
+      // If chainId specified, check if we need to switch
+      const targetChainId = tx.chainId ?? ACTIVE_NETWORK.chainId
+      const targetNetwork = getNetworkByChainId(targetChainId)
+
+      if (!targetNetwork) {
+        throw normalizeError(new Error(`Unsupported chain ID: ${targetChainId}`))
+      }
+
+      // Switch chain if needed
+      if (connectedChainId !== targetChainId) {
+        try {
+          await switchChainAsync({ chainId: targetChainId })
+        } catch (error) {
+          throw normalizeError(
+            new Error(`Failed to switch to ${targetNetwork.name}. Please switch manually.`)
+          )
+        }
       }
 
       try {
@@ -65,13 +86,14 @@ export function useExternalWallet(): WalletAdapter {
           to: tx.to,
           value: tx.value,
           data: tx.data,
+          chainId: targetChainId,
         })
         return { hash }
       } catch (error) {
         throw normalizeError(error)
       }
     },
-    [address, sendTransactionAsync, isWrongNetwork]
+    [address, sendTransactionAsync, connectedChainId, switchChainAsync]
   )
 
   const disconnect = useCallback(async () => {
@@ -81,19 +103,17 @@ export function useExternalWallet(): WalletAdapter {
   const state = useMemo(
     () => ({
       address: address ?? null,
-      // CRITICAL: Report as "not properly connected" if wrong network
-      // This allows UI to show connect button or wrong network warning
-      isConnected: isConnected && !isWrongNetwork,
+      // Connected if wallet is connected (we can switch chains as needed)
+      isConnected: isConnected,
       source: isConnected ? ('external' as const) : null,
       chainId: isConnected && typeof connectedChainId === 'number' ? connectedChainId : null,
       isLoading: isPending,
-      // CRITICAL: Surface wrong network error to useWallet() consumers
+      // Surface wrong network error for UI display (informational)
       error: wrongNetworkError,
     }),
     [
       address,
       isConnected,
-      isWrongNetwork,
       connectedChainId,
       isPending,
       wrongNetworkError,
@@ -102,8 +122,8 @@ export function useExternalWallet(): WalletAdapter {
 
   return {
     state,
-    // Only provide sendTransaction if properly connected (correct network)
-    sendTransaction: isConnected && !isWrongNetwork ? sendTransaction : undefined,
+    // Always provide sendTransaction if connected (we can switch chains)
+    sendTransaction: isConnected ? sendTransaction : undefined,
     disconnect,
   }
 }
