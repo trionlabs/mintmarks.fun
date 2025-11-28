@@ -27,5 +27,3 @@ export function useWallet(): UnifiedWallet {
   }
   return context
 }
-
-

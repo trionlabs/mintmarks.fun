@@ -25,5 +25,3 @@ export function formatAddress(address: string): `0x${string}` | null {
   if (!isValidAddress(address)) return null
   return address as `0x${string}`
 }
-
-

@@ -4,5 +4,3 @@
 
 export { useCdpWallet } from './cdp'
 export { useExternalWallet } from './external'
-
-

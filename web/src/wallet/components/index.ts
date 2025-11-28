@@ -4,5 +4,3 @@
 
 export { ConnectWalletModal } from './ConnectWalletModal'
 export { WalletStatus } from './WalletStatus'
-
-

@@ -3,5 +3,3 @@
  */
 
 export { useExternalWallet } from './useExternalWallet'
-
-
