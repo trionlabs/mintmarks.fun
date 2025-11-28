@@ -60,7 +60,8 @@ contract Mintmarks is ERC1155 {
     /// @notice Tracks which email nullifiers have been used (prevents double-claiming same email)
     mapping(bytes32 => bool) public emailNullifierUsed;
 
-    /// @notice Tracks which passport IDs have been used (prevents double-claiming same passport)
+    /// @notice Tracks which passport IDs have been used (for reference/analytics only)
+    /// @dev Not used as a blocker - same passport CAN mint multiple emails
     mapping(bytes32 => bool) public passportIdUsed;
 
     /// @notice Maps token IDs to their event names
@@ -90,9 +91,6 @@ contract Mintmarks is ERC1155 {
 
     /// @dev Thrown when attempting to use an email nullifier that's already been claimed
     error EmailNullifierAlreadyUsed();
-
-    /// @dev Thrown when attempting to use a passport ID that's already been claimed
-    error PassportIdAlreadyUsed();
 
     /// @dev Thrown when the extracted event name exceeds 256 bytes
     error EventNameTooLong();
@@ -178,8 +176,8 @@ contract Mintmarks is ERC1155 {
     ///      3. Verify ZKPassport proof (proof of personhood)
     ///      4. Verify passport domain/scope
     ///      5. Verify bound data (sender, chain, email nullifier)
-    ///      6. Check passport ID hasn't been used
-    ///      7. Mint token
+    ///      6. Mint token
+    /// @dev Note: Same passport CAN mint multiple different emails (one mint per email invitation)
     /// @param emailProof The UltraHonk proof bytes from the Noir circuit
     /// @param emailPublicInputs The public inputs array from the email proof
     /// @param passportParams The ZKPassport verification parameters
@@ -247,14 +245,9 @@ contract Mintmarks is ERC1155 {
             revert InvalidBoundEmailNullifier();
         }
 
-        // 7. Check passport ID not used
-        if (passportIdUsed[passportId]) {
-            revert PassportIdAlreadyUsed();
-        }
-
-        // 8. Mark both nullifiers as used
+        // 7. Mark email nullifier as used (passport can be reused for different emails)
         emailNullifierUsed[emailNullifier] = true;
-        passportIdUsed[passportId] = true;
+        passportIdUsed[passportId] = true; // For tracking/analytics only, not blocking
 
         // 9. Extract event name and mint
         string memory eventName = _extractEventName(emailPublicInputs);

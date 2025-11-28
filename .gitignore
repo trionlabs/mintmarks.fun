@@ -44,6 +44,16 @@ coverage/
 
 # AI
 CLAUDE.md
+*.md 
+.txt    
+.gemini
+.claude
+.cursorrules
+*.mdc
+/cursor 
+.cursor/
+.cursor/rules/*.mdc
+.cursor/rules/*.txt
 
 # Web
 web-poc/public/wasm

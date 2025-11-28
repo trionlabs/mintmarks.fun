@@ -1,0 +1,141 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+
+# Production builds
+build/
+dist/
+out/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# Misc
+.DS_Store
+*.pem
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment variables
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE & Editors
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+
+# OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel
+
+# Sentry
+.sentryclirc
+
+# PWA files
+**/public/workbox-*
+**/public/sw.js
+**/public/worker-*.js
+
+# AI Assistants (in all subdirectories)
+.claude/
+**/.claude/
+.gemini/
+**/.gemini/
+.cursor/
+**/.cursor/
+.aider/
+**/.aider/
+.copilot/
+**/.copilot/
+*.mdc
+**/*.mdc
+.ai/
+**/.ai/
+.anthropic/
+**/.anthropic/
+
+# Documentation (markdown files in all subdirectories)
+*.md
+**/*.md
+.env*
+**.env.local
+.cursor/
+.cursor/rules/*.mdc
+.cursor/rules/*.txt
+
+docs/
+guides/
+backlogs/
+issues/

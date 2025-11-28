@@ -1,0 +1,2 @@
+# Environment variables (contains private keys)
+.env
