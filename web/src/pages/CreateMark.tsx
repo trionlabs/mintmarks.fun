@@ -20,6 +20,11 @@ import {
   SOURCE_COLORS,
   STATUS_COLORS,
 } from '@/config/emailFilters'
+import {
+  ConfirmEmailModal,
+  MarkItFlowModal,
+  useMarkItFlow,
+} from '@/features/mark-it'
 import type { EmailMetadata } from '@/types/gmail'
 import type { RegistrationStatus } from '@/types/filters'
 import {
@@ -99,6 +104,10 @@ export function CreateMark() {
   } = useWallet()
   const { showToast } = useToast()
 
+  // Mark It Flow
+  const markItFlow = useMarkItFlow()
+  const { start: startMarkItFlow, cancel: cancelMarkItFlow, ...markItState } = markItFlow
+
   // Check for wrong network
   const isWrongNetwork = walletError?.type === 'WRONG_NETWORK'
 
@@ -119,6 +128,11 @@ export function CreateMark() {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null)
+
+  // Mark It modals state
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
+  const [flowModalOpen, setFlowModalOpen] = useState(false)
+  const [emailToMark, setEmailToMark] = useState<EmailMetadata | null>(null)
 
   // Pagination state
   const [nextPageToken, setNextPageToken] = useState<string | undefined>()
@@ -229,22 +243,29 @@ export function CreateMark() {
     }
   }, []) // Empty deps - observer created once, uses refs for latest values
 
-  // Handle "Mark It" button click
-  const handleMarkIt = (emailId: string) => {
-    if (!isWalletConnected) {
-      showToast('Please connect your wallet first', 'warning')
-      return
+  // Handle "Mark It" button click - show confirmation modal
+  const handleMarkIt = (email: EmailMetadata) => {
+    setEmailToMark(email)
+    setSelectedEmail(email.id)
+    setConfirmModalOpen(true)
+  }
+
+  // Handle confirmation - start the Mark It flow
+  const handleConfirmMarkIt = () => {
+    if (!emailToMark) return
+    
+    setConfirmModalOpen(false)
+    setFlowModalOpen(true)
+    startMarkItFlow(emailToMark)
+  }
+
+  // Handle flow modal close
+  const handleFlowModalClose = (open: boolean) => {
+    if (!open) {
+      setFlowModalOpen(false)
+      setSelectedEmail(null)
+      setEmailToMark(null)
     }
-
-    if (isWrongNetwork) {
-      showToast('Please switch to the correct network first', 'warning')
-      return
-    }
-
-    setSelectedEmail(emailId)
-    showToast('Minting coming soon! ZK proof generation in progress...', 'info')
-
-    // TODO: Implement ZK proof generation and NFT minting
   }
 
   // Handle refresh
@@ -554,8 +575,7 @@ export function CreateMark() {
                   {/* Mark It Button */}
                   <div className="flex-shrink-0">
                     <Button
-                      onClick={() => handleMarkIt(email.id)}
-                      disabled={!isWalletConnected || isWrongNetwork}
+                      onClick={() => handleMarkIt(email)}
                       className="gap-2"
                     >
                       <Sparkles className="h-4 w-4" />
@@ -603,6 +623,22 @@ export function CreateMark() {
           </div>
         </div>
       )}
+
+      {/* Mark It Confirmation Modal */}
+      <ConfirmEmailModal
+        email={emailToMark}
+        open={confirmModalOpen}
+        onOpenChange={setConfirmModalOpen}
+        onConfirm={handleConfirmMarkIt}
+      />
+
+      {/* Mark It Flow Modal */}
+      <MarkItFlowModal
+        state={markItState}
+        actions={markItFlow}
+        open={flowModalOpen}
+        onOpenChange={handleFlowModalClose}
+      />
     </div>
   )
 }
