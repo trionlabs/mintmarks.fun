@@ -121,8 +121,17 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
    * Generate email proof
    */
   const generateProof = useCallback(async () => {
-    if (!state.email || !accessToken) {
-      updateState({ error: 'No email selected or not authenticated' })
+    if (!state.email) {
+      updateState({ error: 'No email selected' })
+      return
+    }
+
+    // Check if this is an uploaded file or needs Gmail API
+    const uploadedFile = (state.email as EmailMetadata & { _uploadedFile?: File })._uploadedFile
+    const needsGmailApi = !uploadedFile
+
+    if (needsGmailApi && !accessToken) {
+      updateState({ error: 'Not authenticated with Gmail' })
       return
     }
 
@@ -166,13 +175,25 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       }
 
       // Real mode: generate actual proof
-      updateState({
-        emailProofSubStep: 'loading-email',
-        emailProofProgress: { message: 'Loading email from Gmail...', percent: 5 },
-      })
+      let emailBuffer: Uint8Array
 
-      // Fetch raw email and decode to buffer
-      const { buffer: emailBuffer } = await getEmailRawForProof(accessToken, state.email.id)
+      if (uploadedFile) {
+        // Uploaded .eml file - read directly
+        updateState({
+          emailProofSubStep: 'loading-email',
+          emailProofProgress: { message: 'Reading uploaded file...', percent: 5 },
+        })
+        const arrayBuffer = await uploadedFile.arrayBuffer()
+        emailBuffer = new Uint8Array(arrayBuffer)
+      } else {
+        // Gmail email - fetch via API
+        updateState({
+          emailProofSubStep: 'loading-email',
+          emailProofProgress: { message: 'Loading email from Gmail...', percent: 5 },
+        })
+        const { buffer } = await getEmailRawForProof(accessToken!, state.email.id)
+        emailBuffer = buffer
+      }
 
       updateState({
         emailProofSubStep: 'generating-proof',

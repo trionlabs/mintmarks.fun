@@ -134,6 +134,10 @@ export function CreateMark() {
   const [flowModalOpen, setFlowModalOpen] = useState(false)
   const [emailToMark, setEmailToMark] = useState<EmailMetadata | null>(null)
 
+  // Upload .eml state
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   // Pagination state
   const [nextPageToken, setNextPageToken] = useState<string | undefined>()
   const [hasMore, setHasMore] = useState(true)
@@ -274,6 +278,42 @@ export function CreateMark() {
     setHasMore(true)
     fetchEmails()
   }
+
+  // Handle .eml file upload
+  const handleEmlUpload = useCallback((file: File) => {
+    setUploadError(null)
+
+    // Validate file type
+    if (!file.name.endsWith('.eml') && file.type !== 'message/rfc822') {
+      setUploadError('Please upload an .eml file')
+      return
+    }
+
+    // Create a synthetic EmailMetadata from the file
+    // The actual parsing happens in the Mark It flow
+    const syntheticEmail: EmailMetadata = {
+      id: `upload-${Date.now()}`,
+      subject: file.name.replace('.eml', ''),
+      from: 'Uploaded file',
+      date: new Date().toISOString(),
+      snippet: 'Manually uploaded .eml file',
+      source: 'luma', // Default, will be detected from email content
+      registrationStatus: 'unknown',
+      // Store the file for later use
+      _uploadedFile: file,
+    } as EmailMetadata & { _uploadedFile: File }
+
+    setEmailToMark(syntheticEmail)
+    setFlowModalOpen(true)
+    startMarkItFlow(syntheticEmail)
+  }, [startMarkItFlow])
+
+  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) handleEmlUpload(file)
+    // Reset input so same file can be selected again
+    if (e.target) e.target.value = ''
+  }, [handleEmlUpload])
 
   // Not connected state
   if (!isGmailConnected) {
@@ -623,6 +663,34 @@ export function CreateMark() {
           </div>
         </div>
       )}
+
+      {/* Upload .eml - Compact Helper */}
+      <div className="flex flex-col items-center gap-2 py-4">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".eml,message/rfc822"
+          onChange={handleFileInput}
+          className="hidden"
+        />
+        <p
+          className="text-sm"
+          style={{ color: 'var(--page-text-muted)' }}
+        >
+          Can't find your email?{' '}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="underline hover:no-underline cursor-pointer"
+            style={{ color: 'var(--Controls-Selected)' }}
+          >
+            Upload .eml file
+          </button>
+        </p>
+        {uploadError && (
+          <p className="text-sm text-destructive">{uploadError}</p>
+        )}
+      </div>
 
       {/* Mark It Confirmation Modal */}
       <ConfirmEmailModal
