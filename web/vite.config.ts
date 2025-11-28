@@ -76,11 +76,10 @@ export default defineConfig(({ mode }) => {
         'Cross-Origin-Embedder-Policy': 'require-corp',
         'Cross-Origin-Opener-Policy': 'same-origin',
       },
-      // Security: Only allow serving files from project directory and node_modules
-      // Never use ['..'] as it exposes parent directories including .env files
+      // Allow serving files from node_modules (including pnpm workspace root)
+      // Required for @aztec/bb.js dynamic imports across multiple versions
       fs: {
-        allow: ['.', 'node_modules'],
-        strict: true,
+        allow: ['.', 'node_modules', '../node_modules'],
       },
       proxy: {
         '/api/rpc': {
