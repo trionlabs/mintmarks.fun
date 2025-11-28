@@ -6,6 +6,7 @@ import { Layout } from '@/components/Layout'
 import { Home } from '@/pages/Home'
 import { CreateMark } from '@/pages/CreateMark'
 import { MyMarks } from '@/pages/MyMarks'
+import { TestMint } from '@/pages/TestMint'
 
 function AppContent() {
   return (
@@ -14,6 +15,7 @@ function AppContent() {
         <Route path="/" element={<Home />} />
         <Route path="/create" element={<CreateMark />} />
         <Route path="/marks" element={<MyMarks />} />
+        <Route path="/marks/test" element={<TestMint />} />
       </Routes>
     </Layout>
   )

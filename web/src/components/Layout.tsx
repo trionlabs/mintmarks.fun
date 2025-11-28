@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sparkles, Moon, Sun, Mail, LogOut, Home, Plus, Bookmark, Wallet } from 'lucide-react'
+import { Sparkles, Moon, Sun, Mail, LogOut, Home, Plus, Bookmark, Wallet, FlaskConical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -21,6 +21,8 @@ const navItems: NavItem[] = [
   { path: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
   { path: '/create', label: 'Create', icon: <Plus className="h-4 w-4" /> },
   { path: '/marks', label: 'My Marks', icon: <Bookmark className="h-4 w-4" /> },
+  // Development only: Test mint page
+  ...(import.meta.env.DEV ? [{ path: '/marks/test', label: 'Test', icon: <FlaskConical className="h-4 w-4" /> }] : []),
 ]
 
 export function Layout({ children }: LayoutProps) {
