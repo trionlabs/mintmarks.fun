@@ -231,18 +231,34 @@ contract MintmarksTest is Test {
         mintmarks.mint("", sampleEmailInputs, samplePassportParams);
     }
 
-    function test_mint_reverts_on_passport_id_reuse() public {
+    function test_same_passport_can_mint_different_emails() public {
+        // First mint with email nullifier 0xabcd
         vm.prank(alice);
         mintmarks.mint("", sampleEmailInputs, samplePassportParams);
 
-        // Try to mint again with same passport but different email nullifier
+        // Same passport, different email nullifier - should work
         sampleEmailInputs[1] = bytes32(uint256(0xdead));
         string memory newNullifierHex = _bytes32ToHexString(sampleEmailInputs[1]);
         mockPassportVerifier.helper().setBoundData(alice, block.chainid, newNullifierHex);
 
+        // Change event name for second mint
+        bytes memory eventName2 = "Another Event";
+        for (uint256 i = 0; i < eventName2.length && i < 256; i++) {
+            sampleEmailInputs[67 + i] = bytes32(uint256(uint8(eventName2[i])));
+        }
+        for (uint256 i = eventName2.length; i < 256; i++) {
+            sampleEmailInputs[67 + i] = bytes32(0);
+        }
+        sampleEmailInputs[323] = bytes32(eventName2.length);
+
         vm.prank(alice);
-        vm.expectRevert(Mintmarks.PassportIdAlreadyUsed.selector);
         mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+
+        // Alice should have both tokens
+        uint256 tokenId1 = mintmarks.getTokenId("NPC Side Event");
+        uint256 tokenId2 = mintmarks.getTokenId("Another Event");
+        assertEq(mintmarks.balanceOf(alice, tokenId1), 1);
+        assertEq(mintmarks.balanceOf(alice, tokenId2), 1);
     }
 
     function test_different_users_can_mint_same_event() public {
