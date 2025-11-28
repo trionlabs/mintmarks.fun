@@ -6,8 +6,6 @@ import { Layout } from '@/components/Layout'
 import { Home } from '@/pages/Home'
 import { CreateMark } from '@/pages/CreateMark'
 import { MyMarks } from '@/pages/MyMarks'
-import { MyMarksTest } from '@/pages/MyMarksTest'
-import { TestMint } from '@/pages/TestMint'
 
 function AppContent() {
   return (
@@ -16,8 +14,6 @@ function AppContent() {
         <Route path="/" element={<Home />} />
         <Route path="/create" element={<CreateMark />} />
         <Route path="/marks" element={<MyMarks />} />
-        <Route path="/marks/test" element={<MyMarksTest />} />
-        <Route path="/test" element={<TestMint />} />
       </Routes>
     </Layout>
   )
@@ -26,13 +22,13 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <ThemeProvider>
-          <ToastProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
             <AppContent />
-          </ToastProvider>
-        </ThemeProvider>
-      </AuthProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </BrowserRouter>
   )
 }
