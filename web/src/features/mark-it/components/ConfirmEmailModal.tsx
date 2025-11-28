@@ -184,7 +184,10 @@ export function ConfirmEmailModal({
             color: 'var(--page-text-primary)',
           }}
         >
-          <AlertCircle className="h-5 w-5 flex-shrink-0 text-yellow-600 dark:text-yellow-400" />
+          <AlertCircle
+            className="h-5 w-5 flex-shrink-0"
+            style={{ color: 'var(--status-pending-text)' }}
+          />
           <div>
             <p className="font-medium">Once minted, this NFT is permanent</p>
             <p style={{ color: 'var(--page-text-secondary)' }}>
@@ -206,4 +209,5 @@ export function ConfirmEmailModal({
     </Dialog>
   )
 }
+
 
