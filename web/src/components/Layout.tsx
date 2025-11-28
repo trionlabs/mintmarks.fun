@@ -1,17 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import {
-  Sparkles,
-  Moon,
-  Sun,
-  Mail,
-  LogOut,
-  Home,
-  Plus,
-  Bookmark,
-  FlaskConical,
-  Wallet,
-} from 'lucide-react'
+import { Sparkles, Moon, Sun, Mail, LogOut, Home, Plus, Bookmark, Wallet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -26,47 +15,22 @@ interface NavItem {
   path: string
   label: string
   icon: React.ReactNode
-  devOnly?: boolean // Only show in development mode
 }
 
-const allNavItems: NavItem[] = [
+const navItems: NavItem[] = [
   { path: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
   { path: '/create', label: 'Create', icon: <Plus className="h-4 w-4" /> },
   { path: '/marks', label: 'My Marks', icon: <Bookmark className="h-4 w-4" /> },
-  {
-    path: '/test',
-    label: 'Test',
-    icon: <FlaskConical className="h-4 w-4" />,
-    devOnly: true,
-  },
-  {
-    path: '/marks/test',
-    label: 'Gallery Test',
-    icon: <Bookmark className="h-4 w-4" />,
-    devOnly: true,
-  },
 ]
-
-// Filter nav items based on environment
-const navItems = allNavItems.filter(
-  (item) => !item.devOnly || import.meta.env.DEV
-)
 
 export function Layout({ children }: LayoutProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
-
-  // Google OAuth (Gmail)
-  const {
-    isAuthenticated: isGmailConnected,
-    userInfo,
-    login: gmailLogin,
-    logout: gmailLogout,
-  } = useAuth()
-
-  // Unified Wallet (CDP + External)
+  
+  // Auth states
+  const { isAuthenticated: isGmailConnected, userInfo, login: gmailLogin, logout: gmailLogout } = useAuth()
   const { isConnected: isWalletConnected } = useWallet()
 
   useEffect(() => {
@@ -98,10 +62,9 @@ export function Layout({ children }: LayoutProps) {
             showGradient ? 'opacity-100' : 'opacity-0'
           )}
           style={{
-            background:
-              theme === 'dark'
-                ? 'linear-gradient(to bottom, rgba(9, 66, 223, 0.2), rgba(4, 54, 224, 0.15))'
-                : 'linear-gradient(to bottom, rgba(240, 244, 249, 0.4), rgba(247, 249, 252, 0.3))',
+            background: theme === 'dark'
+              ? 'linear-gradient(to bottom, rgba(9, 66, 223, 0.2), rgba(4, 54, 224, 0.15))'
+              : 'linear-gradient(to bottom, rgba(240, 244, 249, 0.4), rgba(247, 249, 252, 0.3))',
             backdropFilter: 'blur(12px)',
           }}
         />
@@ -117,8 +80,7 @@ export function Layout({ children }: LayoutProps) {
               className="font-bold text-lg sm:text-xl"
               style={{
                 color: 'var(--page-text-primary)',
-                textShadow:
-                  theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
+                textShadow: theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
               }}
             >
               mintmarks
@@ -190,7 +152,7 @@ export function Layout({ children }: LayoutProps) {
               </Button>
             )}
 
-            {/* Wallet Button - Uses unified wallet system */}
+            {/* Wallet Status / Connect */}
             {isWalletConnected ? (
               <WalletStatus />
             ) : (
@@ -208,7 +170,9 @@ export function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        {children}
+      </main>
 
       {/* Footer */}
       <footer className="mt-auto border-t border-transparent py-4 sm:py-6">
@@ -224,3 +188,4 @@ export function Layout({ children }: LayoutProps) {
     </div>
   )
 }
+
