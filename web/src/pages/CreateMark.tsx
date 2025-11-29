@@ -257,7 +257,7 @@ export function CreateMark() {
   // Handle confirmation - start the Mark It flow
   const handleConfirmMarkIt = () => {
     if (!emailToMark) return
-    
+
     setConfirmModalOpen(false)
     setFlowModalOpen(true)
     startMarkItFlow(emailToMark)
@@ -316,9 +316,44 @@ export function CreateMark() {
   }, [handleEmlUpload])
 
   // Not connected state
-  if (!isGmailConnected) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      {/* Hero Section */}
+      <div className="text-left mb-16 sm:mb-20">
+        <div
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-6 backdrop-blur-md"
+          style={{
+            background: 'var(--page-badge-bg)',
+            border: '1px solid var(--page-border-color)',
+            color: 'var(--page-text-secondary)',
+          }}
+        >
+          <Sparkles className="h-3 w-3" style={{ color: 'var(--Controls-Selected)' }} />
+          OWN YOUR COMMITMENTS
+        </div>
+
+        <h1
+          className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6"
+          style={{ color: 'var(--page-text-primary)' }}
+        >
+          Marks of Your Life. Unlocked.
+        </h1>
+
+        <div className="max-w-2xl space-y-4 mb-8">
+          <p className="text-base sm:text-lg" style={{ color: 'var(--page-text-secondary)' }}>
+            Every email in your inbox tells a story. That event you attended. That newsletter you subscribed to. That community you joined.
+          </p>
+          <p className="text-base sm:text-lg" style={{ color: 'var(--page-text-secondary)' }}>
+            Transform these digital commitments into permanent, on-chain Marks that become part of your identity. <strong style={{ color: 'var(--page-text-primary)' }}>Get recognized, discover communities,</strong> and <strong style={{ color: 'var(--page-text-primary)' }}>unlock new opportunities.</strong>
+          </p>
+        </div>
+
+        <p className="text-xl sm:text-2xl font-bold" style={{ color: 'var(--page-text-primary)' }}>
+          Transform. Build. Connect.
+        </p>
+      </div>
+
+      {!isGmailConnected ? (
         <Card>
           <CardHeader className="text-center">
             <CardTitle>Connect Gmail to Continue</CardTitle>
@@ -346,367 +381,365 @@ export function CreateMark() {
             </p>
           </CardContent>
         </Card>
-      </div>
-    )
-  }
-
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1
-            className="text-2xl sm:text-3xl font-bold"
-            style={{ color: 'var(--page-text-primary)' }}
-          >
-            Your Digital Commitments
-          </h1>
-          <p style={{ color: 'var(--page-text-secondary)' }}>
-            Select an event email to create a verified NFT
-          </p>
-        </div>
-
-        <Button
-          variant="outline"
-          onClick={handleRefresh}
-          disabled={isLoading}
-          className="gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </div>
-
-      {/* Wrong Network Warning */}
-      {isWrongNetwork && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Wrong Network</AlertTitle>
-          <AlertDescription>
-            Please switch to the correct network to mint NFTs.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Wallet Warning */}
-      {!isWalletConnected && !isWrongNetwork && (
-        <Alert variant="warning">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Wallet Not Connected</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
-            <span>Connect your wallet to mint NFTs</span>
-            <ConnectWalletModal
-              trigger={
-                <Button variant="outline" size="sm" className="gap-1.5">
-                  <Wallet className="h-4 w-4" />
-                  Connect
-                </Button>
-              }
-            />
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Wallet Connected Info */}
-      {isWalletConnected && walletAddress && !isWrongNetwork && (
-        <Alert variant="success">
-          <CheckCircle className="h-4 w-4" />
-          <AlertTitle>Wallet Connected</AlertTitle>
-          <AlertDescription>
-            Ready to mint on Base • {walletAddress.slice(0, 6)}...
-            {walletAddress.slice(-4)}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Filter Section */}
-      <EmailFilter
-        filters={filters}
-        onToggleSource={toggleSource}
-        onToggleStatus={toggleStatus}
-        onClearFilters={clearFilters}
-        onClearStatuses={clearStatuses}
-        hasActiveFilters={hasActiveFilters}
-        activeFilterCount={activeFilterCount}
-        disabled={isLoading}
-      />
-
-      {/* Quick Filter Pills (Mobile) */}
-      <div className="sm:hidden">
-        <FilterPills
-          filters={filters}
-          onToggleSource={toggleSource}
-          onClearFilters={clearFilters}
-          hasActiveFilters={hasActiveFilters}
-          disabled={isLoading}
-        />
-      </div>
-
-      {/* Error State */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Loading State (Initial) */}
-      {isLoading && emails.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-[var(--Controls-Selected)]" />
-          <p style={{ color: 'var(--page-text-secondary)' }}>
-            Searching your emails...
-          </p>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && emails.length === 0 && !error && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center"
-              style={{ background: 'var(--Controls-Idle)' }}
-            >
-              {hasActiveFilters ? (
-                <FilterX className="h-8 w-8 text-[var(--Controls-Selected)]" />
-              ) : (
-                <Mail className="h-8 w-8 text-[var(--Controls-Selected)]" />
-              )}
+      ) : (
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1
+                className="text-2xl sm:text-3xl font-bold"
+                style={{ color: 'var(--page-text-primary)' }}
+              >
+                Your Digital Commitments
+              </h1>
+              <p style={{ color: 'var(--page-text-secondary)' }}>
+                Select an event email to create a verified NFT
+              </p>
             </div>
-            <h3
-              className="text-lg font-semibold"
-              style={{ color: 'var(--page-text-primary)' }}
-            >
-              {hasActiveFilters ? 'No Matching Emails' : 'No Event Emails Found'}
-            </h3>
-            <p
-              className="text-center max-w-md"
-              style={{ color: 'var(--page-text-secondary)' }}
-            >
-              {hasActiveFilters
-                ? 'No emails match your current filters. Try adjusting or clearing filters.'
-                : "We couldn't find any event confirmation emails from Luma, Substack, or Eventbrite. Register for some events and check back!"}
-            </p>
-            <div className="flex gap-2">
-              {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  onClick={clearFilters}
-                  className="gap-2"
-                >
-                  <FilterX className="h-4 w-4" />
-                  Clear Filters
-                </Button>
-              )}
-              <Button variant="outline" onClick={handleRefresh} className="gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Try Again
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Email List */}
-      {emails.length > 0 && (
-        <div className="space-y-4">
-          {/* Email Count */}
-          <div className="flex items-center justify-between">
-            <p
-              className="text-sm"
-              style={{ color: 'var(--page-text-secondary)' }}
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="gap-2"
             >
-              Showing {emails.length} email{emails.length !== 1 ? 's' : ''}
-              {hasMore && ' • Scroll for more'}
-            </p>
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
           </div>
 
-          {/* Email Cards */}
-          {emails.map((email) => (
-            <Card
-              key={email.id}
-              className="transition-all hover:scale-[1.01]"
-              style={{
-                borderColor:
-                  selectedEmail === email.id
-                    ? 'var(--Controls-Selected)'
-                    : undefined,
-              }}
-            >
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                  {/* Email Icon */}
-                  <div
-                    className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: SOURCE_COLORS[email.source].bg }}
-                  >
-                    <Mail
-                      className="h-6 w-6"
-                      style={{ color: SOURCE_COLORS[email.source].text }}
-                    />
-                  </div>
+          {/* Wrong Network Warning */}
+          {isWrongNetwork && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Wrong Network</AlertTitle>
+              <AlertDescription>
+                Please switch to the correct network to mint NFTs.
+              </AlertDescription>
+            </Alert>
+          )}
 
-                  {/* Email Details */}
-                  <div className="flex-1 min-w-0">
-                    {/* Badges */}
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      {/* Source Badge */}
-                      <span
-                        className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
-                        style={{
-                          background: SOURCE_COLORS[email.source].bg,
-                          color: SOURCE_COLORS[email.source].text,
-                        }}
-                      >
-                        {email.source.charAt(0).toUpperCase() +
-                          email.source.slice(1)}
-                      </span>
+          {/* Wallet Warning */}
+          {!isWalletConnected && !isWrongNetwork && (
+            <Alert variant="warning">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Wallet Not Connected</AlertTitle>
+              <AlertDescription className="flex items-center justify-between">
+                <span>Connect your wallet to mint NFTs</span>
+                <ConnectWalletModal
+                  trigger={
+                    <Button variant="outline" size="sm" className="gap-1.5">
+                      <Wallet className="h-4 w-4" />
+                      Connect
+                    </Button>
+                  }
+                />
+              </AlertDescription>
+            </Alert>
+          )}
 
-                      {/* Status Badge */}
-                      {email.registrationStatus !== 'unknown' && (
-                        <span
-                          className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
-                          style={{
-                            background:
-                              STATUS_COLORS[email.registrationStatus].bg,
-                            color: STATUS_COLORS[email.registrationStatus].text,
-                          }}
-                        >
-                          {formatStatusLabel(email.registrationStatus)}
-                        </span>
-                      )}
-                    </div>
+          {/* Wallet Connected Info */}
+          {isWalletConnected && walletAddress && !isWrongNetwork && (
+            <Alert variant="success">
+              <CheckCircle className="h-4 w-4" />
+              <AlertTitle>Wallet Connected</AlertTitle>
+              <AlertDescription>
+                Ready to mint on Base • {walletAddress.slice(0, 6)}...
+                {walletAddress.slice(-4)}
+              </AlertDescription>
+            </Alert>
+          )}
 
-                    {/* Subject */}
-                    <h3
-                      className="font-semibold text-lg truncate w-full min-w-0"
-                      style={{ color: 'var(--page-text-primary)' }}
-                      title={email.subject ?? undefined}
-                    >
-                      {email.subject ?? 'No Subject'}
-                    </h3>
+          {/* Filter Section */}
+          <EmailFilter
+            filters={filters}
+            onToggleSource={toggleSource}
+            onToggleStatus={toggleStatus}
+            onClearFilters={clearFilters}
+            onClearStatuses={clearStatuses}
+            hasActiveFilters={hasActiveFilters}
+            activeFilterCount={activeFilterCount}
+            disabled={isLoading}
+          />
 
-                    {/* From & Date */}
-                    <div
-                      className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm"
-                      style={{ color: 'var(--page-text-secondary)' }}
-                    >
-                      <span className="flex items-center gap-1">
-                        <ExternalLink className="h-3 w-3" />
-                        {extractSenderName(email.from)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(email.date)}
-                      </span>
-                    </div>
+          {/* Quick Filter Pills (Mobile) */}
+          <div className="sm:hidden">
+            <FilterPills
+              filters={filters}
+              onToggleSource={toggleSource}
+              onClearFilters={clearFilters}
+              hasActiveFilters={hasActiveFilters}
+              disabled={isLoading}
+            />
+          </div>
 
-                    {/* Snippet */}
-                    <p
-                      className="mt-2 text-sm line-clamp-2"
-                      style={{ color: 'var(--page-text-muted)' }}
-                    >
-                      {email.snippet}
-                    </p>
-                  </div>
+          {/* Error State */}
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-                  {/* Mark It Button */}
-                  <div className="flex-shrink-0">
+          {/* Loading State (Initial) */}
+          {isLoading && emails.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-[var(--Controls-Selected)]" />
+              <p style={{ color: 'var(--page-text-secondary)' }}>
+                Searching your emails...
+              </p>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && emails.length === 0 && !error && (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center"
+                  style={{ background: 'var(--Controls-Idle)' }}
+                >
+                  {hasActiveFilters ? (
+                    <FilterX className="h-8 w-8 text-[var(--Controls-Selected)]" />
+                  ) : (
+                    <Mail className="h-8 w-8 text-[var(--Controls-Selected)]" />
+                  )}
+                </div>
+                <h3
+                  className="text-lg font-semibold"
+                  style={{ color: 'var(--page-text-primary)' }}
+                >
+                  {hasActiveFilters ? 'No Matching Emails' : 'No Event Emails Found'}
+                </h3>
+                <p
+                  className="text-center max-w-md"
+                  style={{ color: 'var(--page-text-secondary)' }}
+                >
+                  {hasActiveFilters
+                    ? 'No emails match your current filters. Try adjusting or clearing filters.'
+                    : "We couldn't find any event confirmation emails from Luma, Substack, or Eventbrite. Register for some events and check back!"}
+                </p>
+                <div className="flex gap-2">
+                  {hasActiveFilters && (
                     <Button
-                      onClick={() => handleMarkIt(email)}
+                      variant="outline"
+                      onClick={clearFilters}
                       className="gap-2"
                     >
-                      <Sparkles className="h-4 w-4" />
-                      Mark It
+                      <FilterX className="h-4 w-4" />
+                      Clear Filters
                     </Button>
-                  </div>
+                  )}
+                  <Button variant="outline" onClick={handleRefresh} className="gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    Try Again
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-          ))}
+          )}
 
-          {/* Load More Trigger / Button */}
-          <div
-            ref={loadMoreRef}
-            className="flex flex-col items-center py-4 gap-4"
-          >
-            {isLoadingMore && (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-5 w-5 animate-spin text-[var(--Controls-Selected)]" />
-                <span style={{ color: 'var(--page-text-secondary)' }}>
-                  Loading more emails...
-                </span>
+          {/* Email List */}
+          {emails.length > 0 && (
+            <div className="space-y-4">
+              {/* Email Count */}
+              <div className="flex items-center justify-between">
+                <p
+                  className="text-sm"
+                  style={{ color: 'var(--page-text-secondary)' }}
+                >
+                  Showing {emails.length} email{emails.length !== 1 ? 's' : ''}
+                  {hasMore && ' • Scroll for more'}
+                </p>
               </div>
-            )}
 
-            {!isLoadingMore && hasMore && (
-              <Button
-                variant="outline"
-                onClick={loadMoreEmails}
-                className="gap-2"
-              >
-                <ChevronDown className="h-4 w-4" />
-                Load More
-              </Button>
-            )}
+              {/* Email Cards */}
+              {emails.map((email) => (
+                <Card
+                  key={email.id}
+                  className="transition-all hover:scale-[1.01]"
+                  style={{
+                    borderColor:
+                      selectedEmail === email.id
+                        ? 'var(--Controls-Selected)'
+                        : undefined,
+                  }}
+                >
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                      {/* Email Icon */}
+                      <div
+                        className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: SOURCE_COLORS[email.source].bg }}
+                      >
+                        <Mail
+                          className="h-6 w-6"
+                          style={{ color: SOURCE_COLORS[email.source].text }}
+                        />
+                      </div>
 
-            {!hasMore && emails.length > 0 && (
-              <p
-                className="text-sm"
-                style={{ color: 'var(--page-text-muted)' }}
+                      {/* Email Details */}
+                      <div className="flex-1 min-w-0">
+                        {/* Badges */}
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          {/* Source Badge */}
+                          <span
+                            className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
+                            style={{
+                              background: SOURCE_COLORS[email.source].bg,
+                              color: SOURCE_COLORS[email.source].text,
+                            }}
+                          >
+                            {email.source.charAt(0).toUpperCase() +
+                              email.source.slice(1)}
+                          </span>
+
+                          {/* Status Badge */}
+                          {email.registrationStatus !== 'unknown' && (
+                            <span
+                              className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
+                              style={{
+                                background:
+                                  STATUS_COLORS[email.registrationStatus].bg,
+                                color: STATUS_COLORS[email.registrationStatus].text,
+                              }}
+                            >
+                              {formatStatusLabel(email.registrationStatus)}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Subject */}
+                        <h3
+                          className="font-semibold text-lg truncate w-full min-w-0"
+                          style={{ color: 'var(--page-text-primary)' }}
+                          title={email.subject ?? undefined}
+                        >
+                          {email.subject ?? 'No Subject'}
+                        </h3>
+
+                        {/* From & Date */}
+                        <div
+                          className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm"
+                          style={{ color: 'var(--page-text-secondary)' }}
+                        >
+                          <span className="flex items-center gap-1">
+                            <ExternalLink className="h-3 w-3" />
+                            {extractSenderName(email.from)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {formatDate(email.date)}
+                          </span>
+                        </div>
+
+                        {/* Snippet */}
+                        <p
+                          className="mt-2 text-sm line-clamp-2"
+                          style={{ color: 'var(--page-text-muted)' }}
+                        >
+                          {email.snippet}
+                        </p>
+                      </div>
+
+                      {/* Mark It Button */}
+                      <div className="flex-shrink-0">
+                        <Button
+                          onClick={() => handleMarkIt(email)}
+                          className="gap-2"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          Mark It
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {/* Load More Trigger / Button */}
+              <div
+                ref={loadMoreRef}
+                className="flex flex-col items-center py-4 gap-4"
               >
-                You've reached the end
-              </p>
+                {isLoadingMore && (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin text-[var(--Controls-Selected)]" />
+                    <span style={{ color: 'var(--page-text-secondary)' }}>
+                      Loading more emails...
+                    </span>
+                  </div>
+                )}
+
+                {!isLoadingMore && hasMore && (
+                  <Button
+                    variant="outline"
+                    onClick={loadMoreEmails}
+                    className="gap-2"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                    Load More
+                  </Button>
+                )}
+
+                {!hasMore && emails.length > 0 && (
+                  <p
+                    className="text-sm"
+                    style={{ color: 'var(--page-text-muted)' }}
+                  >
+                    You've reached the end
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Upload .eml - Compact Helper */}
+          <div className="flex flex-col items-center gap-2 py-4">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".eml,message/rfc822"
+              onChange={handleFileInput}
+              className="hidden"
+            />
+            <p
+              className="text-sm"
+              style={{ color: 'var(--page-text-muted)' }}
+            >
+              Can't find your email?{' '}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="underline hover:no-underline cursor-pointer"
+                style={{ color: 'var(--Controls-Selected)' }}
+              >
+                Upload .eml file
+              </button>
+            </p>
+            {uploadError && (
+              <p className="text-sm text-destructive">{uploadError}</p>
             )}
           </div>
+
+          {/* Mark It Confirmation Modal */}
+          <ConfirmEmailModal
+            email={emailToMark}
+            open={confirmModalOpen}
+            onOpenChange={setConfirmModalOpen}
+            onConfirm={handleConfirmMarkIt}
+          />
+
+          {/* Mark It Flow Modal */}
+          <MarkItFlowModal
+            state={markItState}
+            actions={markItFlow}
+            open={flowModalOpen}
+            onOpenChange={handleFlowModalClose}
+          />
         </div>
       )}
-
-      {/* Upload .eml - Compact Helper */}
-      <div className="flex flex-col items-center gap-2 py-4">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".eml,message/rfc822"
-          onChange={handleFileInput}
-          className="hidden"
-        />
-        <p
-          className="text-sm"
-          style={{ color: 'var(--page-text-muted)' }}
-        >
-          Can't find your email?{' '}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="underline hover:no-underline cursor-pointer"
-            style={{ color: 'var(--Controls-Selected)' }}
-          >
-            Upload .eml file
-          </button>
-        </p>
-        {uploadError && (
-          <p className="text-sm text-destructive">{uploadError}</p>
-        )}
-      </div>
-
-      {/* Mark It Confirmation Modal */}
-      <ConfirmEmailModal
-        email={emailToMark}
-        open={confirmModalOpen}
-        onOpenChange={setConfirmModalOpen}
-        onConfirm={handleConfirmMarkIt}
-      />
-
-      {/* Mark It Flow Modal */}
-      <MarkItFlowModal
-        state={markItState}
-        actions={markItFlow}
-        open={flowModalOpen}
-        onOpenChange={handleFlowModalClose}
-      />
     </div>
   )
 }
