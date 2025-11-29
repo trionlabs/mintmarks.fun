@@ -1,11 +1,13 @@
 /**
  * useMyMarks Hook - Fetch and manage user's minted NFTs
  *
- * Supports demo mode with mock data via ?demo=true URL parameter
+ * Fetches real NFT data from blockchain via Mintmarks service.
+ * Supports demo mode with mock data via ?demo=true URL parameter.
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import type { NetworkId, ViewFilter, MintmarkNFT, MyMarksStats } from '@/types/nft'
+import { fetchAllMintmarks } from '@/services/mintmarksService'
+import type { NetworkId, ViewFilter, MintmarkNFT } from '@/types/nft'
 
 // ============================================
 // Mock Data for Demo Mode
@@ -20,7 +22,7 @@ const MOCK_NFTS: MintmarkNFT[] = [
     eventDate: '2024-11-15',
     source: 'luma',
     owner: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD21',
-    network: 'base-sepolia',
+    network: 'ethereum-sepolia',
     mintedAt: '2024-11-16T10:30:00Z',
   },
   {
@@ -31,7 +33,7 @@ const MOCK_NFTS: MintmarkNFT[] = [
     eventDate: '2024-11-10',
     source: 'luma',
     owner: '0x8ba1f109551bD432803012645Ac136ddd64DBA72',
-    network: 'base-sepolia',
+    network: 'ethereum-sepolia',
     mintedAt: '2024-11-11T14:20:00Z',
   },
   {
@@ -42,7 +44,7 @@ const MOCK_NFTS: MintmarkNFT[] = [
     eventDate: '2024-10-28',
     source: 'eventbrite',
     owner: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD21',
-    network: 'base-sepolia',
+    network: 'ethereum-sepolia',
     mintedAt: '2024-10-29T09:15:00Z',
   },
   {
@@ -64,7 +66,7 @@ const MOCK_NFTS: MintmarkNFT[] = [
     eventDate: '2024-10-15',
     source: 'substack',
     owner: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD21',
-    network: 'base-sepolia',
+    network: 'ethereum-sepolia',
     mintedAt: '2024-10-15T08:00:00Z',
   },
   {
@@ -86,13 +88,70 @@ const MOCK_NFTS: MintmarkNFT[] = [
     eventDate: '2024-08-15',
     source: 'luma',
     owner: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD21',
-    network: 'base-sepolia',
+    network: 'ethereum-sepolia',
     mintedAt: '2024-08-16T14:30:00Z',
   },
 ]
 
 // Demo user address (matches some mock NFTs)
 const DEMO_USER_ADDRESS = '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD21'
+
+// ============================================
+// Timeline Helpers
+// ============================================
+
+export interface TimelineGroup {
+  year: number
+  month: number
+  monthName: string
+  nfts: MintmarkNFT[]
+}
+
+export interface TimelineStats {
+  totalMinted: number
+  uniqueHolders: number
+  userNfts: number
+  thisMonth: number
+  mostActiveMonth: { month: string; count: number } | null
+}
+
+/**
+ * Group NFTs by year and month for timeline display
+ */
+export function groupByTimeline(nfts: MintmarkNFT[]): TimelineGroup[] {
+  const groups: Map<string, TimelineGroup> = new Map()
+  
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ]
+
+  nfts.forEach((nft) => {
+    const date = new Date(nft.mintedAt)
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const key = `${year}-${month}`
+
+    if (!groups.has(key)) {
+      groups.set(key, {
+        year,
+        month,
+        monthName: monthNames[month],
+        nfts: [],
+      })
+    }
+    const group = groups.get(key)
+    if (group) {
+      group.nfts.push(nft)
+    }
+  })
+
+  // Sort by date (newest first)
+  return Array.from(groups.values()).sort((a, b) => {
+    if (a.year !== b.year) return b.year - a.year
+    return b.month - a.month
+  })
+}
 
 // ============================================
 // Hook Options
@@ -106,7 +165,8 @@ interface UseMyMarksOptions {
 
 interface UseMyMarksReturn {
   nfts: MintmarkNFT[]
-  stats: MyMarksStats
+  timeline: TimelineGroup[]
+  stats: TimelineStats
   loading: boolean
   error: string | null
   refresh: () => void
@@ -134,7 +194,7 @@ export function useMyMarks({
   // Effective user address (use demo address in demo mode)
   const effectiveAddress = isDemo ? DEMO_USER_ADDRESS : userAddress
 
-  // Fetch NFTs
+  // Fetch NFTs from blockchain
   const fetchNfts = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -145,18 +205,39 @@ export function useMyMarks({
         await new Promise((r) => setTimeout(r, 500))
         setNfts(MOCK_NFTS)
       } else {
-        // Real mode: fetch from blockchain/API
-        // TODO: Implement real data fetching
-        // For now, return empty array
-        const stored = localStorage.getItem('mintmarks_nfts')
-        setNfts(stored ? JSON.parse(stored) : [])
+        // Real mode: fetch from blockchain
+        const result = await fetchAllMintmarks(selectedNetworks)
+        
+        // Partial errors are stored in result.error but we continue with available data
+        
+        setNfts(result.nfts)
+        
+        // Also cache to localStorage for offline/quick access
+        if (result.nfts.length > 0) {
+          localStorage.setItem('mintmarks_nfts_cache', JSON.stringify({
+            nfts: result.nfts,
+            timestamp: Date.now(),
+          }))
+        }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch NFTs')
+      const message = err instanceof Error ? err.message : 'Failed to fetch NFTs'
+      setError(message)
+      
+      // Try to load from cache on error
+      try {
+        const cached = localStorage.getItem('mintmarks_nfts_cache')
+        if (cached) {
+          const { nfts: cachedNfts } = JSON.parse(cached)
+          setNfts(cachedNfts)
+        }
+      } catch {
+        // Ignore cache errors
+      }
     } finally {
       setLoading(false)
     }
-  }, [isDemo])
+  }, [isDemo, selectedNetworks])
 
   // Initial fetch
   useEffect(() => {
@@ -186,8 +267,11 @@ export function useMyMarks({
     return result
   }, [nfts, selectedNetworks, viewFilter, effectiveAddress])
 
+  // Group by timeline
+  const timeline = useMemo(() => groupByTimeline(filteredNfts), [filteredNfts])
+
   // Calculate stats
-  const stats = useMemo((): MyMarksStats => {
+  const stats = useMemo((): TimelineStats => {
     const uniqueOwners = new Set(nfts.map((nft) => nft.owner.toLowerCase()))
     const userNfts = effectiveAddress
       ? nfts.filter(
@@ -195,15 +279,40 @@ export function useMyMarks({
         ).length
       : 0
 
+    // This month stats
+    const now = new Date()
+    const thisMonthNfts = filteredNfts.filter((nft) => {
+      const date = new Date(nft.mintedAt)
+      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+    })
+
+    // Most active month
+    const monthCounts: Record<string, { month: string; count: number }> = {}
+    filteredNfts.forEach((nft) => {
+      const date = new Date(nft.mintedAt)
+      const key = `${date.getFullYear()}-${date.getMonth()}`
+      const monthName = date.toLocaleString('default', { month: 'short', year: 'numeric' })
+      
+      if (!monthCounts[key]) {
+        monthCounts[key] = { month: monthName, count: 0 }
+      }
+      monthCounts[key].count++
+    })
+    
+    const mostActiveMonth = Object.values(monthCounts).sort((a, b) => b.count - a.count)[0] || null
+
     return {
       totalMinted: nfts.length,
       uniqueHolders: uniqueOwners.size,
       userNfts,
+      thisMonth: thisMonthNfts.length,
+      mostActiveMonth,
     }
-  }, [nfts, effectiveAddress])
+  }, [nfts, filteredNfts, effectiveAddress])
 
   return {
     nfts: filteredNfts,
+    timeline,
     stats,
     loading,
     error,
@@ -211,5 +320,3 @@ export function useMyMarks({
     isDemo,
   }
 }
-
-
