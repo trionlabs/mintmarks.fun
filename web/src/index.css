@@ -92,6 +92,7 @@
   /* Controls */
   --Controls-Selected: #6396F4;
   --Controls-Idle: rgba(99, 150, 244, 0.1);
+  --controls-selected-light: rgba(99, 150, 244, 0.4);
 
   /* ===== EMAIL SOURCE COLORS ===== */
   /* Luma - Purple */
@@ -265,6 +266,7 @@
   /* Controls */
   --Controls-Selected: #6396F4;
   --Controls-Idle: rgba(99, 150, 244, 0.2);
+  --controls-selected-light: rgba(99, 150, 244, 0.5);
 
   /* ===== EMAIL SOURCE COLORS (Dark Mode) ===== */
   /* Luma - Purple (brighter for dark mode) */
@@ -353,6 +355,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --font-family-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 @layer base {
@@ -362,6 +365,7 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
+    font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
