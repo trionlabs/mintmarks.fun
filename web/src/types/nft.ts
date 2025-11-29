@@ -2,7 +2,18 @@
  * NFT Types for MyMarks Gallery
  */
 
-export type NetworkId = 'base-sepolia' | 'base-mainnet'
+/**
+ * Network identifiers for all supported chains
+ * Used for both minting and displaying NFTs
+ */
+export type NetworkId = 
+  | 'ethereum-sepolia' 
+  | 'base-sepolia' 
+  | 'ethereum' 
+  | 'base'
+
+/** @deprecated Use NetworkId instead - kept for backwards compatibility */
+export type LegacyNetworkId = 'base-sepolia' | 'base-mainnet'
 
 export type ViewFilter = 'all' | 'mine'
 
@@ -24,4 +35,5 @@ export interface MyMarksStats {
   uniqueHolders: number
   userNfts: number
 }
+
 

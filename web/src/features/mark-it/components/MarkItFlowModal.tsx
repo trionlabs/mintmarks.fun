@@ -2,7 +2,12 @@
  * Mark It Flow Modal
  * 
  * Main modal that orchestrates the entire Mark It flow.
- * Shows different content based on current step.
+ * Layout:
+ * - Terminal view at TOP (email proof runs in parallel)
+ * - Step progress below
+ * - Current step content
+ * 
+ * Flow: Wallet → Passport → Mint (email proof runs from start)
  */
 
 import { QRCodeSVG } from 'qrcode.react'
@@ -17,10 +22,11 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useWallet, ConnectWalletModal } from '@/wallet'
 import { MarkItProgress } from './MarkItProgress'
-import { ethereumSepolia, getSepoliaTransactionUrl } from '@/config/sepolia'
-import type { MarkItFlowState, MarkItFlowActions, MintSubStep } from '../types'
+import { TerminalProofView } from './TerminalProofView'
+import { NetworkSelector } from './NetworkSelector'
+import { MINT_NETWORKS, getMintTransactionUrl, type MintNetworkId } from '@/config/mintNetworks'
+import type { MarkItFlowState, MarkItFlowActions, MintSubStep, MarkItStep } from '../types'
 import {
-  Wallet,
   Loader2,
   CheckCircle,
   AlertCircle,
@@ -29,6 +35,8 @@ import {
   Share2,
   ArrowRight,
   Smartphone,
+  Mail,
+  Wallet,
 } from 'lucide-react'
 
 interface MarkItFlowModalProps {
@@ -60,120 +68,203 @@ export function MarkItFlowModal({
     onOpenChange(newOpen)
   }
 
+  // Check if email proof is blocking next step
+  const isProofBlocking = state.emailProofStatus !== 'complete' && 
+                          state.emailProofStatus !== 'error' &&
+                          (state.step === 'passport' || state.step === 'mint')
+
+  // Handle step click for navigation - sequential logic
+  // Only allows going back to completed steps, not forward
+  const handleStepClick = (step: MarkItStep) => {
+    const steps: MarkItStep[] = ['wallet', 'passport', 'mint', 'success']
+    const currentIndex = steps.indexOf(state.step)
+    const targetIndex = steps.indexOf(step)
+    
+    // Don't allow forward navigation (must use Continue button)
+    if (targetIndex > currentIndex) {
+      return
+    }
+    
+    // Only allow going back to completed/accessible steps
+    if (step === 'wallet' && isConnected && state.step !== 'wallet') {
+      // Go back to wallet step
+      if (state.step === 'passport') {
+        actions.goBack()
+      } else if (state.step === 'mint') {
+        // Need to go back twice - call goBack once (will go to passport)
+        actions.goBack()
+        // User can click wallet again to go back further
+      }
+    } else if (step === 'passport' && state.passportSubStep === 'complete' && state.step === 'mint') {
+      // Go back to passport step (only if completed)
+      actions.goBack()
+    } else if (step === state.step) {
+      // Already on this step, do nothing
+      return
+    }
+  }
+
+  // Determine passport verification status
+  const isPassportVerified = state.passportSubStep === 'complete'
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="sm:max-w-lg"
+        className="sm:max-w-lg max-h-[90vh] flex flex-col overflow-hidden p-0 gap-0 border shadow-none"
+        style={{ borderColor: 'var(--border)' }}
         showCloseButton={canClose}
       >
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle>
-              {state.step === 'success' ? '🎉 Success!' : 'Mark It'}
-            </DialogTitle>
-            {/* Network Badge */}
-            <div
-              className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium"
-              style={{
-                background: 'var(--Controls-Idle)',
-                color: 'var(--Controls-Selected)',
-              }}
-            >
-              <span className="w-2 h-2 rounded-full bg-green-500" />
-              {ethereumSepolia.name}
+        {/* Header Section */}
+        <div className="px-6 pt-6 pb-4 border-b bg-background/80 backdrop-blur-sm z-10" style={{ borderColor: 'var(--border)' }}>
+          <DialogHeader className="space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <DialogTitle className="text-xl font-bold tracking-tight">
+                  {state.step === 'success' ? '🎉 Mint Successful' : 'Create Mark'}
+                </DialogTitle>
+                <DialogDescription className="text-sm line-clamp-1 font-medium opacity-80">
+                  {state.email?.subject ?? 'Processing your email...'}
+                </DialogDescription>
+              </div>
+              
+              {/* Badges Container */}
+              <div className="flex flex-col items-end gap-2">
+                {/* Network Badge - shows selected network */}
+                <div
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider border transition-colors"
+                  style={{
+                    background: 'var(--Controls-Idle)',
+                    color: 'var(--Controls-Selected)',
+                    borderColor: 'var(--border)',
+                  }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  {MINT_NETWORKS[state.selectedNetwork].shortName}
+                </div>
+
+                {/* Demo Mode Badge */}
+                {state.isDemo && (
+                  <div
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium border"
+                    style={{
+                      background: 'var(--status-pending-bg)',
+                      color: 'var(--status-pending)',
+                      borderColor: 'var(--status-pending-border)',
+                    }}
+                  >
+                    DEMO
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogHeader>
+        </div>
+
+        {/* Progress Section - Sticky below header */}
+        <div className="bg-background/60 backdrop-blur-sm border-b z-10 transition-all" style={{ borderColor: 'var(--border)' }}>
+          {/* Terminal View - Collapsible */}
+          <div className="border-b" style={{ borderColor: 'var(--border)' }}>
+            <TerminalProofView
+              status={state.emailProofStatus}
+              progress={state.emailProofProgress}
+              logs={state.terminalLogs}
+              eventName={state.emailProof?.metadata.eventName ?? state.email?.subject ?? undefined}
+            />
+          </div>
+
+          {/* Step Progress */}
+          {state.step !== 'success' && (
+            <div className="px-6 py-4">
+              <MarkItProgress 
+                currentStep={state.step} 
+                progress={state.progress} 
+                walletAddress={address}
+                isWalletConnected={isConnected}
+                isPassportVerified={isPassportVerified}
+                onStepClick={handleStepClick}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto px-8 py-8 min-h-[240px] bg-background/40">
+          <div className="flex flex-col h-full justify-center max-w-md mx-auto w-full">
+            {/* Error Alert */}
+            {state.error && (
+              <Alert variant="destructive" className="mb-6 animate-in fade-in slide-in-from-top-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="font-medium">{state.error}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Proof Blocking Alert */}
+            {isProofBlocking && (
+              <div className="mb-6 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center gap-3 text-sm text-yellow-500 animate-pulse">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="font-medium">Generating proof... please wait</span>
+              </div>
+            )}
+
+            {/* Step Content Components */}
+            <div className="relative w-full">
+              {state.step === 'wallet' && (
+                <WalletStep 
+                  isConnected={isConnected} 
+                  address={address} 
+                  onContinue={actions.nextStep}
+                />
+              )}
+
+              {state.step === 'passport' && (
+                <PassportStep
+                  subStep={state.passportSubStep}
+                  qrUrl={state.passportQrUrl}
+                  address={address}
+                  proofReady={state.emailProofStatus === 'complete'}
+                />
+              )}
+
+              {state.step === 'mint' && (
+                <MintStep
+                  subStep={state.mintSubStep}
+                  txHash={state.transactionHash}
+                  eventName={state.emailProof?.metadata.eventName}
+                  onConfirmMint={actions.confirmMint}
+                  selectedNetwork={state.selectedNetwork}
+                  onNetworkChange={actions.setNetwork}
+                />
+              )}
+
+              {state.step === 'success' && (
+                <SuccessStep
+                  result={state.mintResult}
+                  selectedNetwork={state.selectedNetwork}
+                  onViewMarks={() => {
+                    handleOpenChange(false)
+                    window.location.href = '/marks'
+                  }}
+                />
+              )}
             </div>
           </div>
-          <DialogDescription>
-            {state.email?.subject ?? 'Processing your email'}
-          </DialogDescription>
-        </DialogHeader>
-
-        {/* Demo Mode Badge */}
-        {state.isDemo && (
-          <div
-            className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium"
-            style={{
-              background: 'var(--status-pending-bg)',
-              color: 'var(--status-pending)',
-            }}
-          >
-            <AlertCircle className="h-4 w-4" />
-            Demo Mode - No real transactions
-          </div>
-        )}
-
-        {/* Progress Indicator */}
-        <MarkItProgress currentStep={state.step} progress={state.progress} />
-
-        {/* Step Content */}
-        <div className="min-h-[200px] flex flex-col">
-          {/* Error State */}
-          {state.error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{state.error}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Step 1: Wallet */}
-          {state.step === 'wallet' && (
-            <WalletStep isConnected={isConnected} address={address} />
-          )}
-
-          {/* Step 2: Email Proof */}
-          {state.step === 'email-proof' && (
-            <EmailProofStep
-              subStep={state.emailProofSubStep}
-              progress={state.emailProofProgress}
-              result={state.emailProof}
-            />
-          )}
-
-          {/* Step 3: Passport */}
-          {state.step === 'passport' && (
-            <PassportStep
-              subStep={state.passportSubStep}
-              qrUrl={state.passportQrUrl}
-              address={address}
-            />
-          )}
-
-          {/* Step 4: Mint */}
-          {state.step === 'mint' && (
-            <MintStep
-              subStep={state.mintSubStep}
-              txHash={state.transactionHash}
-              eventName={state.emailProof?.metadata.eventName}
-              onConfirmMint={actions.confirmMint}
-            />
-          )}
-
-          {/* Step 5: Success */}
-          {state.step === 'success' && (
-            <SuccessStep
-              result={state.mintResult}
-              onViewMarks={() => {
-                handleOpenChange(false)
-                window.location.href = '/marks'
-              }}
-            />
-          )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-2">
-          {state.error && (
-            <>
-              <Button variant="outline" onClick={() => handleOpenChange(false)}>
+        {/* Footer Actions */}
+        {state.error && (
+          <div className="px-6 py-4 border-t bg-background/80 backdrop-blur-sm flex justify-between items-center" style={{ borderColor: 'var(--border)' }}>
+            <span className="text-xs text-muted-foreground">Something went wrong</span>
+            <div className="flex gap-3">
+              <Button variant="ghost" size="sm" onClick={() => handleOpenChange(false)}>
                 Cancel
               </Button>
-              <Button onClick={actions.retry} className="gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Retry
+              <Button onClick={actions.retry} size="sm" className="gap-2">
+                <RefreshCw className="h-3.5 w-3.5" />
+                Try Again
               </Button>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )
@@ -186,54 +277,95 @@ export function MarkItFlowModal({
 function WalletStep({
   isConnected,
   address,
+  onContinue,
 }: {
   isConnected: boolean
   address: `0x${string}` | null
+  onContinue: () => void
 }) {
+  // Connected state - clean centered design
   if (isConnected && address) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+      <div className="flex-1 flex flex-col items-center justify-center py-8">
+        {/* Success icon */}
         <div
-          className="w-16 h-16 rounded-full flex items-center justify-center"
+          className="w-14 h-14 rounded-full flex items-center justify-center mb-4"
           style={{ background: 'var(--status-confirmed-bg)' }}
         >
-          <CheckCircle className="h-8 w-8" style={{ color: 'var(--status-confirmed)' }} />
+          <CheckCircle className="h-7 w-7" style={{ color: 'var(--status-confirmed)' }} />
         </div>
-        <div className="text-center">
-          <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
-            Wallet Connected
-          </p>
-          <p className="text-sm font-mono mt-1" style={{ color: 'var(--page-text-secondary)' }}>
-            {address.slice(0, 8)}...{address.slice(-6)}
-          </p>
-        </div>
-        <p className="text-sm" style={{ color: 'var(--page-text-muted)' }}>
-          Proceeding to email proof generation...
+
+        {/* Connected info */}
+        <p className="text-sm font-medium mb-1" style={{ color: 'var(--page-text-primary)' }}>
+          Wallet Connected
         </p>
+        <p 
+          className="font-mono text-sm mb-6 px-3 py-1.5 rounded-md"
+          style={{ 
+            color: 'var(--page-text-secondary)',
+            background: 'var(--Controls-Idle)',
+          }}
+        >
+          {address.slice(0, 6)}...{address.slice(-4)}
+        </p>
+
+        {/* Action buttons */}
+        <div className="flex gap-3 w-full max-w-xs">
+          <ConnectWalletModal
+            trigger={
+              <Button variant="outline" size="default" className="flex-1">
+                Change
+              </Button>
+            }
+          />
+          <Button 
+            onClick={onContinue} 
+            size="default" 
+            className="flex-1 gap-2"
+            style={{
+              background: 'var(--foreground)',
+              color: 'var(--background)',
+            }}
+          >
+            Continue
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     )
   }
 
+  // Not connected - centered design
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-6">
+    <div className="flex-1 flex flex-col items-center justify-center py-8">
+      {/* Wallet icon */}
       <div
-        className="w-20 h-20 rounded-full flex items-center justify-center"
+        className="w-14 h-14 rounded-full flex items-center justify-center mb-4"
         style={{ background: 'var(--Controls-Idle)' }}
       >
-        <Wallet className="h-10 w-10" style={{ color: 'var(--Controls-Selected)' }} />
+        <Wallet className="h-7 w-7" style={{ color: 'var(--page-text-muted)' }} />
       </div>
-      <div className="text-center">
-        <p className="font-semibold text-lg" style={{ color: 'var(--page-text-primary)' }}>
-          Connect Your Wallet
-        </p>
-        <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
-          You need a wallet to mint your soulbound NFT
-        </p>
-      </div>
+
+      {/* Title */}
+      <p className="text-sm font-medium mb-1" style={{ color: 'var(--page-text-primary)' }}>
+        Connect Your Wallet
+      </p>
+      <p className="text-xs mb-6" style={{ color: 'var(--page-text-muted)' }}>
+        Required to mint your attendance NFT
+      </p>
+
+      {/* Connect button */}
       <ConnectWalletModal
         trigger={
-          <Button size="lg" className="gap-2">
-            <Wallet className="h-5 w-5" />
+          <Button 
+            size="lg" 
+            className="gap-2 px-8"
+            style={{
+              background: 'var(--foreground)',
+              color: 'var(--background)',
+            }}
+          >
+            <Mail className="h-4 w-4" />
             Connect Wallet
           </Button>
         }
@@ -242,86 +374,20 @@ function WalletStep({
   )
 }
 
-function EmailProofStep({
-  subStep,
-  progress,
-  result,
-}: {
-  subStep: string
-  progress: { message: string; percent: number }
-  result: MarkItFlowState['emailProof']
-}) {
-  if (subStep === 'complete' && result) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4">
-        <div
-          className="w-16 h-16 rounded-full flex items-center justify-center"
-          style={{ background: 'var(--status-confirmed-bg)' }}
-        >
-          <CheckCircle className="h-8 w-8" style={{ color: 'var(--status-confirmed)' }} />
-        </div>
-        <div className="text-center">
-          <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
-            Email Proof Generated
-          </p>
-          <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
-            Event: {result.metadata.eventName}
-          </p>
-          <p className="text-xs font-mono mt-2" style={{ color: 'var(--page-text-muted)' }}>
-            Nullifier: {result.nullifier.slice(0, 12)}...
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-4">
-      <Loader2
-        className="h-12 w-12 animate-spin"
-        style={{ color: 'var(--Controls-Selected)' }}
-      />
-      <div className="text-center">
-        <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
-          {progress.message || 'Generating ZK Proof...'}
-        </p>
-        <p className="text-sm mt-1" style={{ color: 'var(--page-text-muted)' }}>
-          This may take 30-60 seconds
-        </p>
-      </div>
-      {/* Sub-progress bar */}
-      <div className="w-full max-w-xs">
-        <div
-          className="w-full h-2 rounded-full overflow-hidden"
-          style={{ background: 'var(--Controls-Idle)' }}
-        >
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{
-              width: `${progress.percent}%`,
-              background: 'var(--Controls-Selected)',
-            }}
-          />
-        </div>
-        <p className="text-xs text-center mt-1 font-mono" style={{ color: 'var(--page-text-muted)' }}>
-          {progress.percent}%
-        </p>
-      </div>
-    </div>
-  )
-}
-
 function PassportStep({
   subStep,
   qrUrl,
   address,
+  proofReady,
 }: {
   subStep: string
   qrUrl: string | null
   address: `0x${string}` | null
+  proofReady: boolean
 }) {
   const isMobile = typeof navigator !== 'undefined' && /iPhone|iPad|Android/i.test(navigator.userAgent)
 
+  // Success state - Identity Verified
   if (subStep === 'complete') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
@@ -343,55 +409,88 @@ function PassportStep({
     )
   }
 
+  // Waiting for scan
   if (subStep === 'waiting-scan' && qrUrl) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4">
-        <div className="text-center mb-2">
-          <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 w-full overflow-hidden">
+        <div className="text-center mb-1">
+          <p className="font-semibold text-base" style={{ color: 'var(--page-text-primary)' }}>
             Verify Your Identity
           </p>
-          <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--page-text-secondary)' }}>
             Scan with ZKPassport app
           </p>
         </div>
 
-        {/* QR Code */}
+        {/* QR Code - Responsive Container */}
         <div
-          className="p-4 rounded-xl"
+          className="p-4 rounded-xl shrink-0"
           style={{ background: 'white' }}
         >
-          <QRCodeSVG value={qrUrl} size={180} level="M" marginSize={0} />
+          <div className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px]">
+            <QRCodeSVG value={qrUrl} width="100%" height="100%" level="M" marginSize={0} />
+          </div>
         </div>
 
         {/* Mobile link */}
         {isMobile && (
           <Button
             variant="outline"
+            size="sm"
             onClick={() => window.open(qrUrl, '_blank')}
-            className="gap-2"
+            className="gap-2 h-8 text-xs"
           >
-            <Smartphone className="h-4 w-4" />
+            <Smartphone className="h-3.5 w-3.5" />
             Open in App
           </Button>
         )}
 
-        <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--page-text-muted)' }}>
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--page-text-muted)' }}>
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
           Waiting for verification...
         </div>
       </div>
     )
   }
 
+  // Generating QR code
+  if (subStep === 'generating-qr') {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        <Loader2
+          className="h-12 w-12 animate-spin"
+          style={{ color: 'var(--Controls-Selected)' }}
+        />
+        <div className="text-center">
+          <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+            Generating QR Code
+          </p>
+          <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
+            Preparing ZKPassport verification...
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Fallback / Waiting for email proof
+  // Only show this if none of the above matched
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-4">
       <Loader2
         className="h-12 w-12 animate-spin"
         style={{ color: 'var(--Controls-Selected)' }}
       />
-      <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
-        Preparing verification...
-      </p>
+      <div className="text-center">
+        <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+          {!proofReady ? 'Waiting for Email Proof' : 'Preparing Verification'}
+        </p>
+        <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
+          {!proofReady 
+            ? 'Identity verification will begin once the proof is ready' 
+            : 'Initializing secure connection...'}
+        </p>
+      </div>
     </div>
   )
 }
@@ -401,12 +500,18 @@ function MintStep({
   txHash,
   eventName,
   onConfirmMint,
+  selectedNetwork,
+  onNetworkChange,
 }: {
   subStep: MintSubStep
   txHash: string | null
   eventName?: string
   onConfirmMint: () => void
+  selectedNetwork: MintNetworkId
+  onNetworkChange: (network: MintNetworkId) => void
 }) {
+  const network = MINT_NETWORKS[selectedNetwork]
+  // Success state - NFT Minted
   if (subStep === 'complete') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
@@ -423,6 +528,7 @@ function MintStep({
     )
   }
 
+  // Transaction pending - waiting for confirmation
   if (subStep === 'pending' && txHash) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
@@ -432,7 +538,7 @@ function MintStep({
         />
         <div className="text-center">
           <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
-            Confirming Transaction
+            Confirming on {network.shortName}
           </p>
           <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
             Waiting for block confirmation...
@@ -440,16 +546,17 @@ function MintStep({
         </div>
         <Button
           variant="link"
-          onClick={() => window.open(getSepoliaTransactionUrl(txHash), '_blank')}
+          onClick={() => window.open(getMintTransactionUrl(selectedNetwork, txHash), '_blank')}
           className="gap-2"
         >
           <ExternalLink className="h-4 w-4" />
-          View on Etherscan
+          View on Explorer
         </Button>
       </div>
     )
   }
 
+  // Sending transaction
   if (subStep === 'confirming') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
@@ -469,16 +576,61 @@ function MintStep({
     )
   }
 
-  // Ready to mint - show the Mint button
+  // Checking nullifier on-chain
+  if (subStep === 'checking-nullifier') {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        <Loader2
+          className="h-12 w-12 animate-spin"
+          style={{ color: 'var(--Controls-Selected)' }}
+        />
+        <div className="text-center">
+          <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+            Checking Availability
+          </p>
+          <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
+            Verifying email hasn't been used before...
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Simulating transaction
+  if (subStep === 'simulating') {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        <Loader2
+          className="h-12 w-12 animate-spin"
+          style={{ color: 'var(--Controls-Selected)' }}
+        />
+        <div className="text-center">
+          <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+            Simulating Transaction
+          </p>
+          <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
+            Checking if transaction will succeed...
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Ready to mint - show network selector and Mint button
+  // When clicked, confirmMint() will:
+  // 1. Check if transaction is prepared
+  // 2. If not, prepare it first (mint())
+  // 3. Then send the transaction
   if (subStep === 'ready-to-mint') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-6">
+      <div className="flex-1 flex flex-col items-center justify-center gap-5">
         <div
-          className="w-20 h-20 rounded-full flex items-center justify-center"
+          className="w-16 h-16 rounded-full flex items-center justify-center"
           style={{ background: 'var(--status-confirmed-bg)' }}
         >
-          <CheckCircle className="h-10 w-10" style={{ color: 'var(--status-confirmed)' }} />
+          <CheckCircle className="h-8 w-8" style={{ color: 'var(--status-confirmed)' }} />
         </div>
+        
         <div className="text-center">
           <p className="font-bold text-lg" style={{ color: 'var(--page-text-primary)' }}>
             Ready to Mint!
@@ -486,23 +638,55 @@ function MintStep({
           <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
             {eventName}
           </p>
-          <p className="text-xs mt-2" style={{ color: 'var(--page-text-muted)' }}>
-            Your proofs are verified. Click below to mint your NFT.
-          </p>
         </div>
+
+        {/* Network Selector */}
+        <div className="w-full max-w-xs">
+          <label
+            className="block text-xs font-medium mb-2"
+            style={{ color: 'var(--page-text-muted)' }}
+          >
+            Select Network
+          </label>
+          <NetworkSelector
+            selected={selectedNetwork}
+            onChange={onNetworkChange}
+          />
+        </div>
+
         <Button
           size="lg"
           onClick={onConfirmMint}
-          className="gap-2 px-8"
+          className="gap-2 px-8 w-full max-w-xs"
         >
           <CheckCircle className="h-5 w-5" />
-          Mint NFT
+          Mint on {network.shortName}
         </Button>
       </div>
     )
   }
 
-  // Default: preparing/simulating/checking
+  // Preparing transaction
+  if (subStep === 'preparing') {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        <Loader2
+          className="h-12 w-12 animate-spin"
+          style={{ color: 'var(--Controls-Selected)' }}
+        />
+        <div className="text-center">
+          <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+            Preparing Transaction
+          </p>
+          <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
+            {eventName ? `Minting: ${eventName}` : 'Setting up mint transaction...'}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Fallback - Waiting for proof
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-4">
       <Loader2
@@ -511,13 +695,11 @@ function MintStep({
       />
       <div className="text-center">
         <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
-          Preparing Transaction
+          Waiting for Email Proof
         </p>
-        {eventName && (
-          <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
-            Minting: {eventName}
-          </p>
-        )}
+        <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
+          Minting will begin once the proof is ready
+        </p>
       </div>
     </div>
   )
@@ -525,13 +707,17 @@ function MintStep({
 
 function SuccessStep({
   result,
+  selectedNetwork,
   onViewMarks,
 }: {
   result: MarkItFlowState['mintResult']
+  selectedNetwork: MintNetworkId
   onViewMarks: () => void
 }) {
+  const network = MINT_NETWORKS[selectedNetwork]
+  
   const shareOnX = () => {
-    const text = `I just minted my "${result?.eventName}" attendance NFT on @mintmarks! 🎉\n\nProof of attendance, verified with ZK proofs.`
+    const text = `I just minted my "${result?.eventName}" attendance NFT on @mintmarks! 🎉\n\nProof of attendance on ${network.name}, verified with ZK proofs.`
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
     window.open(url, '_blank')
   }
@@ -554,11 +740,14 @@ function SuccessStep({
             <p className="text-sm mt-2" style={{ color: 'var(--page-text-secondary)' }}>
               {result.eventName}
             </p>
+            <p className="text-xs mt-1" style={{ color: 'var(--page-text-muted)' }}>
+              Minted on {network.name}
+            </p>
             {result.transactionHash && (
               <Button
                 variant="link"
                 size="sm"
-                onClick={() => window.open(getSepoliaTransactionUrl(result.transactionHash), '_blank')}
+                onClick={() => window.open(getMintTransactionUrl(selectedNetwork, result.transactionHash), '_blank')}
                 className="gap-1 mt-1"
               >
                 <ExternalLink className="h-3 w-3" />
@@ -582,4 +771,3 @@ function SuccessStep({
     </div>
   )
 }
-

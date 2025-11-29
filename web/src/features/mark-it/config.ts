@@ -79,11 +79,10 @@ export const DEMO_MOCK_DATA: DemoMockData = {
 }
 
 /**
- * Step labels for UI
+ * Step labels for UI (3 steps only - email proof is parallel)
  */
 export const STEP_LABELS = {
   wallet: 'Connect Wallet',
-  'email-proof': 'Email Proof',
   passport: 'Verify Identity',
   mint: 'Mint NFT',
   success: 'Complete',
@@ -94,21 +93,33 @@ export const STEP_LABELS = {
  */
 export const STEP_DESCRIPTIONS = {
   wallet: 'Connect your wallet to continue',
-  'email-proof': 'Generating zero-knowledge proof of your email',
   passport: 'Verify your identity with ZKPassport',
   mint: 'Mint your soulbound attendance NFT',
   success: 'Your mark is onchain!',
 }
 
 /**
- * Progress percentages for each step
+ * Progress percentages for each step (3 steps now)
  */
 export const STEP_PROGRESS = {
-  wallet: { start: 0, end: 15 },
-  'email-proof': { start: 15, end: 50 },
-  passport: { start: 50, end: 75 },
-  mint: { start: 75, end: 100 },
+  wallet: { start: 0, end: 33 },
+  passport: { start: 33, end: 66 },
+  mint: { start: 66, end: 100 },
   success: { start: 100, end: 100 },
+}
+
+/**
+ * Terminal messages for email proof
+ */
+export const TERMINAL_MESSAGES: Record<string, string> = {
+  'idle': '⏳ Waiting to start...',
+  'loading-email': '📧 Loading email data...',
+  'initializing-wasm': '⚙️  Initializing WASM runtime...',
+  'loading-circuit': '🔌 Loading ZK circuit...',
+  'parsing-email': '📝 Parsing email headers...',
+  'generating-proof': '🔐 Generating zero-knowledge proof...',
+  'complete': '✅ Email proof generated successfully!',
+  'error': '❌ Proof generation failed',
 }
 
 

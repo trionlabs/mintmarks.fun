@@ -1,10 +1,12 @@
 /**
  * @fileoverview wagmi configuration for external wallets.
  * Supports browser extension wallets only (no WalletConnect/mobile).
+ * 
+ * Multichain support: Base Sepolia, Base, Ethereum Sepolia, Ethereum
  */
 
 import { createConfig, createStorage, http } from 'wagmi'
-import { baseSepolia, base } from 'wagmi/chains'
+import { baseSepolia, base, sepolia, mainnet } from 'wagmi/chains'
 import { injected, coinbaseWallet } from 'wagmi/connectors'
 
 const isBrowser = typeof window !== 'undefined'
@@ -12,9 +14,15 @@ const isBrowser = typeof window !== 'undefined'
 /**
  * wagmi configuration.
  * Only browser extension wallets - no mobile/WalletConnect.
+ * 
+ * Supports all four networks for Mark It minting:
+ * - Ethereum Sepolia (testnet)
+ * - Base Sepolia (testnet)
+ * - Ethereum (mainnet)
+ * - Base (mainnet)
  */
 export const wagmiConfig = createConfig({
-  chains: [baseSepolia, base],
+  chains: [baseSepolia, base, sepolia, mainnet],
   ssr: false,
   storage: isBrowser
     ? createStorage({
@@ -31,10 +39,12 @@ export const wagmiConfig = createConfig({
   transports: {
     [baseSepolia.id]: http(),
     [base.id]: http(),
+    [sepolia.id]: http(),
+    [mainnet.id]: http(),
   },
 })
 
 // Re-export chains for convenience
-export { baseSepolia, base } from 'wagmi/chains'
+export { baseSepolia, base, sepolia, mainnet } from 'wagmi/chains'
 
 

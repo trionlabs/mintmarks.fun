@@ -1,11 +1,17 @@
 /**
  * Mark It Flow Hook
  * 
- * Orchestrates the entire Mark It flow:
+ * Orchestrates the entire Mark It flow with PARALLEL email proof:
+ * 
+ * ┌─────────────────────────────────────────────┐
+ * │  EMAIL PROOF (runs in background from start)│
+ * │  [Terminal View - shows logs]               │
+ * └─────────────────────────────────────────────┘
+ * 
+ * User Steps (sequential):
  * 1. Connect Wallet
- * 2. Generate Email Proof
- * 3. Verify Passport
- * 4. Mint NFT
+ * 2. Verify Passport (waits for email proof)
+ * 3. Select Network & Mint NFT
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react'
@@ -14,59 +20,76 @@ import { useWallet } from '@/wallet'
 import { getEmailRawForProof } from '@/services/gmail'
 import { useAuth } from '@/contexts/AuthContext'
 import {
-  ethereumSepolia,
-  SEPOLIA_RPC_URL,
   MINTMARKS_ABI,
   ZKPASSPORT_CONFIG,
-  areContractsConfigured,
-  getMintmarksAddress,
 } from '@/config/sepolia'
+import {
+  MINT_NETWORKS,
+  getDefaultMintNetwork,
+  isNetworkConfigured,
+  type MintNetworkId,
+} from '@/config/mintNetworks'
 import { generateEmailProof } from '../lib/emailProver'
-import { DEMO_CONFIG, DEMO_MOCK_DATA, STEP_PROGRESS } from '../config'
+import { DEMO_CONFIG, DEMO_MOCK_DATA, STEP_PROGRESS, TERMINAL_MESSAGES } from '../config'
 import type {
   MarkItStep,
   MarkItFlowState,
   UseMarkItFlowReturn,
   PassportProofResult,
+  TerminalLogEntry,
+  EmailProofStatus,
 } from '../types'
 import type { EmailMetadata } from '@/types/gmail'
 
-// Create public client for reading blockchain
-const publicClient = createPublicClient({
-  chain: ethereumSepolia,
-  transport: http(SEPOLIA_RPC_URL),
-})
+/**
+ * Create a public client for a specific network
+ */
+function createNetworkClient(networkId: MintNetworkId) {
+  const network = MINT_NETWORKS[networkId]
+  return createPublicClient({
+    chain: network.viemChain,
+    transport: http(network.rpcUrl),
+  })
+}
 
 /**
  * Initial flow state
  */
 function getInitialState(isDemo: boolean): MarkItFlowState {
+  const defaultNetwork = getDefaultMintNetwork()
+  
   return {
     step: 'wallet',
     progress: 0,
     email: null,
+    // Email proof (parallel)
     emailProof: null,
-    emailProofSubStep: 'loading-email',
-    emailProofProgress: { message: '', percent: 0 },
+    emailProofStatus: 'idle',
+    emailProofProgress: 0,
+    terminalLogs: [],
+    // Passport
     passportProof: null,
-    passportSubStep: 'waiting-wallet',
+    passportSubStep: 'generating-qr',  // Will be set properly when entering passport step
     passportQrUrl: null,
+    // Mint
     mintResult: null,
-    mintSubStep: 'preparing',
+    mintSubStep: 'preparing',  // Start with 'preparing' like the old version
     transactionHash: null,
+    // Network selection
+    selectedNetwork: defaultNetwork.id,
+    // Error & Demo
     error: null,
     isDemo,
   }
 }
 
 /**
- * Calculate overall progress based on step and sub-step
+ * Calculate overall progress based on step
  */
 function calculateProgress(step: MarkItStep, subProgress: number = 0): number {
   const stepRange = STEP_PROGRESS[step]
   return Math.round(stepRange.start + (stepRange.end - stepRange.start) * (subProgress / 100))
 }
-
 
 /**
  * Main Mark It Flow Hook
@@ -85,6 +108,11 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
   // Refs for cleanup
   const zkPassportRef = useRef<{ cleanup?: () => void } | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const proofStartedRef = useRef(false)
+  const passportVerificationStartedRef = useRef(false)
+  
+  // Ref to store passport proof (prevents race condition between callbacks)
+  const passportProofRef = useRef<PassportProofResult | null>(null)
   
   // Ref to store prepared transaction data for confirmMint
   const preparedTxRef = useRef<{
@@ -101,28 +129,41 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
   }, [])
 
   /**
-   * Start the flow with an email
+   * Add terminal log entry
    */
-  const start = useCallback((email: EmailMetadata) => {
-    setState({
-      ...getInitialState(isDemo),
-      email,
-      step: isConnected ? 'email-proof' : 'wallet',
-      progress: isConnected ? STEP_PROGRESS['email-proof'].start : 0,
-    })
-
-    // If wallet is already connected, start email proof immediately
-    if (isConnected && !isDemo) {
-      // Will be triggered by effect
+  const addTerminalLog = useCallback((message: string, type: TerminalLogEntry['type'], progress?: number) => {
+    const entry: TerminalLogEntry = {
+      timestamp: new Date(),
+      message,
+      type,
+      progress,
     }
-  }, [isConnected, isDemo])
+    setState((prev) => ({
+      ...prev,
+      terminalLogs: [...prev.terminalLogs, entry],
+    }))
+  }, [])
 
   /**
-   * Generate email proof
+   * Update email proof status with terminal log
+   */
+  const updateProofStatus = useCallback((status: EmailProofStatus, progress: number) => {
+    const message = TERMINAL_MESSAGES[status] || status
+    const type: TerminalLogEntry['type'] = status === 'complete' ? 'success' : status === 'error' ? 'error' : 'progress'
+    
+    addTerminalLog(message, type, progress)
+    updateState({
+      emailProofStatus: status,
+      emailProofProgress: progress,
+    })
+  }, [addTerminalLog, updateState])
+
+  /**
+   * Generate email proof (runs in parallel)
    */
   const generateProof = useCallback(async () => {
     if (!state.email) {
-      updateState({ error: 'No email selected' })
+      addTerminalLog('❌ No email selected', 'error')
       return
     }
 
@@ -131,46 +172,32 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
     const needsGmailApi = !uploadedFile
 
     if (needsGmailApi && !accessToken) {
-      updateState({ error: 'Not authenticated with Gmail' })
+      addTerminalLog('❌ Not authenticated with Gmail', 'error')
+      updateState({ emailProofStatus: 'error' })
       return
     }
 
     abortRef.current = new AbortController()
 
     try {
+      addTerminalLog('🚀 Starting email proof generation...', 'info')
+
       if (state.isDemo) {
         // Demo mode: simulate proof generation
-        updateState({
-          emailProofSubStep: 'loading-email',
-          emailProofProgress: { message: 'Loading email...', percent: 10 },
-        })
+        updateProofStatus('loading-email', 10)
         await new Promise((r) => setTimeout(r, DEMO_CONFIG.emailLoadDelay))
 
-        updateState({
-          emailProofSubStep: 'initializing-wasm',
-          emailProofProgress: { message: 'Initializing WASM...', percent: 20 },
-        })
+        updateProofStatus('initializing-wasm', 25)
         await new Promise((r) => setTimeout(r, DEMO_CONFIG.wasmInitDelay))
 
-        updateState({
-          emailProofSubStep: 'loading-circuit',
-          emailProofProgress: { message: 'Loading circuit...', percent: 35 },
-        })
+        updateProofStatus('loading-circuit', 45)
         await new Promise((r) => setTimeout(r, DEMO_CONFIG.circuitLoadDelay))
 
-        updateState({
-          emailProofSubStep: 'generating-proof',
-          emailProofProgress: { message: 'Generating proof...', percent: 60 },
-        })
+        updateProofStatus('generating-proof', 70)
         await new Promise((r) => setTimeout(r, DEMO_CONFIG.proofGenerateDelay))
 
-        updateState({
-          emailProof: DEMO_MOCK_DATA.emailProof,
-          emailProofSubStep: 'complete',
-          emailProofProgress: { message: 'Proof ready!', percent: 100 },
-          step: 'passport',
-          progress: calculateProgress('passport', 0),
-        })
+        updateProofStatus('complete', 100)
+        updateState({ emailProof: DEMO_MOCK_DATA.emailProof })
         return
       }
 
@@ -178,56 +205,66 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       let emailBuffer: Uint8Array
 
       if (uploadedFile) {
-        // Uploaded .eml file - read directly
-        updateState({
-          emailProofSubStep: 'loading-email',
-          emailProofProgress: { message: 'Reading uploaded file...', percent: 5 },
-        })
+        updateProofStatus('loading-email', 5)
+        addTerminalLog('📁 Reading uploaded .eml file...', 'info')
         const arrayBuffer = await uploadedFile.arrayBuffer()
         emailBuffer = new Uint8Array(arrayBuffer)
       } else {
-        // Gmail email - fetch via API
-        updateState({
-          emailProofSubStep: 'loading-email',
-          emailProofProgress: { message: 'Loading email from Gmail...', percent: 5 },
-        })
+        updateProofStatus('loading-email', 5)
+        addTerminalLog('📨 Fetching email from Gmail API...', 'info')
         const { buffer } = await getEmailRawForProof(accessToken!, state.email.id)
         emailBuffer = buffer
       }
 
-      updateState({
-        emailProofSubStep: 'generating-proof',
-        emailProofProgress: { message: 'Starting proof generation...', percent: 10 },
-      })
+      addTerminalLog(`📦 Email loaded (${(emailBuffer.length / 1024).toFixed(1)} KB)`, 'info')
+      updateProofStatus('generating-proof', 15)
 
       // Generate proof with progress callback
       const result = await generateEmailProof(emailBuffer, (message, percent) => {
-        updateState({
-          emailProofProgress: { message, percent },
-        })
+        addTerminalLog(`⏳ ${message}`, 'progress', percent)
+        updateState({ emailProofProgress: percent })
       })
 
-      updateState({
-        emailProof: result,
-        emailProofSubStep: 'complete',
-        emailProofProgress: { message: 'Proof ready!', percent: 100 },
-        step: 'passport',
-        progress: calculateProgress('passport', 0),
-      })
+      addTerminalLog(`✅ Proof generated in ${result.metadata.proofTimeSeconds}s`, 'success')
+      addTerminalLog(`📊 Proof size: ${result.metadata.proofSizeKB} KB`, 'info')
+      updateProofStatus('complete', 100)
+      updateState({ emailProof: result })
+
     } catch (error) {
       console.error('[MarkIt] Email proof generation failed:', error)
-      updateState({
-        error: error instanceof Error ? error.message : 'Failed to generate email proof',
-        emailProofSubStep: 'error',
-      })
+      const errorMsg = error instanceof Error ? error.message : 'Failed to generate email proof'
+      addTerminalLog(`❌ Error: ${errorMsg}`, 'error')
+      updateState({ emailProofStatus: 'error' })
     }
-  }, [state.email, state.isDemo, accessToken, updateState])
+  }, [state.email, state.isDemo, accessToken, addTerminalLog, updateProofStatus, updateState])
+
+  /**
+   * Start the flow with an email
+   * Email proof starts IMMEDIATELY in parallel
+   */
+  const start = useCallback((email: EmailMetadata) => {
+    proofStartedRef.current = false
+    
+    setState({
+      ...getInitialState(isDemo),
+      email,
+      step: isConnected ? 'passport' : 'wallet',
+      progress: isConnected ? STEP_PROGRESS.passport.start : 0,
+      emailProofStatus: 'idle',
+      terminalLogs: [{
+        timestamp: new Date(),
+        message: `📧 Selected: ${email.subject || 'Unknown email'}`,
+        type: 'info',
+      }],
+    })
+  }, [isConnected, isDemo])
 
   /**
    * Start passport verification
    */
   const startPassportVerification = useCallback(async () => {
     if (!address || !state.emailProof) {
+      passportVerificationStartedRef.current = false
       updateState({ error: 'Wallet not connected or no email proof' })
       return
     }
@@ -261,17 +298,22 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
 
       const queryBuilder = await zkPassport.request({
         name: 'Mintmarks',
-        logo: 'https://mintmarks.fun/logo.png',
+        logo: typeof window !== 'undefined' ? `${window.location.origin}/logo.png` : 'https://mintmarks.fun/logo.png',
         purpose: 'Verify your identity to mint your event attendance NFT',
         scope: ZKPASSPORT_CONFIG.scope,
         mode: 'compressed-evm',
         devMode: ZKPASSPORT_CONFIG.devMode,
       })
 
+      // Use the selected network ID as the chain binding
+      // This ensures the proof is generated for the correct chain
+      // Note: ZKPassport expects snake_case (e.g. ethereum_sepolia), so we replace hyphens
+      const chainBinding = state.selectedNetwork.replace(/-/g, '_')
+      
       const { url, onProofGenerated, onResult } = queryBuilder
         .gte('age', 18)
         .bind('user_address', address)
-        .bind('chain', 'ethereum_sepolia')
+        .bind('chain', chainBinding)
         .bind('custom_data', state.emailProof.nullifier)
         .done()
 
@@ -288,12 +330,14 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       }
 
       onProofGenerated((proof: unknown) => {
-        console.log('[MarkIt] Passport proof generated:', proof)
         const verifierParams = zkPassport.getSolidityVerifierParameters({
           proof,
           scope: ZKPASSPORT_CONFIG.scope,
           devMode: ZKPASSPORT_CONFIG.devMode,
         }) as PassportProofResult
+
+        // Store in ref for mint() to use (prevents stale closure)
+        passportProofRef.current = verifierParams
 
         updateState({
           passportProof: verifierParams,
@@ -303,10 +347,15 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
 
       onResult(({ verified }: { verified: boolean; uniqueIdentifier?: string }) => {
         if (verified) {
+          // Use ref to ensure passport proof is included
+          // Set to 'ready-to-mint' so user sees the button and must click to start minting
           updateState({
             passportSubStep: 'complete',
             step: 'mint',
+            mintSubStep: 'ready-to-mint', // User must click button to start minting
             progress: calculateProgress('mint', 0),
+            // Always include passport proof from ref
+            passportProof: passportProofRef.current,
           })
         } else {
           updateState({
@@ -317,6 +366,7 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       })
     } catch (error) {
       console.error('[MarkIt] Passport verification failed:', error)
+      passportVerificationStartedRef.current = false
       updateState({
         error: error instanceof Error ? error.message : 'Failed to start passport verification',
         passportSubStep: 'error',
@@ -325,13 +375,38 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
   }, [address, state.emailProof, state.isDemo, updateState])
 
   /**
+   * Set the network to mint on
+   */
+  const setNetwork = useCallback((network: MintNetworkId) => {
+    updateState({ selectedNetwork: network })
+    // Clear prepared transaction when network changes
+    preparedTxRef.current = null
+  }, [updateState])
+
+  /**
    * Mint the NFT
    */
   const mint = useCallback(async () => {
-    if (!state.emailProof || !state.passportProof || !address) {
+    // Use ref as fallback for passport proof (prevents stale closure)
+    const passportProof = state.passportProof || passportProofRef.current
+    
+    if (!state.emailProof || !passportProof || !address) {
+      console.log('[MarkIt] mint() missing data:', {
+        hasEmailProof: !!state.emailProof,
+        hasPassportProof: !!passportProof,
+        hasPassportProofInState: !!state.passportProof,
+        hasPassportProofInRef: !!passportProofRef.current,
+        hasAddress: !!address,
+      })
       updateState({ error: 'Missing required data for minting' })
       return
     }
+    
+    console.log('[MarkIt] mint() starting with passport proof from:', state.passportProof ? 'state' : 'ref')
+
+    // Get selected network configuration
+    const selectedNetwork = MINT_NETWORKS[state.selectedNetwork]
+    console.log('[MarkIt] Selected network:', selectedNetwork.name, selectedNetwork.chainId)
 
     try {
       if (state.isDemo) {
@@ -355,17 +430,18 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       // Real mode: mint on-chain
       updateState({ mintSubStep: 'checking-nullifier' })
 
-      // Validate contracts are configured
-      if (!areContractsConfigured()) {
-        throw new Error('Contracts not configured. Check .env file.')
+      // Validate contract is configured for selected network
+      if (!isNetworkConfigured(state.selectedNetwork)) {
+        throw new Error(`Contract not deployed on ${selectedNetwork.name}. Please select a different network.`)
       }
 
-      const mintmarksAddress = getMintmarksAddress()
-      console.log('[MarkIt] Checking nullifier on contract:', mintmarksAddress)
-      console.log('[MarkIt] Nullifier:', state.emailProof.publicInputs[1])
+      const mintmarksAddress = selectedNetwork.contractAddress!
+      
+      // Create client for selected network
+      const networkClient = createNetworkClient(state.selectedNetwork)
 
       // Check if nullifier is already used
-      const isUsed = await publicClient.readContract({
+      const isUsed = await networkClient.readContract({
         address: mintmarksAddress,
         abi: MINTMARKS_ABI,
         functionName: 'emailNullifierUsed',
@@ -376,7 +452,7 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
 
       if (isUsed) {
         updateState({
-          error: 'This email has already been used to mint',
+          error: `This email has already been used to mint on ${selectedNetwork.name}`,
           mintSubStep: 'error',
         })
         return
@@ -385,40 +461,27 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       updateState({ mintSubStep: 'simulating' })
 
       // Encode function data - cast passport proof to expected type
+      // Use local passportProof variable (from state or ref)
       const passportProofForContract = {
-        version: state.passportProof.version as `0x${string}`,
+        version: passportProof.version as `0x${string}`,
         proofVerificationData: {
-          vkeyHash: state.passportProof.proofVerificationData.vkeyHash as `0x${string}`,
-          proof: state.passportProof.proofVerificationData.proof as `0x${string}`,
-          publicInputs: state.passportProof.proofVerificationData.publicInputs as `0x${string}`[],
+          vkeyHash: passportProof.proofVerificationData.vkeyHash as `0x${string}`,
+          proof: passportProof.proofVerificationData.proof as `0x${string}`,
+          publicInputs: passportProof.proofVerificationData.publicInputs as `0x${string}`[],
         },
-        committedInputs: state.passportProof.committedInputs as `0x${string}`,
+        committedInputs: passportProof.committedInputs as `0x${string}`,
         serviceConfig: {
-          validityPeriodInSeconds: BigInt(state.passportProof.serviceConfig.validityPeriodInSeconds),
-          domain: state.passportProof.serviceConfig.domain,
-          scope: state.passportProof.serviceConfig.scope,
-          devMode: state.passportProof.serviceConfig.devMode,
+          validityPeriodInSeconds: BigInt(passportProof.serviceConfig.validityPeriodInSeconds),
+          domain: passportProof.serviceConfig.domain,
+          scope: passportProof.serviceConfig.scope,
+          devMode: passportProof.serviceConfig.devMode,
         },
       }
 
-      // Debug log the exact data being sent
-      console.log('[MarkIt] Email proof length:', state.emailProof.proof.length)
-      console.log('[MarkIt] Email public inputs count:', state.emailProof.publicInputs.length)
-      console.log('[MarkIt] Email public inputs (first 5):', state.emailProof.publicInputs.slice(0, 5))
-      console.log('[MarkIt] Passport proof:', {
-        version: passportProofForContract.version,
-        vkeyHash: passportProofForContract.proofVerificationData.vkeyHash,
-        proofLen: passportProofForContract.proofVerificationData.proof.length,
-        publicInputsCount: passportProofForContract.proofVerificationData.publicInputs.length,
-        domain: passportProofForContract.serviceConfig.domain,
-        scope: passportProofForContract.serviceConfig.scope,
-        devMode: passportProofForContract.serviceConfig.devMode,
-      })
-
       // Simulate the transaction first to catch errors early
-      console.log('[MarkIt] Simulating transaction...')
+      console.log('[MarkIt] Simulating transaction on', selectedNetwork.name)
       try {
-        await publicClient.simulateContract({
+        await networkClient.simulateContract({
           address: mintmarksAddress,
           abi: MINTMARKS_ABI,
           functionName: 'mint',
@@ -496,12 +559,13 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       preparedTxRef.current = {
         to: mintmarksAddress,
         data,
-        chainId: ethereumSepolia.id,
+        chainId: selectedNetwork.chainId,
       }
 
       console.log('[MarkIt] Transaction prepared, waiting for user confirmation')
       console.log('[MarkIt] To:', mintmarksAddress)
-      console.log('[MarkIt] Chain ID:', ethereumSepolia.id)
+      console.log('[MarkIt] Network:', selectedNetwork.name)
+      console.log('[MarkIt] Chain ID:', selectedNetwork.chainId)
       console.log('[MarkIt] Data length:', data.length)
 
       // Set state to ready-to-mint, waiting for user to click "Mint NFT" button
@@ -514,16 +578,29 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
         mintSubStep: 'error',
       })
     }
-  }, [state.emailProof, state.passportProof, state.isDemo, address, updateState])
+  }, [state.emailProof, state.passportProof, state.isDemo, state.selectedNetwork, address, updateState])
 
   /**
    * Confirm and send mint transaction
    * Called when user clicks "Mint NFT" button
+   * If transaction is not prepared yet, prepares it first
    */
   const confirmMint = useCallback(async () => {
+    // If transaction is not prepared, prepare it first
     if (!preparedTxRef.current) {
-      updateState({ error: 'No transaction prepared' })
-      return
+      // Check if we have all required data
+      if (!state.emailProof || !state.passportProof || !address) {
+        updateState({ error: 'Missing required data for minting' })
+        return
+      }
+      
+      // Prepare transaction first
+      await mint()
+      
+      // If still not prepared (error occurred), return
+      if (!preparedTxRef.current) {
+        return
+      }
     }
 
     if (!sendTransaction) {
@@ -531,10 +608,14 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       return
     }
 
+    // Get network client for waiting on receipt
+    const selectedNetwork = MINT_NETWORKS[state.selectedNetwork]
+    const networkClient = createNetworkClient(state.selectedNetwork)
+
     try {
       updateState({ mintSubStep: 'confirming' })
 
-      console.log('[MarkIt] Sending transaction...')
+      console.log('[MarkIt] Sending transaction on', selectedNetwork.name)
       const result = await sendTransaction(preparedTxRef.current)
       
       console.log('[MarkIt] Transaction sent:', result.hash)
@@ -544,8 +625,8 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
         mintSubStep: 'pending',
       })
 
-      // Wait for confirmation
-      const receipt = await publicClient.waitForTransactionReceipt({ hash: result.hash })
+      // Wait for confirmation on the correct network
+      const receipt = await networkClient.waitForTransactionReceipt({ hash: result.hash })
 
       if (receipt.status === 'success') {
         updateState({
@@ -573,40 +654,78 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
         mintSubStep: 'error',
       })
     }
-  }, [sendTransaction, state.emailProof, updateState])
+  }, [sendTransaction, state.emailProof, state.selectedNetwork, updateState, mint])
 
   /**
    * Move to next step
+   * Uses functional update to avoid stale closure issues
    */
   const nextStep = useCallback(() => {
-    const steps: MarkItStep[] = ['wallet', 'email-proof', 'passport', 'mint', 'success']
-    const currentIndex = steps.indexOf(state.step)
-    
-    if (currentIndex < steps.length - 1) {
-      const nextStepValue = steps[currentIndex + 1]
-      updateState({
-        step: nextStepValue,
-        progress: calculateProgress(nextStepValue, 0),
-      })
-    }
-  }, [state.step, updateState])
+    setState((prev) => {
+      const steps: MarkItStep[] = ['wallet', 'passport', 'mint', 'success']
+      const currentIndex = steps.indexOf(prev.step)
+      
+      if (currentIndex < steps.length - 1) {
+        const nextStepValue = steps[currentIndex + 1]
+        
+        // Special handling for wallet → passport transition
+        if (prev.step === 'wallet' && nextStepValue === 'passport') {
+          // Reset passport verification state and use CURRENT emailProofStatus
+          return {
+            ...prev,
+            step: nextStepValue,
+            progress: calculateProgress(nextStepValue, 0),
+            passportSubStep: prev.emailProofStatus === 'complete' ? 'generating-qr' : 'waiting-proof',
+            // Reset passport state for fresh verification
+            passportQrUrl: null,
+            passportProof: null,
+          }
+        } else {
+          return {
+            ...prev,
+            step: nextStepValue,
+            progress: calculateProgress(nextStepValue, 0),
+          }
+        }
+      }
+      return prev
+    })
+  }, [])
 
   /**
    * Go back to previous step
+   * Resets step-specific state to allow fresh verification
    */
   const goBack = useCallback(() => {
-    const steps: MarkItStep[] = ['wallet', 'email-proof', 'passport', 'mint', 'success']
-    const currentIndex = steps.indexOf(state.step)
+    setState((prev) => {
+      const steps: MarkItStep[] = ['wallet', 'passport', 'mint', 'success']
+      const currentIndex = steps.indexOf(prev.step)
+      
+      if (currentIndex > 0) {
+        const prevStep = steps[currentIndex - 1]
+        
+        // Reset passport state when going back from passport/mint
+        const resetPassport = prev.step === 'passport' || prev.step === 'mint'
+        
+        return {
+          ...prev,
+          step: prevStep,
+          progress: calculateProgress(prevStep, 0),
+          error: null,
+          // Reset passport verification state for fresh start
+          ...(resetPassport && {
+            passportSubStep: 'waiting-proof',
+            passportQrUrl: null,
+            passportProof: null,
+          }),
+        }
+      }
+      return prev
+    })
     
-    if (currentIndex > 0) {
-      const prevStep = steps[currentIndex - 1]
-      updateState({
-        step: prevStep,
-        progress: calculateProgress(prevStep, 0),
-        error: null,
-      })
-    }
-  }, [state.step, updateState])
+    // Reset passport verification ref
+    passportVerificationStartedRef.current = false
+  }, [])
 
   /**
    * Cancel and reset
@@ -614,6 +733,7 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
   const cancel = useCallback(() => {
     abortRef.current?.abort()
     zkPassportRef.current?.cleanup?.()
+    proofStartedRef.current = false
     setState(getInitialState(isDemo))
   }, [isDemo])
 
@@ -624,20 +744,18 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
     updateState({ error: null })
     
     switch (state.step) {
-      case 'email-proof':
-        updateState({ emailProofSubStep: 'loading-email' })
-        generateProof()
-        break
       case 'passport':
-        updateState({ passportSubStep: 'waiting-wallet' })
-        startPassportVerification()
+        updateState({ passportSubStep: 'waiting-proof' })
+        if (state.emailProofStatus === 'complete') {
+          startPassportVerification()
+        }
         break
       case 'mint':
         updateState({ mintSubStep: 'preparing' })
         mint()
         break
     }
-  }, [state.step, generateProof, startPassportVerification, mint, updateState])
+  }, [state.step, state.emailProofStatus, startPassportVerification, mint, updateState])
 
   /**
    * Set error
@@ -646,58 +764,53 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
     updateState({ error })
   }, [updateState])
 
-  // Auto-start email proof when wallet connects
+  // 🔥 START EMAIL PROOF IMMEDIATELY when flow starts (parallel execution)
   useEffect(() => {
     if (
-      state.step === 'wallet' &&
-      isConnected &&
       state.email &&
-      !state.error
+      state.emailProofStatus === 'idle' &&
+      !proofStartedRef.current
     ) {
-      updateState({
-        step: 'email-proof',
-        progress: calculateProgress('email-proof', 0),
-      })
-    }
-  }, [isConnected, state.step, state.email, state.error, updateState])
-
-  // Auto-trigger email proof generation
-  useEffect(() => {
-    if (
-      state.step === 'email-proof' &&
-      state.emailProofSubStep === 'loading-email' &&
-      state.email &&
-      !state.error
-    ) {
+      proofStartedRef.current = true
       generateProof()
     }
-  }, [state.step, state.emailProofSubStep, state.email, state.error, generateProof])
+  }, [state.email, state.emailProofStatus, generateProof])
 
-  // Auto-trigger passport verification
+  // NOTE: Auto-advance removed - user must click "Continue" on wallet step
+  // This allows user to review/change wallet before proceeding
+
+  // Auto-trigger passport verification when proof is ready and at passport step
   useEffect(() => {
     if (
       state.step === 'passport' &&
-      state.passportSubStep === 'waiting-wallet' &&
+      state.emailProofStatus === 'complete' &&
+      state.emailProof &&
       isConnected &&
-      state.emailProof &&
-      !state.error
+      !state.error &&
+      !passportVerificationStartedRef.current
     ) {
-      startPassportVerification()
+      // If waiting for proof, start generating QR
+      if (state.passportSubStep === 'waiting-proof') {
+        passportVerificationStartedRef.current = true
+        updateState({ passportSubStep: 'generating-qr' })
+        startPassportVerification()
+      }
+      // If already generating QR but not started and no QR URL yet, start it
+      else if (state.passportSubStep === 'generating-qr' && !state.passportQrUrl) {
+        passportVerificationStartedRef.current = true
+        startPassportVerification()
+      }
     }
-  }, [state.step, state.passportSubStep, isConnected, state.emailProof, state.error, startPassportVerification])
+    
+    // Reset ref when leaving passport step
+    if (state.step !== 'passport') {
+      passportVerificationStartedRef.current = false
+    }
+  }, [state.step, state.passportSubStep, state.emailProofStatus, state.emailProof, state.passportQrUrl, isConnected, state.error, startPassportVerification, updateState])
 
-  // Auto-trigger mint preparation (shows "Mint NFT" button when ready)
-  useEffect(() => {
-    if (
-      state.step === 'mint' &&
-      state.mintSubStep === 'preparing' &&
-      state.emailProof &&
-      state.passportProof &&
-      !state.error
-    ) {
-      mint()
-    }
-  }, [state.step, state.mintSubStep, state.emailProof, state.passportProof, state.error, mint])
+  // NOTE: Mint is NOT automatic - user must click "Mint NFT" button
+  // The button is shown when mintSubStep === 'ready-to-mint'
+  // When clicked, it calls mint() which prepares the transaction
 
   // Cleanup on unmount
   useEffect(() => {
@@ -715,7 +828,8 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
     cancel,
     retry,
     setError,
+    setNetwork,
+    mint,
     confirmMint,
   }
 }
-

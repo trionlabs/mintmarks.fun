@@ -1,5 +1,8 @@
 /**
  * Network Configuration for MyMarks
+ * 
+ * This is used by MyMarks gallery for filtering NFTs by network.
+ * For minting, see config/mintNetworks.ts
  */
 
 import type { NetworkId } from '@/types/nft'
@@ -11,9 +14,19 @@ export interface NetworkConfig {
   chainId: number
   blockExplorer: string
   enabled: boolean
+  testnet: boolean
 }
 
 const networks: NetworkConfig[] = [
+  {
+    id: 'ethereum-sepolia',
+    name: 'Ethereum Sepolia',
+    shortName: 'ETH Sepolia',
+    chainId: 11155111,
+    blockExplorer: 'https://sepolia.etherscan.io',
+    enabled: true,
+    testnet: true,
+  },
   {
     id: 'base-sepolia',
     name: 'Base Sepolia',
@@ -21,14 +34,25 @@ const networks: NetworkConfig[] = [
     chainId: 84532,
     blockExplorer: 'https://sepolia.basescan.org',
     enabled: true,
+    testnet: true,
   },
   {
-    id: 'base-mainnet',
+    id: 'ethereum',
+    name: 'Ethereum',
+    shortName: 'Ethereum',
+    chainId: 1,
+    blockExplorer: 'https://etherscan.io',
+    enabled: true,
+    testnet: false,
+  },
+  {
+    id: 'base',
     name: 'Base',
     shortName: 'Base',
     chainId: 8453,
     blockExplorer: 'https://basescan.org',
-    enabled: false, // Enable when ready for mainnet
+    enabled: true,
+    testnet: false,
   },
 ]
 
@@ -51,4 +75,5 @@ export function getAddressUrl(network: NetworkId, address: string): string {
   if (!config) return '#'
   return `${config.blockExplorer}/address/${address}`
 }
+
 

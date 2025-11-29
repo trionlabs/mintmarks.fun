@@ -73,7 +73,9 @@ export default defineConfig(({ mode }) => {
     assetsInclude: ['**/*.wasm', '**/*.wasm.gz'],
     server: {
       headers: {
-        'Cross-Origin-Embedder-Policy': 'require-corp',
+        // Use 'credentialless' instead of 'require-corp' to allow Coinbase Wallet SDK
+        // while still enabling SharedArrayBuffer for WASM (Noir/Aztec ZK proofs)
+        'Cross-Origin-Embedder-Policy': 'credentialless',
         'Cross-Origin-Opener-Policy': 'same-origin',
       },
       // Allow serving files from node_modules (including pnpm workspace root)
