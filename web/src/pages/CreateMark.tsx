@@ -581,7 +581,7 @@ export function CreateMark() {
 
                     {/* Subject */}
                     <h3
-                      className="font-semibold text-lg truncate"
+                      className="font-semibold text-lg truncate w-full min-w-0"
                       style={{ color: 'var(--page-text-primary)' }}
                       title={email.subject ?? undefined}
                     >

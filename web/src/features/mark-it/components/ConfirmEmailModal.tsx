@@ -1,6 +1,7 @@
 /**
  * Confirm Email Modal
  * 
+ * Layout matches the visual design - clean, focused, centered.
  * Shows email details and asks for confirmation before starting the Mark It flow.
  */
 
@@ -9,43 +10,19 @@ import {
   DialogContent,
   DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Mail, Calendar, ExternalLink, Sparkles, AlertCircle } from 'lucide-react'
+import { Bookmark, Info, ArrowLeft, ArrowRight, X } from 'lucide-react'
 import type { EmailMetadata } from '@/types/gmail'
-import { SOURCE_COLORS } from '@/config/emailFilters'
+import { EmailPreviewCard } from './EmailPreviewCard'
 
 interface ConfirmEmailModalProps {
   email: EmailMetadata | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
-}
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return 'Unknown date'
-  try {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  } catch {
-    return dateStr
-  }
-}
-
-function extractSenderName(from: string | null): string {
-  if (!from) return 'Unknown sender'
-  const match = from.match(/^([^<]+)\s*</)
-  if (match) {
-    return match[1].trim().replace(/"/g, '')
-  }
-  return from.split('@')[0]
 }
 
 export function ConfirmEmailModal({
@@ -56,153 +33,76 @@ export function ConfirmEmailModal({
 }: ConfirmEmailModalProps) {
   if (!email) return null
 
-  const sourceColor = SOURCE_COLORS[email.source] || SOURCE_COLORS.unknown
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5" style={{ color: 'var(--Controls-Selected)' }} />
-            Create Your Mark
+      <DialogContent className="sm:max-w-lg" showCloseButton={false}>
+        {/* Header - Title and Close Button Same Line */}
+        <div className="flex items-center justify-between gap-4 mb-4 -mt-1">
+          <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight">
+            Mint Your Mintmark
           </DialogTitle>
-          <DialogDescription>
-            You're about to create a soulbound NFT from this email. This process includes:
+          <DialogClose
+            className="w-8 h-8 rounded-lg flex items-center justify-center ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground opacity-70 transition-all hover:opacity-100 hover:bg-muted/50 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none border flex-shrink-0"
+            style={{
+              borderColor: 'var(--border)',
+            }}
+          >
+            <X className="w-4 h-4 pointer-events-none shrink-0" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </div>
+
+        {/* Compact Centered Design - Better Hierarchy */}
+        <div className="text-center">
+          {/* Description */}
+          <DialogDescription className="text-xs sm:text-sm font-medium leading-relaxed mb-8">
+            Privately prove your commitment and make it a permanent part of your digital identity.
           </DialogDescription>
-        </DialogHeader>
 
-        {/* Process Steps */}
-        <div
-          className="rounded-lg p-4 space-y-2"
-          style={{ background: 'var(--glass-bg-secondary)' }}
-        >
-          <div className="flex items-center gap-3 text-sm">
-            <span
-              className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
-              style={{ background: 'var(--Controls-Selected)', color: 'white' }}
-            >
-              1
-            </span>
-            <span style={{ color: 'var(--page-text-primary)' }}>
-              Connect your wallet
-            </span>
+          {/* Email Preview Card - Vertical Badge - Centered */}
+          <div className="flex justify-center my-8">
+            <EmailPreviewCard email={email} />
           </div>
-          <div className="flex items-center gap-3 text-sm">
-            <span
-              className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
-              style={{ background: 'var(--Controls-Selected)', color: 'white' }}
-            >
-              2
-            </span>
-            <span style={{ color: 'var(--page-text-primary)' }}>
-              Generate ZK proof of your email (30-60s)
-            </span>
-          </div>
-          <div className="flex items-center gap-3 text-sm">
-            <span
-              className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
-              style={{ background: 'var(--Controls-Selected)', color: 'white' }}
-            >
-              3
-            </span>
-            <span style={{ color: 'var(--page-text-primary)' }}>
-              Verify your identity with ZKPassport
-            </span>
-          </div>
-          <div className="flex items-center gap-3 text-sm">
-            <span
-              className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
-              style={{ background: 'var(--Controls-Selected)', color: 'white' }}
-            >
-              4
-            </span>
-            <span style={{ color: 'var(--page-text-primary)' }}>
-              Mint your soulbound NFT
-            </span>
-          </div>
-        </div>
 
-        {/* Email Preview */}
-        <div
-          className="rounded-lg p-4 border"
-          style={{
-            background: 'var(--glass-bg-primary)',
-            borderColor: 'var(--border)',
-          }}
-        >
-          <div className="flex items-start gap-4">
-            {/* Icon */}
-            <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ background: sourceColor.bg }}
+          {/* How It Works Badge - More spacious */}
+          <div className="my-8">
+            <div 
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300 hover:scale-105 cursor-default"
+              style={{ 
+                backgroundColor: 'var(--page-badge-bg)',
+                borderColor: 'var(--page-border-color)',
+                backdropFilter: 'blur(var(--glass-blur)) saturate(var(--glass-saturate))',
+                WebkitBackdropFilter: 'blur(var(--glass-blur)) saturate(var(--glass-saturate))',
+                boxShadow: 'var(--glass-shadow)',
+              }}
             >
-              <Mail className="h-6 w-6" style={{ color: sourceColor.text }} />
-            </div>
-
-            {/* Details */}
-            <div className="flex-1 min-w-0">
-              {/* Source Badge */}
-              <span
-                className="inline-block px-2 py-0.5 rounded-full text-xs font-medium mb-2"
-                style={{ background: sourceColor.bg, color: sourceColor.text }}
-              >
-                {email.source.charAt(0).toUpperCase() + email.source.slice(1)}
+              <Info className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--page-text-muted)' }} />
+              <span className="text-[10px] font-medium leading-tight" style={{ color: 'var(--page-text-secondary)' }}>
+                ZK-email proof → Mint on Base
               </span>
-
-              {/* Subject */}
-              <h4
-                className="font-semibold truncate"
-                style={{ color: 'var(--page-text-primary)' }}
-                title={email.subject ?? undefined}
-              >
-                {email.subject ?? 'No Subject'}
-              </h4>
-
-              {/* Meta */}
-              <div
-                className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm"
-                style={{ color: 'var(--page-text-secondary)' }}
-              >
-                <span className="flex items-center gap-1">
-                  <ExternalLink className="h-3 w-3" />
-                  {extractSenderName(email.from)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {formatDate(email.date)}
-                </span>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Warning */}
-        <div
-          className="flex items-start gap-3 p-3 rounded-lg text-sm"
-          style={{
-            background: 'var(--status-pending-bg)',
-            color: 'var(--page-text-primary)',
-          }}
-        >
-          <AlertCircle
-            className="h-5 w-5 flex-shrink-0"
-            style={{ color: 'var(--status-pending-text)' }}
-          />
-          <div>
-            <p className="font-medium">Once minted, this NFT is permanent</p>
-            <p style={{ color: 'var(--page-text-secondary)' }}>
-              Soulbound tokens cannot be transferred or sold. Each email can only be used once.
-            </p>
-          </div>
-        </div>
-
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+        {/* Action Buttons - Back and Mark It - Better spacing */}
+        <DialogFooter className="gap-2 sm:gap-3 mt-4">
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+            className="gap-2 w-full sm:flex-1"
+            size="lg"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
           </Button>
-          <Button onClick={onConfirm} className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            Start Process
+          <Button 
+            onClick={onConfirm} 
+            className="gap-2 w-full sm:flex-1"
+            size="lg"
+          >
+            <Bookmark className="h-4 w-4" />
+            Mark It
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </DialogFooter>
       </DialogContent>
