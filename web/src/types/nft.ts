@@ -34,6 +34,8 @@ export interface MyMarksStats {
   totalMinted: number
   uniqueHolders: number
   userNfts: number
+  thisMonth: number
+  mostActiveMonth: { month: string; count: number } | null
 }
 
 
