@@ -49,7 +49,8 @@ export const MINT_NETWORKS: Record<MintNetworkId, MintNetworkConfig> = {
     name: 'Ethereum Sepolia',
     shortName: 'ETH Sepolia',
     viemChain: sepolia,
-    contractAddress: import.meta.env.VITE_MINTMARKS_ETH_SEPOLIA as `0x${string}` | undefined,
+    // Supports both legacy (VITE_MINTMARKS_ADDRESS) and new naming (VITE_MINTMARKS_ETH_SEPOLIA)
+    contractAddress: (import.meta.env.VITE_MINTMARKS_ADDRESS || import.meta.env.VITE_MINTMARKS_ETH_SEPOLIA) as `0x${string}` | undefined,
     rpcUrl: import.meta.env.VITE_SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com',
     blockExplorer: 'https://sepolia.etherscan.io',
     testnet: true,
@@ -66,7 +67,7 @@ export const MINT_NETWORKS: Record<MintNetworkId, MintNetworkConfig> = {
     rpcUrl: 'https://sepolia.base.org',
     blockExplorer: 'https://sepolia.basescan.org',
     testnet: true,
-    enabled: true,
+    enabled: false, // Not deployed yet
     cdpNetwork: 'base-sepolia',
   },
   'ethereum': {
@@ -79,7 +80,7 @@ export const MINT_NETWORKS: Record<MintNetworkId, MintNetworkConfig> = {
     rpcUrl: 'https://eth.llamarpc.com',
     blockExplorer: 'https://etherscan.io',
     testnet: false,
-    enabled: true,
+    enabled: false, // Not deployed yet
     cdpNetwork: 'ethereum',
   },
   'base': {
@@ -92,7 +93,7 @@ export const MINT_NETWORKS: Record<MintNetworkId, MintNetworkConfig> = {
     rpcUrl: 'https://mainnet.base.org',
     blockExplorer: 'https://basescan.org',
     testnet: false,
-    enabled: true,
+    enabled: false, // Not deployed yet
     cdpNetwork: 'base',
   },
 } as const
