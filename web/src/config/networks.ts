@@ -33,7 +33,7 @@ const networks: NetworkConfig[] = [
     shortName: 'Base Sepolia',
     chainId: 84532,
     blockExplorer: 'https://sepolia.basescan.org',
-    enabled: true,
+    enabled: false, // Not deployed yet
     testnet: true,
   },
   {
@@ -42,7 +42,7 @@ const networks: NetworkConfig[] = [
     shortName: 'Ethereum',
     chainId: 1,
     blockExplorer: 'https://etherscan.io',
-    enabled: true,
+    enabled: false, // Not deployed yet
     testnet: false,
   },
   {
@@ -51,7 +51,7 @@ const networks: NetworkConfig[] = [
     shortName: 'Base',
     chainId: 8453,
     blockExplorer: 'https://basescan.org',
-    enabled: true,
+    enabled: false, // Not deployed yet
     testnet: false,
   },
 ]

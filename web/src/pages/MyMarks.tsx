@@ -450,9 +450,9 @@ function NetworkDropdown({
   const label =
     selected.length === networks.length
       ? 'All networks'
-      : selected
-          .map((id) => networks.find((n) => n.id === id)?.shortName)
-          .join(', ')
+      : selected.length === 1
+      ? networks.find((n) => n.id === selected[0])?.shortName || 'Networks'
+      : `${selected.length} networks`
 
   return (
     <div className="relative">
@@ -461,6 +461,7 @@ function NetworkDropdown({
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 text-xs transition-opacity hover:opacity-70"
         style={{ color: 'var(--page-text-secondary)' }}
+        aria-label="Filter by network"
       >
         {label}
         <ChevronDown
