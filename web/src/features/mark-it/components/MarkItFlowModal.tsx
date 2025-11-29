@@ -10,7 +10,9 @@
  * Flow: Wallet → Passport → Mint (email proof runs from start)
  */
 
+import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
+import { createPublicClient, http, formatEther } from 'viem'
 import {
   Dialog,
   DialogContent,
@@ -23,7 +25,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useWallet, ConnectWalletModal } from '@/wallet'
 import { MarkItProgress } from './MarkItProgress'
 import { TerminalProofView } from './TerminalProofView'
-import { NetworkSelector } from './NetworkSelector'
 import { MINT_NETWORKS, getMintTransactionUrl, type MintNetworkId } from '@/config/mintNetworks'
 import type { MarkItFlowState, MarkItFlowActions, MintSubStep, MarkItStep } from '../types'
 import {
@@ -44,6 +45,76 @@ interface MarkItFlowModalProps {
   actions: MarkItFlowActions
   open: boolean
   onOpenChange: (open: boolean) => void
+}
+
+/**
+ * Network Balance Component
+ * Fetches and displays the user's ETH balance on a specific network
+ */
+function NetworkBalance({ networkId }: { networkId: MintNetworkId }) {
+  const { address } = useWallet()
+  const [balance, setBalance] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    if (!address) {
+      setBalance(null)
+      setIsLoading(false)
+      return
+    }
+
+    const fetchBalance = async () => {
+      setIsLoading(true)
+      try {
+        const network = MINT_NETWORKS[networkId]
+        const client = createPublicClient({
+          chain: network.viemChain,
+          transport: http(network.rpcUrl),
+        })
+
+        const balanceWei = await client.getBalance({ address })
+        const balanceEth = formatEther(balanceWei)
+        // Format to 4 decimal places
+        const formatted = parseFloat(balanceEth).toFixed(4)
+        setBalance(formatted)
+      } catch (error) {
+        console.error('[NetworkBalance] Failed to fetch balance:', error)
+        setBalance(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchBalance()
+  }, [address, networkId])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-1">
+        <Loader2 className="h-3 w-3 animate-spin" style={{ color: 'var(--page-text-muted)' }} />
+        <span className="text-xs" style={{ color: 'var(--page-text-muted)' }}>...</span>
+      </div>
+    )
+  }
+
+  if (!balance) {
+    return (
+      <span className="text-xs" style={{ color: 'var(--page-text-muted)' }}>
+        --
+      </span>
+    )
+  }
+
+  return (
+    <div className="text-right">
+      <p className="text-sm font-mono font-medium" style={{ color: 'var(--page-text-primary)' }}>
+        {balance}
+      </p>
+      <p className="text-[10px]" style={{ color: 'var(--page-text-muted)' }}>
+        ETH
+      </p>
+    </div>
+  )
 }
 
 export function MarkItFlowModal({
@@ -616,51 +687,125 @@ function MintStep({
     )
   }
 
-  // Ready to mint - show network selector and Mint button
-  // When clicked, confirmMint() will:
-  // 1. Check if transaction is prepared
-  // 2. If not, prepare it first (mint())
-  // 3. Then send the transaction
+  // Ready to mint - minimalist design with network selection
   if (subStep === 'ready-to-mint') {
+    const allNetworks = Object.values(MINT_NETWORKS)
+    
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-5">
-        <div
-          className="w-16 h-16 rounded-full flex items-center justify-center"
-          style={{ background: 'var(--status-confirmed-bg)' }}
-        >
-          <CheckCircle className="h-8 w-8" style={{ color: 'var(--status-confirmed)' }} />
-        </div>
-        
-        <div className="text-center">
-          <p className="font-bold text-lg" style={{ color: 'var(--page-text-primary)' }}>
-            Ready to Mint!
-          </p>
-          <p className="text-sm mt-1" style={{ color: 'var(--page-text-secondary)' }}>
-            {eventName}
-          </p>
+      <div className="flex-1 flex flex-col items-center justify-center py-6">
+        {/* Hero Section */}
+        <div className="flex flex-col items-center text-center mb-8">
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
+            style={{ background: 'var(--Controls-Idle)' }}
+          >
+            <CheckCircle className="h-7 w-7" style={{ color: 'var(--Controls-Selected)' }} />
+          </div>
+          
+          <h3 
+            className="text-base font-semibold mb-1" 
+            style={{ color: 'var(--page-text-primary)' }}
+          >
+            Ready to Mint
+          </h3>
+          
+          {eventName && (
+            <p 
+              className="text-xs max-w-[240px] line-clamp-2" 
+              style={{ color: 'var(--page-text-muted)' }}
+            >
+              {eventName}
+            </p>
+          )}
         </div>
 
-        {/* Network Selector */}
-        <div className="w-full max-w-xs">
-          <label
-            className="block text-xs font-medium mb-2"
+        {/* Network Selection */}
+        <div className="w-full max-w-[300px] mb-6">
+          <p 
+            className="text-[10px] font-medium uppercase tracking-wider mb-2 px-1"
             style={{ color: 'var(--page-text-muted)' }}
           >
-            Select Network
-          </label>
-          <NetworkSelector
-            selected={selectedNetwork}
-            onChange={onNetworkChange}
-          />
+            Network
+          </p>
+          
+          <div className="space-y-1.5">
+            {allNetworks.map((net) => {
+              const isSelected = net.id === selectedNetwork
+              const isEnabled = net.enabled
+              
+              return (
+                <button
+                  key={net.id}
+                  disabled={!isEnabled}
+                  onClick={() => isEnabled && onNetworkChange(net.id)}
+                  className="w-full flex items-center justify-between p-3 rounded-xl transition-all"
+                  style={{
+                    background: isSelected ? 'var(--Controls-Idle)' : 'transparent',
+                    border: `1px solid ${isSelected ? 'var(--Controls-Selected)' : 'var(--border)'}`,
+                    opacity: isEnabled ? 1 : 0.4,
+                    cursor: isEnabled ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Network icon - theme colors */}
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
+                      style={{
+                        background: isSelected ? 'var(--Controls-Selected)' : 'var(--Controls-Idle)',
+                        color: isSelected ? 'var(--background)' : 'var(--page-text-secondary)',
+                      }}
+                    >
+                      {net.id.startsWith('ethereum') ? 'Ξ' : 'B'}
+                    </div>
+                    
+                    <div className="text-left">
+                      <p 
+                        className="text-sm font-medium leading-tight"
+                        style={{ color: 'var(--page-text-primary)' }}
+                      >
+                        {net.shortName}
+                      </p>
+                      {net.testnet && (
+                        <p 
+                          className="text-[10px]"
+                          style={{ color: 'var(--page-text-muted)' }}
+                        >
+                          Testnet
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Right side */}
+                  {isEnabled ? (
+                    isSelected ? (
+                      <NetworkBalance networkId={net.id} />
+                    ) : null
+                  ) : (
+                    <span 
+                      className="text-[10px]"
+                      style={{ color: 'var(--page-text-muted)' }}
+                    >
+                      Soon
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
+        {/* Mint button */}
         <Button
           size="lg"
           onClick={onConfirmMint}
-          className="gap-2 px-8 w-full max-w-xs"
+          className="w-full max-w-[300px] h-11 text-sm font-medium rounded-xl"
+          style={{
+            background: 'var(--foreground)',
+            color: 'var(--background)',
+          }}
         >
-          <CheckCircle className="h-5 w-5" />
-          Mint on {network.shortName}
+          Mint Mark
         </Button>
       </div>
     )
