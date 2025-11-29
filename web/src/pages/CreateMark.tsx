@@ -377,14 +377,14 @@ export function CreateMark() {
               style={{ color: 'var(--page-text-muted)' }}
             >
               We only read event confirmation emails from Luma, Substack, and
-              Eventbrite. Your data stays private.
+              Eventbrite. Everything happens client-side using ZK technology. We never see your data.
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="mt-2 animate-fade-in space-y-4">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6">
             <div>
               <h1
                 className="text-2xl sm:text-3xl font-bold"
