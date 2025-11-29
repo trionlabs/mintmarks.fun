@@ -248,7 +248,6 @@ export function MarkItFlowModal({
             <div className="px-6 py-4">
               <MarkItProgress 
                 currentStep={state.step} 
-                progress={state.progress} 
                 walletAddress={address}
                 isWalletConnected={isConnected}
                 isPassportVerified={isPassportVerified}

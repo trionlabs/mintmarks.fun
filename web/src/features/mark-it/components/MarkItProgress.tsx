@@ -5,13 +5,13 @@
  * Shows status: connected, verified, etc.
  */
 
+import React from 'react'
 import { Wallet, Fingerprint, Sparkles, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { MarkItStep } from '../types'
 
 interface MarkItProgressProps {
   currentStep: MarkItStep
-  progress: number
   walletAddress?: string | null
   isWalletConnected?: boolean
   isPassportVerified?: boolean
@@ -55,7 +55,7 @@ export function MarkItProgress({
   }
 
   return (
-    <div className="flex items-center gap-1.5 sm:gap-2 w-full overflow-x-auto no-scrollbar">
+    <div className="flex items-center w-full overflow-x-auto no-scrollbar">
       {STEPS.map((step, index) => {
         const isActive = step.id === currentStep
         const isPast = index < currentIndex
@@ -73,13 +73,13 @@ export function MarkItProgress({
         const showPassportStatus = step.id === 'passport' && isPassportVerified
 
         return (
-          <div key={step.id} className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          <React.Fragment key={step.id}>
             {/* Step button - minimal design */}
             <button
               onClick={() => isClickable && onStepClick?.(step.id)}
               disabled={!isClickable}
               className={cn(
-                'flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 whitespace-nowrap',
+                'flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
                 isClickable && 'cursor-pointer hover:opacity-90 active:opacity-80',
                 !isClickable && 'cursor-default opacity-60',
                 isActive && 'shadow-sm',
@@ -111,7 +111,7 @@ export function MarkItProgress({
               
               {/* Content - minimal: show address for wallet, label for others */}
               {showWalletAddress ? (
-                <span className="font-mono text-[10px] sm:text-xs">
+                <span className="font-mono text-[10px] sm:text-xs max-w-[80px] sm:max-w-none truncate">
                   {formatAddress(walletAddress!)}
                 </span>
               ) : showPassportStatus ? (
@@ -123,10 +123,10 @@ export function MarkItProgress({
               )}
             </button>
             
-            {/* Horizontal connector line - thinner */}
+            {/* Horizontal connector line - between steps */}
             {index < STEPS.length - 1 && (
               <div 
-                className="h-[1px] w-2 sm:w-3 transition-colors duration-300 flex-shrink-0"
+                className="h-[1px] w-2 sm:w-3 mx-1.5 sm:mx-2 transition-colors duration-300 flex-shrink-0"
                 style={{ 
                   background: isCompleted || (isPast && index < currentIndex - 1)
                     ? 'var(--status-confirmed)'
@@ -134,7 +134,7 @@ export function MarkItProgress({
                 }}
               />
             )}
-          </div>
+          </React.Fragment>
         )
       })}
     </div>
