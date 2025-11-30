@@ -18,12 +18,17 @@ export interface WalletState {
   isConnected: boolean
   /** The source/provider of the connected wallet */
   source: WalletSource
-  /** Chain ID the wallet is connected to */
+  /** Chain ID the wallet is connected to (null for multichain wallets) */
   chainId: number | null
   /** Whether an operation is in progress */
   isLoading: boolean
   /** Most recent error, if any */
   error: WalletError | null
+  /** 
+   * Whether the wallet is multichain (same address works on all EVM chains).
+   * CDP embedded wallets are multichain - no switch needed.
+   */
+  isMultichain: boolean
 }
 
 /**
@@ -57,13 +62,21 @@ export interface WalletActions {
   sendTransaction: (tx: TransactionRequest) => Promise<TransactionResult>
   /** Disconnect the wallet */
   disconnect: () => Promise<void>
+  /** 
+   * Switch to a different chain (external wallets only).
+   * CDP wallets don't need this - they're multichain native.
+   */
+  switchChain?: (chainId: number) => Promise<void>
 }
 
 /**
  * Complete unified wallet interface.
  * This is what components receive from useWallet().
  */
-export type UnifiedWallet = WalletState & WalletActions
+export interface UnifiedWallet extends WalletState, WalletActions {
+  /** Whether this wallet supports chain switching */
+  canSwitchChain: boolean
+}
 
 /**
  * Normalized error types.
@@ -92,6 +105,8 @@ export interface WalletAdapter {
   state: WalletState
   sendTransaction?: (tx: TransactionRequest) => Promise<TransactionResult>
   disconnect: () => Promise<void>
+  /** Switch chain (only for external wallets) */
+  switchChain?: (chainId: number) => Promise<void>
 }
 
 
