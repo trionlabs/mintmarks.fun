@@ -58,6 +58,12 @@ export function Layout({ children }: LayoutProps) {
   }, [])
 
   const showGradient = isScrolled || isHovered
+  
+  // Home page uses wider layout, other pages use narrower
+  const isHomePage = location.pathname === '/'
+  const containerClass = isHomePage 
+    ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' 
+    : 'max-w-5xl mx-auto px-4 sm:px-6'
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -85,15 +91,15 @@ export function Layout({ children }: LayoutProps) {
           }}
         />
 
-        <nav className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+        <nav className={cn("relative h-full flex items-center justify-between", containerClass)}>
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <Sparkles
-              className="h-6 w-6 sm:h-7 sm:w-7 transition-colors"
+              className="h-5 w-5 sm:h-6 sm:w-6 transition-colors"
               style={{ color: 'var(--primary)' }}
             />
             <span
-              className="font-black text-xl sm:text-2xl"
+              className="text-2xl sm:text-3xl"
               style={{
                 color: 'var(--primary)',
                 textShadow: theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
@@ -159,7 +165,7 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Footer */}
       <footer className="mt-auto border-t border-transparent py-4 sm:py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
+        <div className={cn("text-center", containerClass)}>
           <p
             className="text-xs sm:text-sm opacity-70"
             style={{ color: 'var(--page-text-secondary)' }}
