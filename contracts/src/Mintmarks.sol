@@ -17,10 +17,11 @@ interface IEmailVerifier {
 
 /// @title Mintmarks
 /// @author Mintmarks Team
-/// @notice Soulbound ERC1155 tokens proving event attendance via dual ZK verification
-/// @dev Requires both DKIM email proof (via Noir/UltraHonk) and ZKPassport proof for minting.
+/// @notice Soulbound ERC1155 tokens proving event attendance via ZK verification
+/// @dev Supports two minting modes:
+///      1. Email-only: Proves event attendance (mint)
+///      2. Passport-verified: Proves attendance + unique personhood (mintWithPassport)
 ///      Tokens are non-transferable (soulbound) - only minting is allowed.
-///      Each email nullifier and passport ID can only be used once to prevent double-claiming.
 contract Mintmarks is ERC1155 {
     /*//////////////////////////////////////////////////////////////
                             PUBLIC INPUTS LAYOUT
@@ -44,8 +45,9 @@ contract Mintmarks is ERC1155 {
     /// @notice The domain that passport proofs must be scoped to
     string public constant DOMAIN = "mintmarks.fun";
 
-    /// @notice The scope identifier for passport proofs
-    string public constant SCOPE = "mintmarks-personhood";
+    /// @notice The fixed scope for passport proofs
+    /// @dev All passport proofs use the same scope for stable passportId (1:1 wallet-passport binding)
+    string public constant SCOPE = "mintmarks";
 
     /*//////////////////////////////////////////////////////////////
                             STATE VARIABLES
@@ -60,9 +62,22 @@ contract Mintmarks is ERC1155 {
     /// @notice Tracks which email nullifiers have been used (prevents double-claiming same email)
     mapping(bytes32 => bool) public emailNullifierUsed;
 
-    /// @notice Tracks which passport IDs have been used (for reference/analytics only)
-    /// @dev Not used as a blocker - same passport CAN mint multiple emails
-    mapping(bytes32 => bool) public passportIdUsed;
+    /// @notice Tracks which (user, event) combinations have been minted
+    /// @dev Prevents same user from minting same event twice
+    mapping(address => mapping(uint256 => bool)) public hasMinted;
+
+    /// @notice Tracks passport verification status per (user, event)
+    /// @dev True = passport verified, False = email only
+    mapping(address => mapping(uint256 => bool)) public isPassportVerified;
+
+    /// @notice Tracks passport usage per event (prevents same passport minting same event twice)
+    mapping(bytes32 => mapping(uint256 => bool)) public passportUsedForEvent;
+
+    /// @notice Maps wallet address to bound passport ID (1 wallet → 1 passport)
+    mapping(address => bytes32) public walletPassport;
+
+    /// @notice Maps passport ID to bound wallet address (1 passport → 1 wallet)
+    mapping(bytes32 => address) public passportWallet;
 
     /// @notice Maps token IDs to their event names
     mapping(uint256 => string) public tokenNames;
@@ -86,17 +101,32 @@ contract Mintmarks is ERC1155 {
     /// @dev Thrown when the bound chain ID doesn't match current chain
     error InvalidBoundChain();
 
-    /// @dev Thrown when the email nullifier bound to passport doesn't match the email proof
-    error InvalidBoundEmailNullifier();
-
     /// @dev Thrown when attempting to use an email nullifier that's already been claimed
     error EmailNullifierAlreadyUsed();
+
+    /// @dev Thrown when user has already minted this event
+    error AlreadyMintedThisEvent();
+
+    /// @dev Thrown when passport has already been used for this event
+    error PassportAlreadyUsedForEvent();
 
     /// @dev Thrown when the extracted event name exceeds 256 bytes
     error EventNameTooLong();
 
     /// @dev Thrown when attempting to transfer or burn a soulbound token
     error NonTransferable();
+
+    /// @dev Thrown when trying to upgrade a token that hasn't been minted
+    error NotMinted();
+
+    /// @dev Thrown when trying to upgrade a token that's already passport verified
+    error AlreadyVerified();
+
+    /// @dev Thrown when wallet tries to use a different passport than previously bound
+    error WalletBoundToDifferentPassport();
+
+    /// @dev Thrown when passport tries to bind to a different wallet than previously bound
+    error PassportBoundToDifferentWallet();
 
     /*//////////////////////////////////////////////////////////////
                                 EVENTS
@@ -107,12 +137,24 @@ contract Mintmarks is ERC1155 {
     /// @param tokenId The token ID (hash of event name)
     /// @param eventName The name of the event
     /// @param emailNullifier The nullifier from the email proof
-    /// @param passportId The unique identifier from the passport proof
+    /// @param passportId The unique identifier from passport (bytes32(0) if not verified)
+    /// @param passportVerified Whether passport verification was used
     event Minted(
         address indexed to,
         uint256 indexed tokenId,
         string eventName,
         bytes32 emailNullifier,
+        bytes32 passportId,
+        bool passportVerified
+    );
+
+    /// @notice Emitted when a user upgrades from email-only to passport-verified
+    /// @param user The user address
+    /// @param tokenId The token ID (hash of event name)
+    /// @param passportId The unique identifier from passport
+    event Upgraded(
+        address indexed user,
+        uint256 indexed tokenId,
         bytes32 passportId
     );
 
@@ -169,37 +211,134 @@ contract Mintmarks is ERC1155 {
                               MINTING
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Mint a soulbound Mintmark by providing both email and passport proofs
-    /// @dev Verification flow:
-    ///      1. Verify DKIM email proof
-    ///      2. Check email nullifier hasn't been used
-    ///      3. Verify ZKPassport proof (proof of personhood)
-    ///      4. Verify passport domain/scope
-    ///      5. Verify bound data (sender, chain, email nullifier)
-    ///      6. Mint token
-    /// @dev Note: Same passport CAN mint multiple different emails (one mint per email invitation)
+    /// @notice Mint with email proof only (not passport verified)
+    /// @dev Proves event attendance but not unique personhood
+    /// @param emailProof The UltraHonk proof bytes from the Noir circuit
+    /// @param emailPublicInputs The public inputs array from the email proof
+    function mint(
+        bytes calldata emailProof,
+        bytes32[] calldata emailPublicInputs
+    ) external {
+        _mintInternal(emailProof, emailPublicInputs, bytes32(0), false);
+    }
+
+    /// @notice Mint with email + passport proof (passport verified)
+    /// @dev Proves event attendance AND unique personhood
     /// @param emailProof The UltraHonk proof bytes from the Noir circuit
     /// @param emailPublicInputs The public inputs array from the email proof
     /// @param passportParams The ZKPassport verification parameters
-    function mint(
+    function mintWithPassport(
         bytes calldata emailProof,
         bytes32[] calldata emailPublicInputs,
         ProofVerificationParams calldata passportParams
     ) external {
+        bytes32 passportId = _verifyPassport(passportParams);
+        _mintInternal(emailProof, emailPublicInputs, passportId, true);
+    }
+
+    /// @dev Internal mint logic shared by both functions
+    /// @param emailProof The email proof bytes
+    /// @param emailPublicInputs The email public inputs
+    /// @param passportId The passport ID (bytes32(0) if not verified)
+    /// @param withPassport Whether passport verification was used
+    function _mintInternal(
+        bytes calldata emailProof,
+        bytes32[] calldata emailPublicInputs,
+        bytes32 passportId,
+        bool withPassport
+    ) internal {
         // 1. Verify email proof
         if (!EMAIL_VERIFIER.verify(emailProof, emailPublicInputs)) {
             revert InvalidEmailProof();
         }
 
-        // 2. Extract email nullifier
+        // 2. Extract email nullifier and event name
         bytes32 emailNullifier = emailPublicInputs[NULLIFIER_INDEX];
+        string memory eventName = _extractEventName(emailPublicInputs);
+        uint256 tokenId = uint256(keccak256(bytes(eventName)));
 
         // 3. Check email nullifier not used
         if (emailNullifierUsed[emailNullifier]) {
             revert EmailNullifierAlreadyUsed();
         }
 
-        // 4. Verify passport proof
+        // 4. Check user hasn't minted this event
+        if (hasMinted[msg.sender][tokenId]) {
+            revert AlreadyMintedThisEvent();
+        }
+
+        // 5. If passport verified, check passport not used for this event
+        if (withPassport) {
+            if (passportUsedForEvent[passportId][tokenId]) {
+                revert PassportAlreadyUsedForEvent();
+            }
+            passportUsedForEvent[passportId][tokenId] = true;
+        }
+
+        // 6. Mark as used
+        emailNullifierUsed[emailNullifier] = true;
+        hasMinted[msg.sender][tokenId] = true;
+        isPassportVerified[msg.sender][tokenId] = withPassport;
+
+        // 7. Store event name if new
+        if (bytes(tokenNames[tokenId]).length == 0) {
+            tokenNames[tokenId] = eventName;
+        }
+
+        // 8. Mint
+        _mint(msg.sender, tokenId, 1, "");
+
+        emit Minted(msg.sender, tokenId, eventName, emailNullifier, passportId, withPassport);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              UPGRADING
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Upgrade an email-only mint to passport-verified
+    /// @dev Allows users to add passport verification after initial email-only mint
+    /// @param tokenId The token ID to upgrade
+    /// @param passportParams The ZKPassport verification parameters
+    function upgradeToVerified(
+        uint256 tokenId,
+        ProofVerificationParams calldata passportParams
+    ) external {
+        // 1. Check user has minted this token
+        if (!hasMinted[msg.sender][tokenId]) {
+            revert NotMinted();
+        }
+
+        // 2. Check not already verified
+        if (isPassportVerified[msg.sender][tokenId]) {
+            revert AlreadyVerified();
+        }
+
+        // 3-5. Verify passport proof, scope, bound data, and 1:1 binding
+        bytes32 passportId = _verifyPassport(passportParams);
+
+        // 6. Check passport not already used for this event
+        if (passportUsedForEvent[passportId][tokenId]) {
+            revert PassportAlreadyUsedForEvent();
+        }
+
+        // 7. Update state
+        passportUsedForEvent[passportId][tokenId] = true;
+        isPassportVerified[msg.sender][tokenId] = true;
+
+        emit Upgraded(msg.sender, tokenId, passportId);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                           INTERNAL HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev Verifies passport proof, scope, bound data, and enforces 1:1 wallet-passport binding
+    /// @param passportParams The ZKPassport verification parameters
+    /// @return passportId The unique passport identifier (stable across all events)
+    function _verifyPassport(
+        ProofVerificationParams calldata passportParams
+    ) internal returns (bytes32) {
+        // Verify passport proof
         (bool verified, bytes32 passportId, IZKPassportHelper helper) =
             PASSPORT_VERIFIER.verify(passportParams);
 
@@ -207,9 +346,7 @@ contract Mintmarks is ERC1155 {
             revert InvalidPassportProof();
         }
 
-        // 5. Verify passport was generated for our domain/scope
-        // In devMode, also accept "localhost" for local testing
-        // This is safe because devMode proofs are only valid on testnet ZKPassport verifiers
+        // Verify scope - accept both production domain and localhost in devMode
         string memory expectedDomain = DOMAIN;
         if (passportParams.serviceConfig.devMode) {
             bool isValidDomain = (
@@ -221,6 +358,7 @@ contract Mintmarks is ERC1155 {
             }
         }
 
+        // Use fixed scope for stable passportId (enables 1:1 wallet-passport binding)
         if (!helper.verifyScopes(
             passportParams.proofVerificationData.publicInputs,
             expectedDomain,
@@ -229,7 +367,7 @@ contract Mintmarks is ERC1155 {
             revert InvalidPassportScope();
         }
 
-        // 6. Verify bound data
+        // Verify bound data
         BoundData memory boundData = helper.getBoundData(passportParams.committedInputs);
 
         if (boundData.senderAddress != msg.sender) {
@@ -240,31 +378,23 @@ contract Mintmarks is ERC1155 {
             revert InvalidBoundChain();
         }
 
-        // Check email nullifier is bound to passport proof
-        if (keccak256(bytes(boundData.customData)) != keccak256(bytes(_bytes32ToHexString(emailNullifier)))) {
-            revert InvalidBoundEmailNullifier();
+        // Enforce 1:1 wallet-passport binding
+        // Check wallet → passport binding (1 wallet → 1 passport)
+        if (walletPassport[msg.sender] == bytes32(0)) {
+            walletPassport[msg.sender] = passportId;
+        } else if (walletPassport[msg.sender] != passportId) {
+            revert WalletBoundToDifferentPassport();
         }
 
-        // 7. Mark email nullifier as used (passport can be reused for different emails)
-        emailNullifierUsed[emailNullifier] = true;
-        passportIdUsed[passportId] = true; // For tracking/analytics only, not blocking
-
-        // 9. Extract event name and mint
-        string memory eventName = _extractEventName(emailPublicInputs);
-        uint256 tokenId = uint256(keccak256(bytes(eventName)));
-
-        if (bytes(tokenNames[tokenId]).length == 0) {
-            tokenNames[tokenId] = eventName;
+        // Check passport → wallet binding (1 passport → 1 wallet)
+        if (passportWallet[passportId] == address(0)) {
+            passportWallet[passportId] = msg.sender;
+        } else if (passportWallet[passportId] != msg.sender) {
+            revert PassportBoundToDifferentWallet();
         }
 
-        _mint(msg.sender, tokenId, 1, "");
-
-        emit Minted(msg.sender, tokenId, eventName, emailNullifier, passportId);
+        return passportId;
     }
-
-    /*//////////////////////////////////////////////////////////////
-                           INTERNAL HELPERS
-    //////////////////////////////////////////////////////////////*/
 
     /// @dev Extracts the event name from email proof public inputs
     /// @param publicInputs The public inputs array from the email proof
@@ -283,25 +413,19 @@ contract Mintmarks is ERC1155 {
         return string(eventName);
     }
 
-    /// @dev Converts a bytes32 value to a hex string with "0x" prefix
-    /// @param data The bytes32 value to convert
-    /// @return The hex string representation
-    function _bytes32ToHexString(bytes32 data) internal pure returns (string memory) {
-        bytes memory alphabet = "0123456789abcdef";
-        bytes memory str = new bytes(66); // 0x + 64 hex chars
-        str[0] = "0";
-        str[1] = "x";
-        for (uint256 i = 0; i < 32; i++) {
-            str[2 + i * 2] = alphabet[uint8(data[i] >> 4)];
-            str[3 + i * 2] = alphabet[uint8(data[i] & 0x0f)];
-        }
-        return string(str);
-    }
-
     /// @dev Generates an SVG image for a token
     /// @param eventName The event name to display in the SVG
+    /// @param verified Whether the mint was passport verified
     /// @return The SVG markup as a string
-    function _generateSVG(string memory eventName) internal pure returns (string memory) {
+    function _generateSVG(string memory eventName, bool verified) internal pure returns (string memory) {
+        string memory verificationText = verified
+            ? "Passport Verified"
+            : "Email Verified";
+
+        string memory badgeColor = verified
+            ? "#4ade80"  // Green for passport verified
+            : "#fbbf24"; // Yellow for email only
+
         return string(
             abi.encodePacked(
                 '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">',
@@ -318,7 +442,7 @@ contract Mintmarks is ERC1155 {
                 '<text x="200" y="200" text-anchor="middle" fill="#ffffff" font-family="Arial,sans-serif" font-size="20">',
                 eventName,
                 '</text>',
-                '<text x="200" y="330" text-anchor="middle" fill="#888888" font-family="Arial,sans-serif" font-size="12">Verified Attendance + Passport</text>',
+                '<text x="200" y="330" text-anchor="middle" fill="', badgeColor, '" font-family="Arial,sans-serif" font-size="12">', verificationText, '</text>',
                 '<text x="200" y="355" text-anchor="middle" fill="#e94560" font-family="Arial,sans-serif" font-size="10" font-weight="bold">SOULBOUND</text>',
                 '</svg>'
             )
@@ -329,8 +453,34 @@ contract Mintmarks is ERC1155 {
                             VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Returns the metadata URI for a token
+    /// @notice Check if a user has passport verification for an event
+    /// @param user The user address
+    /// @param tokenId The token ID (event)
+    /// @return True if passport verified, false otherwise
+    function getVerificationStatus(address user, uint256 tokenId) external view returns (bool) {
+        return isPassportVerified[user][tokenId];
+    }
+
+    /// @notice Batch check verification status for multiple users/events
+    /// @param users Array of user addresses
+    /// @param tokenIds Array of token IDs
+    /// @return Array of verification statuses
+    function getVerificationStatusBatch(
+        address[] calldata users,
+        uint256[] calldata tokenIds
+    ) external view returns (bool[] memory) {
+        require(users.length == tokenIds.length, "Length mismatch");
+        bool[] memory statuses = new bool[](users.length);
+        for (uint256 i = 0; i < users.length; i++) {
+            statuses[i] = isPassportVerified[users[i]][tokenIds[i]];
+        }
+        return statuses;
+    }
+
+    /// @notice Returns the metadata URI for a token (generic, not user-specific)
     /// @dev Returns base64-encoded JSON with on-chain SVG image
+    ///      Note: ERC1155 uri() is per tokenId, not per user.
+    ///      Use userTokenURI() or getVerificationStatus() for user-specific data.
     /// @param tokenId The token ID to query
     /// @return The data URI containing the token metadata
     function uri(uint256 tokenId) public view override returns (string memory) {
@@ -339,7 +489,8 @@ contract Mintmarks is ERC1155 {
             return "";
         }
 
-        string memory svg = _generateSVG(eventName);
+        // Generate SVG with generic "Verified Attendance" since uri is per-token, not per-user
+        string memory svg = _generateSVG(eventName, true);
         string memory imageURI = string(
             abi.encodePacked("data:image/svg+xml;base64,", Base64.encode(bytes(svg)))
         );
@@ -350,9 +501,54 @@ contract Mintmarks is ERC1155 {
                 eventName,
                 '","description":"Soulbound proof of attendance for ',
                 eventName,
-                ' - verified with passport (non-transferable)","image":"',
+                '. Query userTokenURI(user, tokenId) for user-specific metadata.","image":"',
                 imageURI,
-                '","attributes":[{"trait_type":"Soulbound","value":"Yes"}]}'
+                '","attributes":[{"trait_type":"Soulbound","value":"Yes"},{"trait_type":"Event","value":"',
+                eventName,
+                '"}]}'
+            )
+        );
+
+        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(bytes(json))));
+    }
+
+    /// @notice Returns user-specific metadata URI with correct verification status
+    /// @dev Returns base64-encoded JSON with SVG reflecting user's verification level
+    /// @param user The user address to query
+    /// @param tokenId The token ID to query
+    /// @return The data URI containing user-specific token metadata
+    function userTokenURI(address user, uint256 tokenId) public view returns (string memory) {
+        string memory eventName = tokenNames[tokenId];
+        if (bytes(eventName).length == 0) {
+            return "";
+        }
+
+        // Check if user has this token
+        if (!hasMinted[user][tokenId]) {
+            return "";
+        }
+
+        bool verified = isPassportVerified[user][tokenId];
+        string memory svg = _generateSVG(eventName, verified);
+        string memory imageURI = string(
+            abi.encodePacked("data:image/svg+xml;base64,", Base64.encode(bytes(svg)))
+        );
+
+        string memory verificationValue = verified ? "Passport Verified" : "Email Only";
+
+        string memory json = string(
+            abi.encodePacked(
+                '{"name":"',
+                eventName,
+                '","description":"Soulbound proof of attendance for ',
+                eventName,
+                '.","image":"',
+                imageURI,
+                '","attributes":[{"trait_type":"Soulbound","value":"Yes"},{"trait_type":"Event","value":"',
+                eventName,
+                '"},{"trait_type":"Verification","value":"',
+                verificationValue,
+                '"}]}'
             )
         );
 
@@ -374,7 +570,7 @@ contract Mintmarks is ERC1155 {
                 "data:application/json;base64,",
                 Base64.encode(
                     bytes(
-                        '{"name":"Mintmarks","description":"Soulbound proof of event attendance via DKIM email + passport verification (non-transferable)"}'
+                        '{"name":"Mintmarks","description":"Soulbound proof of event attendance. Supports email-only and passport-verified minting modes."}'
                     )
                 )
             )

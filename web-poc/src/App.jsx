@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import {
   createPublicClient,
   createWalletClient,
@@ -158,6 +158,9 @@ function App() {
   // Tab state
   const [activeTab, setActiveTab] = useState('mint') // 'mint' | 'gallery'
 
+  // Verification mode: 'email' (email only) or 'passport' (email + passport)
+  const [verificationMode, setVerificationMode] = useState('email')
+
   // Wallet state
   const [account, setAccount] = useState(null)
   const [balance, setBalance] = useState(null)
@@ -167,8 +170,12 @@ function App() {
   const [emailPublicInputs, setEmailPublicInputs] = useState(null)
   const [emailNullifier, setEmailNullifier] = useState(null)
   const [eventName, setEventName] = useState(null)
+  const [tokenId, setTokenId] = useState(null)
   const [proofProgress, setProofProgress] = useState({ message: '', percent: 0 })
   const [proofError, setProofError] = useState(null)
+
+  // Existing mint state - tracks if user already has mint for this event
+  const [existingMint, setExistingMint] = useState(null) // { hasMinted: bool, isVerified: bool, emailUsedByOther: bool }
 
   // Passport proof state
   const [passportProof, setPassportProof] = useState(null)
@@ -189,11 +196,11 @@ function App() {
   // Drag state
   const [isDragging, setIsDragging] = useState(false)
 
-  // Clients
-  const publicClient = createPublicClient({
+  // Clients - memoized to avoid recreation on every render
+  const publicClient = useMemo(() => createPublicClient({
     chain: CHAIN,
     transport: http(RPC_URL),
-  })
+  }), [])
 
   // Step 1: Connect Wallet
   const connectWallet = useCallback(async () => {
@@ -259,11 +266,86 @@ function App() {
 
       // Extract nullifier (index 1) - ensure lowercase
       const nullifier = result.publicInputs[1].toLowerCase()
-      console.log('Email nullifier (for binding):', nullifier)
       setEmailNullifier(nullifier)
 
       // Set event name from metadata
-      setEventName(result.metadata.eventName)
+      const eventNameFromProof = result.metadata.eventName
+      setEventName(eventNameFromProof)
+
+      // Get tokenId from contract (uses keccak256)
+      const tokenIdBigInt = BigInt(await publicClient.readContract({
+        address: CONTRACTS.mintmarks,
+        abi: MINTMARKS_ABI,
+        functionName: 'getTokenId',
+        args: [eventNameFromProof],
+      }))
+      setTokenId(tokenIdBigInt.toString())
+
+      // Check if this email nullifier is already used
+      const emailNullifierFromProof = result.publicInputs[1]
+      try {
+        const isNullifierUsed = await publicClient.readContract({
+          address: CONTRACTS.mintmarks,
+          abi: MINTMARKS_ABI,
+          functionName: 'emailNullifierUsed',
+          args: [emailNullifierFromProof],
+        })
+
+        if (isNullifierUsed) {
+          // Email already used - check if this user has the mint
+          if (account) {
+            const hasMinted = await publicClient.readContract({
+              address: CONTRACTS.mintmarks,
+              abi: MINTMARKS_ABI,
+              functionName: 'hasMinted',
+              args: [account, tokenIdBigInt],
+            })
+
+            if (hasMinted) {
+              // This user has the mint - check if verified
+              const isVerified = await publicClient.readContract({
+                address: CONTRACTS.mintmarks,
+                abi: MINTMARKS_ABI,
+                functionName: 'getVerificationStatus',
+                args: [account, tokenIdBigInt],
+              })
+              setExistingMint({ hasMinted: true, isVerified, emailUsedByOther: false })
+            } else {
+              // Email used but user doesn't have mint - could be different event or different user
+              // Check if user has balance of this token (more reliable)
+              const balance = await publicClient.readContract({
+                address: CONTRACTS.mintmarks,
+                abi: MINTMARKS_ABI,
+                functionName: 'balanceOf',
+                args: [account, tokenIdBigInt],
+              })
+
+              if (balance > 0n) {
+                // User has the token - treat as existing mint
+                const isVerified = await publicClient.readContract({
+                  address: CONTRACTS.mintmarks,
+                  abi: MINTMARKS_ABI,
+                  functionName: 'getVerificationStatus',
+                  args: [account, tokenIdBigInt],
+                })
+                setExistingMint({ hasMinted: true, isVerified, emailUsedByOther: false })
+              } else {
+                // Email used by someone else
+                setExistingMint({ hasMinted: false, isVerified: false, emailUsedByOther: true })
+              }
+            }
+          } else {
+            // Not connected - just show email is used
+            setExistingMint({ hasMinted: false, isVerified: false, emailUsedByOther: true })
+          }
+        } else {
+          // Email not used yet - fresh mint
+          setExistingMint(null)
+        }
+      } catch (e) {
+        console.error('Failed to check email/mint status:', e)
+        setExistingMint(null)
+      }
 
       // Clear passport proof since it's bound to the email nullifier
       // User must re-verify passport for new email
@@ -278,7 +360,7 @@ function App() {
     } finally {
       setLoading((l) => ({ ...l, proof: false }))
     }
-  }, [])
+  }, [account, publicClient])
 
   const handleFileInput = useCallback((e) => {
     const file = e.target.files[0]
@@ -296,6 +378,72 @@ function App() {
     }
   }, [handleEmailUpload])
 
+  // Re-check existing mint status when account changes (wallet connected/switched)
+  const recheckExistingMint = useCallback(async () => {
+    if (!emailPublicInputs || !tokenId || !account) return
+
+    const emailNullifierFromProof = emailPublicInputs[1]
+    const tokenIdBigInt = BigInt(tokenId)
+
+    try {
+      const isNullifierUsed = await publicClient.readContract({
+        address: CONTRACTS.mintmarks,
+        abi: MINTMARKS_ABI,
+        functionName: 'emailNullifierUsed',
+        args: [emailNullifierFromProof],
+      })
+
+      if (isNullifierUsed) {
+        const hasMinted = await publicClient.readContract({
+          address: CONTRACTS.mintmarks,
+          abi: MINTMARKS_ABI,
+          functionName: 'hasMinted',
+          args: [account, tokenIdBigInt],
+        })
+
+        if (hasMinted) {
+          const isVerified = await publicClient.readContract({
+            address: CONTRACTS.mintmarks,
+            abi: MINTMARKS_ABI,
+            functionName: 'getVerificationStatus',
+            args: [account, tokenIdBigInt],
+          })
+          setExistingMint({ hasMinted: true, isVerified, emailUsedByOther: false })
+        } else {
+          const balance = await publicClient.readContract({
+            address: CONTRACTS.mintmarks,
+            abi: MINTMARKS_ABI,
+            functionName: 'balanceOf',
+            args: [account, tokenIdBigInt],
+          })
+
+          if (balance > 0n) {
+            const isVerified = await publicClient.readContract({
+              address: CONTRACTS.mintmarks,
+              abi: MINTMARKS_ABI,
+              functionName: 'getVerificationStatus',
+              args: [account, tokenIdBigInt],
+            })
+            setExistingMint({ hasMinted: true, isVerified, emailUsedByOther: false })
+          } else {
+            setExistingMint({ hasMinted: false, isVerified: false, emailUsedByOther: true })
+          }
+        }
+      } else {
+        setExistingMint(null)
+      }
+    } catch (e) {
+      console.error('Failed to recheck mint status:', e)
+    }
+  }, [account, emailPublicInputs, tokenId, publicClient])
+
+  // Re-check mint status when account changes (e.g., wallet connected after uploading email)
+  useEffect(() => {
+    if (account && emailPublicInputs && tokenId) {
+      recheckExistingMint()
+    }
+  }, [account, emailPublicInputs, tokenId, recheckExistingMint])
+
   const handleDragOver = useCallback((e) => {
     e.preventDefault()
     setIsDragging(true)
@@ -306,10 +454,15 @@ function App() {
     setIsDragging(false)
   }, [])
 
-  // Step 3: Start ZKPassport Verification
+  // Step 3: Start ZKPassport Verification (optional - for passport-verified mode)
+  // Requires email proof first to get tokenId for event-specific scope
   const startPassportVerification = useCallback(async () => {
-    if (!emailNullifier || !account) {
-      alert('Please connect wallet and generate email proof first')
+    if (!account) {
+      alert('Please connect wallet first')
+      return
+    }
+    if (!tokenId) {
+      alert('Please upload email first to determine the event')
       return
     }
 
@@ -321,23 +474,22 @@ function App() {
       const queryBuilder = await zkPassport.request({
         name: 'Mintmarks',
         logo: 'https://mintmarks.fun/logo.png',
-        purpose: 'Verify your identity to mint your event attendance NFT',
+        purpose: `Verify your identity to mint "${eventName}" attendance NFT`,
         scope: ZKPASSPORT_CONFIG.scope,
         mode: 'compressed-evm',
         devMode: ZKPASSPORT_CONFIG.devMode,
       })
 
+      // No longer binding email nullifier - passport can be reused across emails
       const { url, onProofGenerated, onResult } = queryBuilder
-        .gte('age', 18) // Required for valid proof structure?
+        .gte('age', 18) // Required for valid proof structure
         .bind('user_address', account)
         .bind('chain', 'ethereum_sepolia')
-        .bind('custom_data', emailNullifier)
         .done()
 
       setPassportUrl(url)
 
       onProofGenerated((proof) => {
-        console.log('Passport proof generated:', proof)
         const verifierParams = zkPassport.getSolidityVerifierParameters({
           proof,
           scope: ZKPASSPORT_CONFIG.scope,
@@ -346,10 +498,8 @@ function App() {
         setPassportProof(verifierParams)
       })
 
-      onResult(({ verified, uniqueIdentifier }) => {
-        if (verified) {
-          console.log('Passport verified! ID:', uniqueIdentifier)
-        } else {
+      onResult(({ verified }) => {
+        if (!verified) {
           console.error('Passport verification failed')
           setPassportProof(null)
         }
@@ -359,12 +509,89 @@ function App() {
       console.error('Passport verification failed:', err)
       setLoading((l) => ({ ...l, passport: false }))
     }
-  }, [emailNullifier, account])
+  }, [account, tokenId, eventName])
 
-  // Step 4: Mint
+  // Upgrade existing email-only mint to passport-verified
+  const upgrade = useCallback(async () => {
+    if (!passportProof || !account || !tokenId) {
+      alert('Missing passport proof, wallet, or token ID')
+      return
+    }
+
+    setLoading((l) => ({ ...l, mint: true }))
+    setMintStatus('Preparing upgrade transaction...')
+
+    try {
+      const tokenIdBigInt = BigInt(tokenId)
+
+      // Simulate first
+      setMintStatus('Simulating upgrade...')
+      try {
+        await publicClient.simulateContract({
+          address: CONTRACTS.mintmarks,
+          abi: MINTMARKS_ABI,
+          functionName: 'upgradeToVerified',
+          args: [tokenIdBigInt, passportProof],
+          account,
+        })
+      } catch (simError) {
+        console.error('Simulation failed:', simError)
+        const revertReason = simError.cause?.reason ||
+          simError.cause?.message ||
+          simError.shortMessage ||
+          simError.message
+        setMintStatus(`Simulation failed: ${revertReason}`)
+        return
+      }
+
+      const walletClient = createWalletClient({
+        account,
+        chain: CHAIN,
+        transport: custom(window.ethereum),
+      })
+
+      setMintStatus('Sending upgrade transaction...')
+      const hash = await walletClient.writeContract({
+        address: CONTRACTS.mintmarks,
+        abi: MINTMARKS_ABI,
+        functionName: 'upgradeToVerified',
+        args: [tokenIdBigInt, passportProof],
+      })
+
+      setTxHash(hash)
+      setMintStatus('Waiting for confirmation...')
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash })
+
+      if (receipt.status === 'success') {
+        setMintStatus('Upgraded to passport-verified successfully!')
+        // Update existing mint state
+        setExistingMint({ hasMinted: true, isVerified: true, emailUsedByOther: false })
+      } else {
+        setMintStatus('Transaction failed')
+      }
+    } catch (err) {
+      console.error('Upgrade failed:', err)
+      const reason = err.cause?.reason || err.shortMessage || err.message
+      setMintStatus(`Error: ${reason}`)
+    } finally {
+      setLoading((l) => ({ ...l, mint: false }))
+    }
+  }, [passportProof, account, tokenId, publicClient])
+
+  // Step 4: Mint - supports both email-only and passport-verified modes
   const mint = useCallback(async () => {
-    if (!emailProof || !emailPublicInputs || !passportProof || !account) {
-      alert('Missing required data')
+    // For email-only mode, only need email proof
+    // For passport mode, need both email and passport proofs
+    const needsPassport = verificationMode === 'passport'
+
+    if (!emailProof || !emailPublicInputs || !account) {
+      alert('Missing email proof or wallet connection')
+      return
+    }
+
+    if (needsPassport && !passportProof) {
+      alert('Missing passport proof for passport-verified mode')
       return
     }
 
@@ -373,13 +600,6 @@ function App() {
 
     try {
       const emailNullifierFromProof = emailPublicInputs[1]
-      console.log('Mint parameters:', {
-        emailProof: emailProof.slice(0, 50) + '...',
-        emailPublicInputsLength: emailPublicInputs.length,
-        emailNullifier: emailNullifierFromProof,
-        passportProof,
-        account,
-      })
 
       // Pre-check: is this email nullifier already used?
       setMintStatus('Checking eligibility...')
@@ -396,13 +616,19 @@ function App() {
         return
       }
 
+      // Choose function based on mode
+      const functionName = needsPassport ? 'mintWithPassport' : 'mint'
+      const args = needsPassport
+        ? [emailProof, emailPublicInputs, passportProof]
+        : [emailProof, emailPublicInputs]
+
       setMintStatus('Simulating transaction...')
       try {
         await publicClient.simulateContract({
           address: CONTRACTS.mintmarks,
           abi: MINTMARKS_ABI,
-          functionName: 'mint',
-          args: [emailProof, emailPublicInputs, passportProof],
+          functionName,
+          args,
           account,
         })
       } catch (simError) {
@@ -425,8 +651,8 @@ function App() {
       const hash = await walletClient.writeContract({
         address: CONTRACTS.mintmarks,
         abi: MINTMARKS_ABI,
-        functionName: 'mint',
-        args: [emailProof, emailPublicInputs, passportProof],
+        functionName,
+        args,
       })
 
       setTxHash(hash)
@@ -435,7 +661,8 @@ function App() {
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
 
       if (receipt.status === 'success') {
-        setMintStatus('Minted successfully!')
+        const modeLabel = needsPassport ? '(passport verified)' : '(email only)'
+        setMintStatus(`Minted successfully! ${modeLabel}`)
       } else {
         setMintStatus('Transaction failed')
       }
@@ -446,7 +673,7 @@ function App() {
     } finally {
       setLoading((l) => ({ ...l, mint: false }))
     }
-  }, [emailProof, emailPublicInputs, passportProof, account, publicClient])
+  }, [emailProof, emailPublicInputs, passportProof, account, publicClient, verificationMode])
 
   return (
     <div style={styles.container}>
@@ -587,66 +814,110 @@ function App() {
         )}
       </div>
 
-      {/* Step 3: Passport */}
+      {/* Step 3: Verification Mode Selection */}
       <div style={styles.card}>
         <h2 style={styles.cardTitle}>
           <span style={styles.stepNumber}>3</span>
-          Verify Passport
+          Choose Verification Level
         </h2>
-        <p style={{ marginBottom: '1rem', color: '#888', fontSize: '0.85rem' }}>
-          Verify you're 18+ and link your passport to the email proof
-        </p>
 
-        {!passportUrl ? (
+        {/* Mode Selector */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
           <button
             style={{
               ...styles.button,
-              ...(!account || !emailNullifier || loading.passport
-                ? styles.buttonDisabled
-                : {}),
+              flex: 1,
+              background: verificationMode === 'email' ? '#e94560' : '#333',
+              marginTop: 0,
             }}
-            onClick={startPassportVerification}
-            disabled={!account || !emailNullifier || loading.passport}
+            onClick={() => setVerificationMode('email')}
           >
-            {loading.passport ? 'Starting...' : 'Start Passport Verification'}
+            Email Only
           </button>
-        ) : !passportProof ? (
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ marginBottom: '1rem', color: '#888', fontSize: '0.85rem' }}>
-              Scan with ZKPassport app:
-            </p>
-            <div style={{
-              background: '#fff',
-              padding: '1rem',
-              borderRadius: '12px',
-              display: 'inline-block',
-            }}>
-              <QRCodeSVG
-                value={passportUrl}
-                size={200}
-                level="M"
-                marginSize={0}
-              />
-            </div>
-            <p style={{ marginTop: '1rem', color: '#888', fontSize: '0.75rem' }}>
-              Or on mobile:{' '}
-              <a
-                href={passportUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={styles.link}
-              >
-                Open in app
-              </a>
-            </p>
-            <p style={{ marginTop: '0.5rem', color: '#e94560', fontSize: '0.85rem' }}>
-              Waiting for proof...
+          <button
+            style={{
+              ...styles.button,
+              flex: 1,
+              background: verificationMode === 'passport' ? '#4ade80' : '#333',
+              marginTop: 0,
+            }}
+            onClick={() => setVerificationMode('passport')}
+          >
+            + Passport
+          </button>
+        </div>
+
+        {verificationMode === 'email' ? (
+          <div style={{ ...styles.status, ...styles.info }}>
+            <p><strong>Email Only Mode</strong></p>
+            <p style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
+              Quick mint - proves event attendance only.
+              Same person could mint with different emails.
             </p>
           </div>
         ) : (
-          <div style={{ ...styles.status, ...styles.success }}>
-            Passport proof received!
-          </div>
+          <>
+            <div style={{ ...styles.status, background: 'rgba(74, 222, 128, 0.15)', color: '#4ade80', marginBottom: '1rem' }}>
+              <p><strong>Passport Verified Mode</strong></p>
+              <p style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                Proves attendance + unique personhood.
+                Same passport can't mint same event twice.
+              </p>
+            </div>
+
+            {!passportUrl ? (
+              <button
+                style={{
+                  ...styles.button,
+                  background: '#4ade80',
+                  ...(!account || !tokenId || loading.passport
+                    ? styles.buttonDisabled
+                    : {}),
+                }}
+                onClick={startPassportVerification}
+                disabled={!account || !tokenId || loading.passport}
+              >
+                {loading.passport ? 'Starting...' : !tokenId ? 'Upload email first' : 'Start Passport Verification'}
+              </button>
+            ) : !passportProof ? (
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ marginBottom: '1rem', color: '#888', fontSize: '0.85rem' }}>
+                  Scan with ZKPassport app:
+                </p>
+                <div style={{
+                  background: '#fff',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  display: 'inline-block',
+                }}>
+                  <QRCodeSVG
+                    value={passportUrl}
+                    size={200}
+                    level="M"
+                    marginSize={0}
+                  />
+                </div>
+                <p style={{ marginTop: '1rem', color: '#888', fontSize: '0.75rem' }}>
+                  Or on mobile:{' '}
+                  <a
+                    href={passportUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={styles.link}
+                  >
+                    Open in app
+                  </a>
+                </p>
+                <p style={{ marginTop: '0.5rem', color: '#4ade80', fontSize: '0.85rem' }}>
+                  Waiting for proof...
+                </p>
+              </div>
+            ) : (
+              <div style={{ ...styles.status, ...styles.success }}>
+                Passport proof received!
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -657,18 +928,122 @@ function App() {
           Mint Soulbound NFT
         </h2>
 
-        <button
-          style={{
-            ...styles.button,
-            ...(!emailProof || !emailPublicInputs || !passportProof || loading.mint
-              ? styles.buttonDisabled
-              : {}),
-          }}
-          onClick={mint}
-          disabled={!emailProof || !emailPublicInputs || !passportProof || loading.mint}
-        >
-          {loading.mint ? 'Minting...' : `Mint "${eventName || 'Event'}" NFT`}
-        </button>
+        {/* Handle existing mint case */}
+        {existingMint?.emailUsedByOther ? (
+          // Email used by someone else
+          <div style={{ ...styles.status, ...styles.error }}>
+            <p><strong>Email Already Claimed</strong></p>
+            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
+              This email was already used to mint by another address.
+              Each email can only be used once.
+            </p>
+          </div>
+        ) : existingMint?.hasMinted ? (
+          existingMint.isVerified ? (
+            // Already passport verified
+            <div style={{ ...styles.status, ...styles.success }}>
+              <p><strong>Already Passport Verified!</strong></p>
+              <p style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                You already have a passport-verified mint for "{eventName}".
+              </p>
+              <button
+                style={{ ...styles.button, background: '#4ade80', marginTop: '1rem' }}
+                onClick={() => setActiveTab('gallery')}
+              >
+                View in Gallery
+              </button>
+            </div>
+          ) : (
+            // Has email-only mint - offer upgrade
+            <div>
+              <div style={{ ...styles.status, background: 'rgba(251, 191, 36, 0.15)', color: '#fbbf24', marginBottom: '1rem' }}>
+                <p><strong>Email-Only Mint Found</strong></p>
+                <p style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                  You have an email-only mint for "{eventName}".
+                  Add passport verification below!
+                </p>
+              </div>
+
+              {/* Passport verification for upgrade */}
+              {!passportUrl ? (
+                <button
+                  style={{
+                    ...styles.button,
+                    background: '#4ade80',
+                    ...(!account || !tokenId || loading.passport ? styles.buttonDisabled : {}),
+                  }}
+                  onClick={startPassportVerification}
+                  disabled={!account || !tokenId || loading.passport}
+                >
+                  {loading.passport ? 'Starting...' : 'Verify Passport to Upgrade'}
+                </button>
+              ) : !passportProof ? (
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ marginBottom: '1rem', color: '#888', fontSize: '0.85rem' }}>
+                    Scan with ZKPassport app:
+                  </p>
+                  <div style={{
+                    background: '#fff',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    display: 'inline-block',
+                  }}>
+                    <QRCodeSVG
+                      value={passportUrl}
+                      size={180}
+                      level="M"
+                      marginSize={0}
+                    />
+                  </div>
+                  <p style={{ marginTop: '0.5rem', color: '#4ade80', fontSize: '0.85rem' }}>
+                    Waiting for proof...
+                  </p>
+                </div>
+              ) : (
+                <button
+                  style={{
+                    ...styles.button,
+                    background: '#4ade80',
+                    ...(loading.mint ? styles.buttonDisabled : {}),
+                  }}
+                  onClick={upgrade}
+                  disabled={loading.mint}
+                >
+                  {loading.mint ? 'Upgrading...' : `Upgrade "${eventName}" to Passport Verified`}
+                </button>
+              )}
+            </div>
+          )
+        ) : (
+          // Fresh mint
+          <>
+            {(() => {
+              const needsPassport = verificationMode === 'passport'
+              const canMint = emailProof && emailPublicInputs &&
+                (!needsPassport || passportProof) && !loading.mint
+
+              return (
+                <button
+                  style={{
+                    ...styles.button,
+                    background: canMint
+                      ? (needsPassport ? '#4ade80' : '#e94560')
+                      : '#444',
+                    ...(!canMint ? styles.buttonDisabled : {}),
+                  }}
+                  onClick={mint}
+                  disabled={!canMint}
+                >
+                  {loading.mint
+                    ? 'Minting...'
+                    : needsPassport
+                    ? `Mint "${eventName || 'Event'}" (Verified)`
+                    : `Mint "${eventName || 'Event'}" (Email Only)`}
+                </button>
+              )
+            })()}
+          </>
+        )}
 
         {mintStatus && (
           <div

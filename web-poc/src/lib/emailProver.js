@@ -32,7 +32,6 @@ async function initializeWasm() {
       initAbi(new URL('/wasm/noirc_abi_wasm_bg.wasm', window.location.origin)),
     ]);
     wasmInitialized = true;
-    console.log('WASM modules initialized successfully');
   } catch (error) {
     console.error('Failed to initialize WASM modules:', error);
     throw new Error(`WASM initialization failed: ${error.message}`);
@@ -229,20 +228,6 @@ function getEventNameSequence(headers, subjectValueSequence) {
 }
 
 /**
- * Decode BoundedVec from Noir output
- */
-function decodeBoundedVec(boundedVec) {
-  if (boundedVec && typeof boundedVec === 'object' && 'storage' in boundedVec && 'len' in boundedVec) {
-    const length = parseInt(boundedVec.len);
-    const storage = boundedVec.storage;
-    if (!Array.isArray(storage) || length === 0) return '';
-    const bytes = storage.slice(0, length);
-    return new TextDecoder().decode(new Uint8Array(bytes.map((b) => parseInt(b))));
-  }
-  return '';
-}
-
-/**
  * Prepare circuit inputs from email content
  */
 async function prepareCircuitInputs(emailBuffer, onProgress) {
@@ -334,17 +319,7 @@ export async function generateEmailProof(emailContent, onProgress = () => {}) {
 
     // Step 4: Execute circuit
     onProgress('Executing circuit...', 40);
-    const { witness, returnValue } = await noir.execute(inputs);
-
-    // Log outputs
-    if (returnValue && returnValue.length >= 4) {
-      console.log('Circuit outputs:', {
-        pubkeyHash: returnValue[0],
-        emailNullifier: returnValue[1],
-        date: decodeBoundedVec(returnValue[2]),
-        eventName: decodeBoundedVec(returnValue[3]),
-      });
-    }
+    const { witness } = await noir.execute(inputs);
 
     // Step 5: Generate proof
     onProgress('Generating proof (this takes ~30-60 seconds)...', 50);
