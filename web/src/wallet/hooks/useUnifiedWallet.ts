@@ -84,13 +84,26 @@ export function useUnifiedWallet(): UnifiedWallet {
   // Stable disconnect references
   const cdpDisconnect = cdp.disconnect
 
-  // Unified disconnect (disconnects whichever is connected)
+  // Unified disconnect (disconnects all connected wallets)
+  // Uses Promise.allSettled to ensure one failure doesn't block others
   const disconnect = useCallback(async () => {
+    const disconnectPromises: Promise<void>[] = []
+
     if (cdpConnected) {
-      await cdpDisconnect()
+      disconnectPromises.push(cdpDisconnect())
     }
     if (externalConnected) {
-      await externalDisconnect()
+      disconnectPromises.push(externalDisconnect())
+    }
+
+    if (disconnectPromises.length > 0) {
+      const results = await Promise.allSettled(disconnectPromises)
+      // Log any failures for debugging
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.error(`[useUnifiedWallet] Disconnect ${index} failed:`, result.reason)
+        }
+      })
     }
   }, [cdpConnected, externalConnected, cdpDisconnect, externalDisconnect])
 
