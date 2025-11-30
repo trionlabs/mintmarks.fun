@@ -117,6 +117,26 @@ export function useUnifiedWallet(): UnifiedWallet {
     external.state.error ??
     null
 
+  // Stable switchChain reference from external wallet
+  const externalSwitchChain = external.switchChain
+
+  // Switch chain - only available for external wallets
+  const switchChain = useCallback(
+    async (chainId: number): Promise<void> => {
+      if (!externalSwitchChain) {
+        throw normalizeError(new Error('Chain switching not supported for this wallet'))
+      }
+      return externalSwitchChain(chainId)
+    },
+    [externalSwitchChain]
+  )
+
+  // Can switch chain? Only if external wallet is connected
+  const canSwitchChain = externalConnected && !!externalSwitchChain
+
+  // Is multichain? CDP wallets are multichain native
+  const isMultichain = cdpConnected
+
   // CRITICAL: Final memo with PRIMITIVE dependencies
   return useMemo(
     () => ({
@@ -130,8 +150,11 @@ export function useUnifiedWallet(): UnifiedWallet {
       chainId: activeAdapter?.state.chainId ?? null,
       isLoading,
       error,
+      isMultichain,
       sendTransaction,
       disconnect,
+      switchChain: canSwitchChain ? switchChain : undefined,
+      canSwitchChain,
     }),
     [
       cdpConnected,
@@ -141,8 +164,11 @@ export function useUnifiedWallet(): UnifiedWallet {
       activeAdapter?.state.chainId,
       isLoading,
       error,
+      isMultichain,
       sendTransaction,
       disconnect,
+      switchChain,
+      canSwitchChain,
     ]
   )
 }
