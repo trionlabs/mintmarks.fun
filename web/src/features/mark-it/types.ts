@@ -1,18 +1,27 @@
 /**
  * Mark It Flow Type Definitions
+ * 
+ * Flow order:
+ * 1. Email Proof (runs in parallel, shown as terminal at top)
+ * 2. Wallet (connect wallet)
+ * 3. Passport (ZKPassport verification)
+ * 4. Mint (final minting with network selection)
  */
 
 import type { EmailMetadata } from '@/types/gmail'
+import type { MintNetworkId } from '@/config/mintNetworks'
 
 /**
- * Steps in the Mark It flow
+ * Steps in the Mark It flow (user-facing steps)
+ * Email proof runs in parallel and is NOT a step - it's shown as terminal
  */
-export type MarkItStep = 'wallet' | 'email-proof' | 'passport' | 'mint' | 'success'
+export type MarkItStep = 'wallet' | 'passport' | 'mint' | 'success'
 
 /**
- * Sub-states for email proof step
+ * Email proof status (runs in parallel, shown in terminal)
  */
-export type EmailProofSubStep =
+export type EmailProofStatus =
+  | 'idle'
   | 'loading-email'
   | 'initializing-wasm'
   | 'loading-circuit'
@@ -22,10 +31,20 @@ export type EmailProofSubStep =
   | 'error'
 
 /**
+ * Terminal log entry for email proof display
+ */
+export interface TerminalLogEntry {
+  timestamp: Date
+  message: string
+  type: 'info' | 'success' | 'error' | 'progress'
+  progress?: number // 0-100
+}
+
+/**
  * Sub-states for passport step
  */
 export type PassportSubStep =
-  | 'waiting-wallet'
+  | 'waiting-proof'  // Waiting for email proof to complete
   | 'generating-qr'
   | 'waiting-scan'
   | 'verifying'
@@ -36,6 +55,7 @@ export type PassportSubStep =
  * Sub-states for mint step
  */
 export type MintSubStep =
+  | 'waiting-proof'  // Waiting for email proof (if not done)
   | 'preparing'
   | 'checking-nullifier'
   | 'simulating'
@@ -93,19 +113,20 @@ export interface MintResult {
  * Mark It flow state
  */
 export interface MarkItFlowState {
-  // Current step
+  // Current user-facing step (Wallet → Passport → Mint → Success)
   step: MarkItStep
   
-  // Progress (0-100)
+  // Progress (0-100) for the current step
   progress: number
   
   // Email being processed
   email: EmailMetadata | null
   
-  // Email proof
+  // Email proof (runs in parallel, shown as terminal)
   emailProof: EmailProofResult | null
-  emailProofSubStep: EmailProofSubStep
-  emailProofProgress: { message: string; percent: number }
+  emailProofStatus: EmailProofStatus
+  emailProofProgress: number // 0-100
+  terminalLogs: TerminalLogEntry[]
   
   // Passport
   passportProof: PassportProofResult | null
@@ -117,7 +138,10 @@ export interface MarkItFlowState {
   mintSubStep: MintSubStep
   transactionHash: string | null
   
-  // Error
+  // Network selection for minting
+  selectedNetwork: MintNetworkId
+  
+  // Error (step-specific error, not email proof error)
   error: string | null
   
   // Demo mode
@@ -145,6 +169,12 @@ export interface MarkItFlowActions {
   
   // Set error
   setError: (error: string) => void
+  
+  // Set the network to mint on
+  setNetwork: (network: MintNetworkId) => void
+  
+  // Prepare mint transaction (called when user clicks "Mint NFT" button)
+  mint: () => void
   
   // Confirm and send mint transaction (for CDP wallets)
   confirmMint: () => void

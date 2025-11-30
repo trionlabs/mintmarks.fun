@@ -13,50 +13,99 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // Default - Solid with subtle glass effect
         default: `
           bg-[var(--figma-cta1-bg)] text-[var(--figma-cta1-text)]
           border-2 border-[var(--figma-cta1-border)]
-          shadow-lg hover:shadow-xl
+          backdrop-blur-sm
+          shadow-[0_4px_14px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]
+          hover:shadow-[0_6px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.15)]
           hover:bg-[var(--figma-cta1-hover-bg)] hover:-translate-y-0.5
-          active:bg-[var(--figma-cta1-active-bg)] active:translate-y-0
-          dark:bg-blend-hard-light dark:backdrop-blur-[7.5px]
+          active:bg-[var(--figma-cta1-active-bg)] active:translate-y-0 active:shadow-[0_2px_8px_rgba(0,0,0,0.15)]
         `,
+        // Outline - Pure blur, transparent background
         outline: `
-          bg-[var(--button-outline-bg)] 
-          border border-[var(--button-outline-border)] 
+          bg-[var(--button-outline-bg)]
+          border border-[var(--button-outline-border)]
           text-[var(--button-outline-text)]
-          backdrop-blur-md backdrop-saturate-150 shadow-sm
-          hover:bg-[var(--button-outline-hover-bg)] 
+          backdrop-blur-[32px]
+          hover:bg-[var(--button-outline-hover-bg)]
           hover:border-[var(--button-outline-hover-border)]
           hover:text-[var(--button-outline-hover-text)]
-          hover:shadow
-          active:bg-[var(--button-outline-hover-bg)]
+          hover:-translate-y-0.5
+          active:translate-y-0
         `,
+        // Ghost - Subtle glass on hover
         ghost: `
-          bg-[var(--button-ghost-bg)] 
-          border-transparent 
+          bg-transparent
+          border border-transparent
           text-[var(--button-ghost-text)]
-          hover:bg-[var(--button-ghost-hover-bg)] 
+          hover:bg-[var(--glass-bg-tertiary)]
+          hover:backdrop-blur-md
+          hover:border-[var(--glass-border)]/50
           hover:text-[var(--button-ghost-hover-text)]
+          rounded-lg
         `,
+        // Destructive - Red glass
         destructive: `
-          bg-[var(--button-destructive-bg)] 
-          border border-[var(--button-destructive-border)] 
-          text-[var(--button-destructive-text)]
-          shadow-md
-          hover:bg-[var(--button-destructive-hover-bg)] 
-          hover:border-[var(--button-destructive-hover-border)]
+          bg-red-500/15 
+          border border-red-500/30
+          text-red-700 dark:text-red-300
+          backdrop-blur-lg backdrop-saturate-[150%]
+          shadow-[0_2px_8px_rgba(239,68,68,0.1),inset_0_1px_0_rgba(255,255,255,0.1)]
+          hover:bg-red-500/25
+          hover:border-red-500/40
+          hover:shadow-[0_4px_14px_rgba(239,68,68,0.2)]
         `,
+        // Secondary - Dark gray glass
         secondary: `
-          bg-[var(--figma-cta3-bg)] text-[var(--figma-cta3-text)]
+          bg-[var(--figma-cta3-bg)]
           border border-[var(--figma-cta3-border)]
-          hover:opacity-90
+          text-[var(--figma-cta3-text)]
+          backdrop-blur-[32px]
+          shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]
+          hover:bg-[rgba(255,255,255,0.12)]
+          hover:border-[rgba(255,255,255,0.2)]
+          hover:-translate-y-0.5
+          active:translate-y-0
         `,
+        // Link - No glass
         link: `
           bg-transparent border-none 
           text-[var(--button-link-text)]
           underline underline-offset-4
           hover:text-[var(--button-link-hover-text)] hover:no-underline
+        `,
+        // Hero Primary - White button on dark blue background
+        hero: `
+          bg-white text-blue-700
+          border-none
+          shadow-[0_4px_20px_rgba(0,0,0,0.15)]
+          hover:bg-blue-50 hover:scale-105
+          hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)]
+          active:scale-100
+        `,
+        // Hero Outline - Transparent with white border
+        'hero-outline': `
+          bg-transparent
+          border border-[var(--hero-glass-border)]
+          text-[var(--hero-text-primary)]
+          backdrop-blur-md
+          hover:bg-[var(--hero-glass-bg)]
+          hover:border-[var(--hero-glass-border-hover)]
+        `,
+        // Hero Glass - Glassmorphic button for hero sections
+        'hero-glass': `
+          bg-[var(--hero-glass-bg)]
+          border border-[var(--hero-glass-border)]
+          text-[var(--hero-text-primary)]
+          backdrop-blur-xl backdrop-saturate-[180%]
+          shadow-[var(--hero-glass-shadow)]
+          hover:bg-[var(--hero-glass-bg-hover)]
+          hover:border-[var(--hero-glass-border-hover)]
+          hover:shadow-[var(--hero-glass-shadow-hover)]
+          hover:-translate-y-0.5
+          active:translate-y-0
         `,
       },
       size: {

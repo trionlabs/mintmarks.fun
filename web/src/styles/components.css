@@ -1,0 +1,277 @@
+/* ============================================
+   EMAIL CARD GLASSMORPHIC STYLES
+   Premium glass effect for email cards
+   ============================================ */
+
+.glass-email-card {
+  background: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  /* Thin glass-like border */
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.glass-email-card:hover {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  /* Thin glass-like border on hover - whitish */
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 
+    0 8px 40px rgba(99, 150, 244, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Dark mode glass email card - more transparent with overlay */
+.dark .glass-email-card {
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  /* Thin glass-like border for dark mode */
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  position: relative;
+}
+
+/* Dark mode overlay - subtle gradient */
+.dark .glass-email-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 150, 244, 0.02) 0%,
+    rgba(99, 150, 244, 0.005) 50%,
+    rgba(99, 150, 244, 0.015) 100%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+}
+
+.dark .glass-email-card:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  /* Thin glass-like border on hover - whitish for dark mode */
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 
+    0 8px 40px rgba(99, 150, 244, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.dark .glass-email-card:hover::before {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 150, 244, 0.05) 0%,
+    rgba(99, 150, 244, 0.02) 50%,
+    rgba(99, 150, 244, 0.03) 100%
+  );
+}
+
+/* ============================================
+   MARK IT BUTTON GLASSMORPHIC STYLE
+   Glass effect for buttons inside email cards
+   Button is hidden by default, appears on card hover
+   ============================================ */
+
+/* Inner shadow animation */
+@keyframes innerShadowFadeIn {
+  0% {
+    box-shadow: 
+      inset 0 1px 2px rgba(255, 255, 255, 0),
+      inset 0 -1px 1px rgba(0, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 
+      inset 0 1px 2px rgba(255, 255, 255, 0.2),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@keyframes innerShadowFadeInDark {
+  0% {
+    box-shadow: 
+      inset 0 1px 2px rgba(255, 255, 255, 0),
+      inset 0 -1px 1px rgba(0, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 
+      inset 0 1px 2px rgba(255, 255, 255, 0.15),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.glass-email-card button {
+  /* Hidden by default - card idle state */
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  
+  /* Fully transparent background - override all Tailwind bg classes */
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  
+  /* Remove backdrop blur in idle state */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  
+  /* Thin border - visible even when button is hidden */
+  border: 1px solid rgba(99, 150, 244, 0.4) !important;
+  
+  /* No inner shadow in idle state */
+  box-shadow: none !important;
+  
+  /* Smooth transitions */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: none !important; /* No Y movement */
+  translate: none !important; /* No Y movement */
+}
+
+/* Show button when card is hovered */
+.glass-email-card:hover button {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  
+  /* Still fully transparent background - no color at all */
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  
+  /* No backdrop blur on card hover - only on button hover */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  
+  /* Whitish thin border on card hover */
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  
+  /* No inner shadow on card hover - only on button hover */
+  box-shadow: none !important;
+  
+  /* No translate Y movement */
+  transform: none !important;
+  translate: none !important;
+}
+
+/* Glass effects when button itself is hovered */
+.glass-email-card button:hover {
+  /* Glass morphic background effect */
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  
+  /* Whitish border on button hover */
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  
+  /* Inner shadow only - no outer shadow with animation */
+  animation: innerShadowFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.2),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+  
+  transform: none !important; /* No Y movement */
+  translate: none !important; /* No Y movement */
+}
+
+/* Dark mode button styles */
+.dark .glass-email-card button {
+  /* Hidden by default - card idle state */
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  
+  /* Fully transparent background - override all Tailwind bg classes */
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  
+  /* Remove backdrop blur in idle state */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  
+  /* Thin border for dark mode - visible even when button is hidden */
+  border: 1px solid rgba(99, 150, 244, 0.5) !important;
+  
+  /* No inner shadow in idle state */
+  box-shadow: none !important;
+}
+
+.dark .glass-email-card:hover button {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  
+  /* Still fully transparent background - no color at all */
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  
+  /* No backdrop blur on card hover - only on button hover */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  
+  /* Whitish thin border on card hover (dark mode) */
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  
+  /* No inner shadow on card hover - only on button hover */
+  box-shadow: none !important;
+  
+  /* No translate Y movement */
+  transform: none !important;
+  translate: none !important;
+}
+
+.dark .glass-email-card button:hover {
+  /* Glass morphic background effect for dark mode */
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  
+  /* Whitish border on button hover (dark mode) */
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  
+  /* Inner shadow only for dark mode - no outer shadow with animation */
+  animation: innerShadowFadeInDark 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.15),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.2);
+  
+  transform: none !important; /* No Y movement */
+  translate: none !important; /* No Y movement */
+}
+
+/* ============================================
+   BACKGROUND ICON INTERACTION
+   When hovering email cards, background icons react
+   ============================================ */
+
+/* When any email card is hovered, boost background icon visibility */
+.glass-email-card:hover ~ * svg,
+.glass-email-card:hover ~ div svg {
+  opacity: 0.4 !important;
+  filter: brightness(1.3);
+  transition: all 0.3s ease-out;
+}
+
+/* Parent container effect - makes spiral icons more visible on card hover */
+body:has(.glass-email-card:hover) [aria-hidden="true"] svg {
+  opacity: 1 !important;
+  filter: brightness(1.2) drop-shadow(0 0 8px rgba(99, 150, 244, 0.3));
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+

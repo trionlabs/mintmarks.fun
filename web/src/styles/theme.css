@@ -1,0 +1,94 @@
+/* ============================================
+   TAILWIND THEME CONFIGURATION
+   @theme inline and @layer base definitions
+   ============================================ */
+
+@theme inline {
+  /* Core Theme Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  /* Glassmorphic Theme Colors (for direct Tailwind usage) */
+  --color-glass-primary: var(--glass-bg-primary);
+  --color-glass-secondary: var(--glass-bg-secondary);
+  --color-glass-tertiary: var(--glass-bg-tertiary);
+  --color-glass-border: var(--glass-border);
+  
+  /* Text Colors */
+  --color-text-primary: var(--page-text-primary);
+  --color-text-secondary: var(--page-text-secondary);
+  --color-text-muted: var(--page-text-muted);
+  
+  /* Border Radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Typography */
+  --font-family-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* ============================================
+   BROWSER FALLBACK - @supports Query
+   For browsers that don't support backdrop-filter
+   ============================================ */
+
+/* Fallback for no backdrop-filter support */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-primary,
+  .glass-secondary,
+  .glass-tertiary,
+  .glass-card,
+  .glass-badge,
+  .glass-button,
+  .card-figma,
+  .card-figma-with-blur,
+  .card-glass {
+    background: var(--background) !important;
+    border: 1px solid var(--border) !important;
+  }
+  
+  .dark .glass-primary,
+  .dark .glass-secondary,
+  .dark .glass-tertiary,
+  .dark .glass-card,
+  .dark .glass-badge,
+  .dark .glass-button,
+  .dark .card-figma,
+  .dark .card-figma-with-blur,
+  .dark .card-glass {
+    background: var(--card) !important;
+    border: 1px solid var(--border) !important;
+  }
+}
+

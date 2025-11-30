@@ -1,10 +1,8 @@
 import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
   CardContent,
 } from '@/components/ui/card'
 import { useAuth } from '@/contexts/AuthContext'
@@ -16,8 +14,8 @@ import {
   ArrowRight,
   Shield,
   Zap,
-  CheckCircle,
 } from 'lucide-react'
+import { HeroEmailScatter } from '@/components/HeroEmailScatter'
 
 export function Home() {
   const navigate = useNavigate()
@@ -27,272 +25,243 @@ export function Home() {
   // Check if user is fully connected (both Gmail and Wallet)
   const isFullyConnected = isGmailConnected && isWalletConnected
 
+  // Text rotation states
+  const commitments = [
+    'That Event You Attended 🎟️',
+    'That Newsletter You Subscribed To 📩',
+    'That Community You Joined 🤝',
+    'That Thing You Purchased 🛍️',
+  ]
+  const [commitmentIndex, setCommitmentIndex] = useState(0)
+
+  const unlockOptions = ['Airdrops', 'Communities', 'Perks', 'Access', 'Opportunities']
+  const [unlockIndex, setUnlockIndex] = useState(0)
+
+  // Rotate commitments every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCommitmentIndex((prev) => (prev + 1) % commitments.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [commitments.length])
+
+  // Rotate unlock options every 2.5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setUnlockIndex((prev) => (prev + 1) % unlockOptions.length)
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [unlockOptions.length])
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-12">
-      {/* Hero */}
-      <div className="text-center space-y-6">
-        <div
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
-          style={{
-            background: 'var(--page-badge-bg)',
-            border: '1px solid var(--page-border-color)',
-            backdropFilter: 'blur(16px)',
-          }}
-        >
-          <Sparkles className="h-4 w-4 text-[var(--Controls-Selected)]" />
-          <span
-            className="text-sm font-medium"
-            style={{ color: 'var(--page-text-primary)' }}
-          >
-            Own Your Commitments
-          </span>
-        </div>
-
-        <h1
-          className="text-4xl sm:text-5xl md:text-6xl font-bold"
-          style={{ color: 'var(--page-text-primary)' }}
-        >
-          Marks of Your Life.{' '}
-          <span style={{ color: 'var(--Controls-Selected)' }}>Unlocked.</span>
-        </h1>
-
-        <p
-          className="text-lg max-w-2xl mx-auto"
-          style={{ color: 'var(--page-text-secondary)' }}
-        >
-          Transform your email event confirmations into verified NFT
-          collectibles using zero-knowledge proofs.
-        </p>
-
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-          {isFullyConnected ? (
-            <Button
-              size="lg"
-              onClick={() => navigate('/create')}
-              className="gap-2"
+    <>
+      {/* Hero Section - Full Width Split Layout */}
+      <section className="relative w-full min-h-[calc(100vh-4rem)] overflow-visible">
+        {/* Container - same as header for alignment */}
+        <div className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-4rem)]">
+          {/* Grid: Left narrower (5/12), Right wider (7/12) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-4rem)]">
+            {/* Left Column: Content - narrower (5 columns) */}
+            <div
+              className="relative z-20 flex items-center py-12 lg:py-20 lg:col-span-5"
             >
-              Create Your First Mark
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          ) : (
-            <>
-              {!isGmailConnected ? (
-                <Button size="lg" onClick={gmailLogin} className="gap-2">
-                  <Mail className="h-5 w-5" />
-                  Connect Gmail
-                </Button>
-              ) : (
-                <ConnectWalletModal
-                  trigger={
-                    <Button size="lg" className="gap-2">
-                      <Wallet className="h-5 w-5" />
-                      Connect Wallet
+              <div className="max-w-lg">
+                {/* Badge */}
+                <div
+                  className="glass-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 sm:mb-7 md:mb-8 transition-all duration-300 hover:scale-105 hero-animate-slide-up"
+                >
+                  <Sparkles
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4 glass-text-primary transition-all duration-300 hero-sparkle-icon"
+                  />
+                  <span className="text-xs sm:text-sm font-semibold tracking-wider glass-text-primary">
+                    Own Your Commitments
+                  </span>
+                </div>
+
+                {/* Hero Content - New Hierarchy */}
+                <div className="space-y-4 sm:space-y-5 md:space-y-6">
+                  {/* h2: Story */}
+                  <div className="space-y-1 sm:space-y-1.5 md:space-y-2">
+                    <h2
+                      className="glass-text-secondary text-base sm:text-lg md:text-xl font-medium leading-relaxed hero-animate-slide-up hero-delay-100"
+                    >
+                      Every Email In Your Inbox Tells A Story.
+                    </h2>
+
+                    {/* Rotating commitments */}
+                    <div
+                      className="glass-text-secondary text-base sm:text-lg md:text-xl font-medium leading-relaxed hero-animate-slide-up hero-delay-150 min-h-[1.5em] relative"
+                    >
+                    <div className="hero-rotate-wrapper">
+                      {commitments.map((commitment, index) => (
+                        <span
+                          key={index}
+                          className={`hero-rotate-item font-medium ${index === commitmentIndex ? 'active' : 'inactive'
+                            }`}
+                        >
+                          {commitment}
+                        </span>
+                      ))}
+                    </div>
+                    </div>
+                  </div>
+
+                  {/* Main Value Proposition - Improved Hierarchy */}
+                  <div className="space-y-5">
+                    {/* h2: Turn Emails */}
+                    <h2
+                      className="glass-text-primary text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.1] tracking-tight hero-animate-slide-up hero-delay-400"
+                    >
+                      Turn Emails
+                    </h2>
+
+                    {/* h1: Into Private Onchain Marks - Largest, Most Important */}
+                    <h1
+                      className="glass-text-primary text-4xl sm:text-5xl md:text-6xl font-extrabold leading-[1.1] tracking-tight hero-animate-slide-up hero-delay-450"
+                    >
+                      Into Private Onchain Marks
+                    </h1>
+
+                    {/* Secondary Line - Unified Typography */}
+                    <div
+                      className="flex items-baseline gap-3 text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight hero-animate-slide-up hero-delay-500"
+                    >
+                      <span className="glass-text-secondary opacity-80">to Unlock</span>
+
+                      <div className="relative min-w-[180px]">
+                        <div className="hero-rotate-wrapper">
+                          {unlockOptions.map((option, index) => (
+                            <span
+                              key={index}
+                              className={`hero-rotate-item hero-gradient-text text-xl sm:text-2xl md:text-3xl font-extrabold ${index === unlockIndex ? 'active' : 'inactive'
+                                }`}
+                            >
+                              {option}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row items-start gap-4 mt-8 sm:mt-9 md:mt-10">
+                  {isFullyConnected ? (
+                    <Button
+                      size="lg"
+                      onClick={() => navigate('/create')}
+                      className="gap-2"
+                    >
+                      Create Your First Mark
+                      <ArrowRight className="h-4 w-4" />
                     </Button>
-                  }
-                />
-              )}
-            </>
-          )}
+                  ) : (
+                    <>
+                      {!isGmailConnected ? (
+                        <Button size="lg" onClick={gmailLogin} className="gap-2">
+                          <Mail className="h-5 w-5" />
+                          Connect Gmail
+                        </Button>
+                      ) : (
+                        <ConnectWalletModal
+                          trigger={
+                            <Button size="lg" className="gap-2">
+                              <Wallet className="h-5 w-5" />
+                              Connect Wallet
+                            </Button>
+                          }
+                        />
+                      )}
+                    </>
+                  )}
 
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => navigate('/create')}
-          >
-            Learn More
-          </Button>
-        </div>
-      </div>
-
-      {/* Connection Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Get Started</CardTitle>
-          <CardDescription>
-            Connect your accounts to start minting
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Step 1: Gmail */}
-          <div
-            className="flex items-center gap-4 p-4 rounded-lg"
-            style={{
-              background: isGmailConnected
-                ? 'var(--glass-bg-primary)'
-                : 'transparent',
-              border: `1px solid ${isGmailConnected ? 'var(--Controls-Selected)' : 'var(--glass-border)'}`,
-            }}
-          >
-            <div
-              className="flex items-center justify-center w-10 h-10 rounded-full"
-              style={{
-                background: isGmailConnected
-                  ? 'var(--Controls-Selected)'
-                  : 'var(--glass-bg-secondary)',
-              }}
-            >
-              {isGmailConnected ? (
-                <CheckCircle className="h-5 w-5 text-white" />
-              ) : (
-                <Mail
-                  className="h-5 w-5"
-                  style={{ color: 'var(--page-text-secondary)' }}
-                />
-              )}
-            </div>
-            <div className="flex-1">
-              <h3
-                className="font-semibold"
-                style={{ color: 'var(--page-text-primary)' }}
-              >
-                1. Connect Gmail
-              </h3>
-              <p
-                className="text-sm"
-                style={{ color: 'var(--page-text-secondary)' }}
-              >
-                {isGmailConnected
-                  ? 'Gmail connected - Ready to fetch your event emails'
-                  : 'Allow access to read your event confirmation emails'}
-              </p>
-            </div>
-            {!isGmailConnected && (
-              <Button variant="outline" size="sm" onClick={gmailLogin}>
-                Connect
-              </Button>
-            )}
-          </div>
-
-          {/* Step 2: Wallet */}
-          <div
-            className="flex items-center gap-4 p-4 rounded-lg"
-            style={{
-              background: isWalletConnected
-                ? 'var(--glass-bg-primary)'
-                : 'transparent',
-              border: `1px solid ${isWalletConnected ? 'var(--Controls-Selected)' : 'var(--glass-border)'}`,
-            }}
-          >
-            <div
-              className="flex items-center justify-center w-10 h-10 rounded-full"
-              style={{
-                background: isWalletConnected
-                  ? 'var(--Controls-Selected)'
-                  : 'var(--glass-bg-secondary)',
-              }}
-            >
-              {isWalletConnected ? (
-                <CheckCircle className="h-5 w-5 text-white" />
-              ) : (
-                <Wallet
-                  className="h-5 w-5"
-                  style={{ color: 'var(--page-text-secondary)' }}
-                />
-              )}
-            </div>
-            <div className="flex-1">
-              <h3
-                className="font-semibold"
-                style={{ color: 'var(--page-text-primary)' }}
-              >
-                2. Connect Wallet
-              </h3>
-              <p
-                className="text-sm"
-                style={{ color: 'var(--page-text-secondary)' }}
-              >
-                {isWalletConnected
-                  ? 'Wallet connected - Ready to mint NFTs on Base'
-                  : 'Create or connect your wallet to mint NFTs'}
-              </p>
-            </div>
-            {!isWalletConnected && (
-              <ConnectWalletModal
-                trigger={
-                  <Button variant="outline" size="sm">
-                    Connect
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+                  >
+                    How It Works
                   </Button>
-                }
-              />
-            )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Email Scatter - wider (7 columns), overflow allowed */}
+            <div className="hidden lg:block relative lg:col-span-7 overflow-visible">
+              {/* Overflow container - cards can spill out */}
+              <div className="absolute inset-0 -left-12 -right-8 overflow-visible z-10">
+                <HeroEmailScatter />
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Features */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card variant="glass">
-          <CardContent className="pt-6">
-            <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-              style={{ background: 'var(--Controls-Idle)' }}
-            >
-              <Shield className="h-6 w-6 text-[var(--Controls-Selected)]" />
+          {/* Mobile & Tablet: Compact Email Scatter below hero content */}
+          <div className="lg:hidden pb-8">
+            <div className="max-w-md sm:max-w-3xl mx-auto">
+              <HeroEmailScatter />
             </div>
-            <h3
-              className="font-semibold mb-2"
-              style={{ color: 'var(--page-text-primary)' }}
-            >
-              Privacy First
-            </h3>
-            <p
-              className="text-sm"
-              style={{ color: 'var(--page-text-secondary)' }}
-            >
-              Zero-knowledge proofs verify your attendance without revealing
-              your email content.
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </section>
 
-        <Card variant="glass">
-          <CardContent className="pt-6">
-            <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-              style={{ background: 'var(--Controls-Idle)' }}
-            >
-              <Zap className="h-6 w-6 text-[var(--Controls-Selected)]" />
-            </div>
-            <h3
-              className="font-semibold mb-2"
-              style={{ color: 'var(--page-text-primary)' }}
-            >
-              Fast & Cheap
-            </h3>
-            <p
-              className="text-sm"
-              style={{ color: 'var(--page-text-secondary)' }}
-            >
-              Mint on Base L2 for minimal gas fees and instant confirmations.
-            </p>
-          </CardContent>
-        </Card>
+      {/* Features Section */}
+      <section id="how-it-works" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
+        <div className="text-center mb-12">
+          <h2 className="glass-text-primary text-2xl sm:text-3xl font-bold mb-4">
+            Why MintMarks?
+          </h2>
+          <p className="glass-text-secondary text-base sm:text-lg max-w-2xl mx-auto">
+            Transform your digital commitments into verifiable on-chain credentials.
+          </p>
+        </div>
 
-        <Card variant="glass">
-          <CardContent className="pt-6">
-            <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-              style={{ background: 'var(--Controls-Idle)' }}
-            >
-              <Sparkles className="h-6 w-6 text-[var(--Controls-Selected)]" />
-            </div>
-            <h3
-              className="font-semibold mb-2"
-              style={{ color: 'var(--page-text-primary)' }}
-            >
-              Unique Collectibles
-            </h3>
-            <p
-              className="text-sm"
-              style={{ color: 'var(--page-text-secondary)' }}
-            >
-              Each Mark is a unique NFT representing your real-world
-              commitments.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card variant="glass">
+            <CardContent className="pt-6">
+              <div className="glass-icon-box">
+                <Shield className="h-6 w-6 glass-text-secondary" />
+              </div>
+              <h3 className="glass-text-primary font-semibold mb-2">
+                Privacy First
+              </h3>
+              <p className="glass-text-secondary text-sm">
+                Zero-knowledge proofs verify your attendance without revealing
+                your email content.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card variant="glass">
+            <CardContent className="pt-6">
+              <div className="glass-icon-box">
+                <Zap className="h-6 w-6 glass-text-secondary" />
+              </div>
+              <h3 className="glass-text-primary font-semibold mb-2">
+                Fast & Cheap
+              </h3>
+              <p className="glass-text-secondary text-sm">
+                Mint on Base L2 for minimal gas fees and instant confirmations.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card variant="glass">
+            <CardContent className="pt-6">
+              <div className="glass-icon-box">
+                <Sparkles className="h-6 w-6 glass-text-secondary" />
+              </div>
+              <h3 className="glass-text-primary font-semibold mb-2">
+                Unique Collectibles
+              </h3>
+              <p className="glass-text-secondary text-sm">
+                Each Mark is a unique NFT representing your real-world
+                commitments.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+    </>
   )
 }

@@ -15,8 +15,19 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        'z-50 min-w-[8rem] overflow-hidden rounded-md border p-1 shadow-md',
-        'bg-[var(--page-bg)] border-[var(--border-color)]',
+        // Layout
+        'z-50 min-w-[8rem] overflow-hidden rounded-2xl p-1.5',
+        // Enhanced Glassmorphic effect - more transparent + heavier blur
+        'bg-[var(--glass-bg-primary)]',
+        '[backdrop-filter:blur(var(--glass-blur-heavy))_saturate(var(--glass-saturate))]',
+        '[-webkit-backdrop-filter:blur(var(--glass-blur-heavy))_saturate(var(--glass-saturate))]',
+        // Border with glow
+        'border border-[var(--glass-border)]',
+        'ring-1 ring-white/10',
+        // Enhanced shadow for depth + inner glow
+        'shadow-[0_16px_64px_rgba(0,0,0,0.15),0_0_0_1px_rgba(255,255,255,0.1),inset_0_1px_1px_rgba(255,255,255,0.2)]',
+        'dark:shadow-[0_16px_64px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_1px_rgba(255,255,255,0.1)]',
+        // Animations
         'data-[state=open]:animate-in data-[state=closed]:animate-out',
         'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -26,6 +37,10 @@ const DropdownMenuContent = React.forwardRef<
         'data-[side=top]:slide-in-from-bottom-2',
         className
       )}
+      style={{
+        // Mix blend mode for true glass effect
+        isolation: 'isolate',
+      }}
       {...props}
     />
   </DropdownMenuPrimitive.Portal>
@@ -41,9 +56,14 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none',
+      // Layout
+      'relative flex cursor-pointer select-none items-center rounded-lg px-2 py-1.5 text-sm outline-none',
       'text-[var(--page-text-primary)]',
-      'focus:bg-[var(--Controls-Idle)] focus:text-[var(--page-text-primary)]',
+      // Focus/Hover - subtle glass effect
+      'focus:bg-[var(--glass-bg-secondary)] focus:backdrop-blur-sm',
+      'focus:text-[var(--page-text-primary)]',
+      'transition-colors duration-150',
+      // Disabled
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       inset && 'pl-8',
       className
@@ -59,7 +79,8 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={cn('-mx-1 my-1 h-px bg-[var(--border-color)]', className)}
+    className={cn('-mx-1 my-1 h-px', className)}
+    style={{ background: 'var(--border)' }}
     {...props}
   />
 ))

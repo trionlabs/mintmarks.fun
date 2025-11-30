@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+package-lock.json
+yarn.lock
 
 # Build outputs
 dist/
@@ -58,3 +60,5 @@ CLAUDE.md
 # Web
 web-poc/public/wasm
 mintmarksfun_circuits.json
+
+.cursorignore

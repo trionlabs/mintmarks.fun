@@ -100,6 +100,25 @@ export function useExternalWallet(): WalletAdapter {
     wagmiDisconnect()
   }, [wagmiDisconnect])
 
+  /**
+   * Switch to a different chain.
+   * External wallets support chain switching via wagmi.
+   */
+  const switchChain = useCallback(async (chainId: number) => {
+    const targetNetwork = getNetworkByChainId(chainId)
+    if (!targetNetwork) {
+      throw normalizeError(new Error(`Unsupported chain ID: ${chainId}`))
+    }
+    
+    try {
+      await switchChainAsync({ chainId })
+    } catch (error) {
+      throw normalizeError(
+        new Error(`Failed to switch to ${targetNetwork.name}. Please try again.`)
+      )
+    }
+  }, [switchChainAsync])
+
   const state = useMemo(
     () => ({
       address: address ?? null,
@@ -110,6 +129,8 @@ export function useExternalWallet(): WalletAdapter {
       isLoading: isPending,
       // Surface wrong network error for UI display (informational)
       error: wrongNetworkError,
+      // External wallets are NOT multichain - they have a "connected chain"
+      isMultichain: false,
     }),
     [
       address,
@@ -125,6 +146,8 @@ export function useExternalWallet(): WalletAdapter {
     // Always provide sendTransaction if connected (we can switch chains)
     sendTransaction: isConnected ? sendTransaction : undefined,
     disconnect,
+    // Provide switchChain for external wallets
+    switchChain: isConnected ? switchChain : undefined,
   }
 }
 

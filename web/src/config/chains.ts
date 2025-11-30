@@ -1,44 +1,101 @@
 /**
- * @fileoverview Chain configuration for wagmi/RainbowKit.
+ * Viem Chain Configuration
  * 
- * Supports multichain: Base Sepolia (default) + Ethereum Sepolia (for Mark It flow)
+ * Centralized chain utilities for viem integration.
+ * Used by wallet adapters and balance fetching.
  */
 
-import { baseSepolia, base, sepolia, mainnet, arbitrum, optimism, polygon } from 'wagmi/chains'
-import { defineChain } from 'viem'
-
-// Active chains - wagmi will support all of these
-// Order matters: first chain is the default
-export const ACTIVE_CHAINS = [baseSepolia, sepolia] as const
-
-// All supported chains (for reference/future use)
-export const ALL_SUPPORTED_CHAINS = [
+import {
   baseSepolia,
-  sepolia,
   base,
+  sepolia,
   mainnet,
   arbitrum,
   optimism,
   polygon,
+} from 'viem/chains'
+import type { Chain } from 'viem'
+import { NETWORKS } from './contracts'
+
+// ============================================
+// Active Networks (currently enabled in UI)
+// ============================================
+
+/**
+ * Network chain IDs that are currently active/enabled in the app.
+ * Used for network selector UI and validation.
+ * 
+ * To add a new network:
+ * 1. Add to NETWORKS in contracts.ts
+ * 2. Add chainId here
+ * 3. Add case in getViemChain below
+ */
+export const ACTIVE_NETWORK_IDS = [
+  NETWORKS.baseSepolia.chainId,      // 84532 - Base Sepolia (testnet)
+  NETWORKS.ethereumSepolia.chainId,  // 11155111 - Ethereum Sepolia (testnet)
 ] as const
 
-// Celo (ready but inactive)
-export const celoAlfajores = defineChain({
-  id: 44787,
-  name: 'Celo Alfajores',
-  nativeCurrency: { name: 'Celo', symbol: 'CELO', decimals: 18 },
-  rpcUrls: { default: { http: ['https://alfajores-forno.celo-testnet.org'] } },
-  blockExplorers: {
-    default: { name: 'Celoscan', url: 'https://alfajores.celoscan.io' },
-  },
-  testnet: true,
-})
+export type ActiveNetworkId = typeof ACTIVE_NETWORK_IDS[number]
 
-// Feature flags
-export const CELO_ENABLED = false
-export const MAINNET_ENABLED = false
+// ============================================
+// Viem Chain Mapping
+// ============================================
 
-// Re-export for convenience
-export { baseSepolia, base, sepolia, mainnet }
+/**
+ * Get viem chain config by chainId.
+ * Supports all CDP-compatible EVM chains.
+ * 
+ * @throws Error if chainId is not supported
+ */
+export function getViemChain(chainId: number): Chain {
+  switch (chainId) {
+    // Testnets
+    case NETWORKS.baseSepolia.chainId:
+      return baseSepolia
+    case NETWORKS.ethereumSepolia.chainId:
+      return sepolia
+    // Mainnets
+    case NETWORKS.base.chainId:
+      return base
+    case NETWORKS.ethereum.chainId:
+      return mainnet
+    case NETWORKS.arbitrum.chainId:
+      return arbitrum
+    case NETWORKS.optimism.chainId:
+      return optimism
+    case NETWORKS.polygon.chainId:
+      return polygon
+    default:
+      throw new Error(
+        `Unsupported chain ID: ${chainId}. Supported: Base (${NETWORKS.baseSepolia.chainId}, ${NETWORKS.base.chainId}), Ethereum (${NETWORKS.ethereumSepolia.chainId}, ${NETWORKS.ethereum.chainId}), Arbitrum (${NETWORKS.arbitrum.chainId}), Optimism (${NETWORKS.optimism.chainId}), Polygon (${NETWORKS.polygon.chainId})`
+      )
+  }
+}
 
+/**
+ * Get native currency symbol for a chain
+ */
+export function getNativeSymbol(chainId: number): string {
+  switch (chainId) {
+    case NETWORKS.polygon.chainId:
+      return 'MATIC'
+    default:
+      return 'ETH'
+  }
+}
 
+/**
+ * Check if a chainId is a testnet
+ */
+export function isTestnet(chainId: number): boolean {
+  return chainId === NETWORKS.baseSepolia.chainId || 
+         chainId === NETWORKS.ethereumSepolia.chainId
+}
+
+/**
+ * Check if a chainId is currently active/enabled.
+ * Type-safe helper to avoid TypeScript literal type issues with .includes()
+ */
+export function isActiveNetwork(chainId: number): chainId is ActiveNetworkId {
+  return (ACTIVE_NETWORK_IDS as readonly number[]).includes(chainId)
+}

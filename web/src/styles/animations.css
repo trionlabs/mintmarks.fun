@@ -1,0 +1,222 @@
+/* ============================================
+   ANIMATIONS & KEYFRAMES
+   All @keyframes definitions
+   ============================================ */
+
+/* Fade in */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   SPIRAL BACKGROUND ANIMATIONS
+   Minimal, smooth circular motion
+   CSS-only hover boost via :has()
+   ============================================ */
+
+/* Spiral icon base styles */
+.spiral-bg {
+  --spiral-color: var(--Controls-Selected);
+}
+
+.spiral-icon {
+  color: var(--spiral-color);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+  will-change: opacity, transform;
+  transform: translateZ(0); /* GPU acceleration */
+}
+
+/* OPTIMIZED: GPU acceleration for spiral layer */
+.spiral-layer {
+  will-change: transform;
+  transform: translateZ(0); /* GPU acceleration */
+}
+
+/* Hover boost: add pulse animation for speed feeling */
+body:has(.email-card:hover) .spiral-icon {
+  opacity: 0.32 !important;
+  filter: brightness(1.3);
+  animation: icon-pulse 0.6s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0); /* GPU acceleration */
+}
+
+@keyframes icon-pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+@keyframes spiral-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spiral-rotate-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes spiral-pulse {
+  0%, 100% {
+    opacity: var(--spiral-opacity, 0.08);
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: calc(var(--spiral-opacity, 0.08) * 1.5);
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+/* Floating icon entrance animation */
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(-20deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+}
+
+/* Subtle float animation for icons */
+@keyframes icon-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Sparkle animation */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.1) rotate(5deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.95) rotate(-3deg);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.05) rotate(2deg);
+  }
+}
+
+/* ============================================
+   HERO TEXT ANIMATIONS
+   Staggered entrance animations for hero content
+   ============================================ */
+
+/* Slide up and fade in */
+@keyframes slide-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Subtle glow pulse for emphasized text */
+@keyframes text-glow-pulse {
+  0%, 100% {
+    text-shadow: 0 0 8px rgba(99, 150, 244, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 16px rgba(99, 150, 244, 0.6), 0 0 24px rgba(99, 150, 244, 0.4);
+  }
+}
+
+/* Emphasis highlight animation */
+@keyframes emphasis-highlight {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Scale on hover for interactive elements */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ============================================
+   TEXT ROTATION ANIMATIONS
+   Smooth fade and slide transitions for rotating text
+   ============================================ */
+
+@keyframes text-rotate-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes text-rotate-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Text rotation container */
+.text-rotate-container {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.text-rotate-container > span {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.text-rotate-container > span.absolute {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+

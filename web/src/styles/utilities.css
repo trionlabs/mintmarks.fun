@@ -1,0 +1,38 @@
+/* ============================================
+   UTILITY CLASSES
+   Scrollbar, presets, and misc utilities
+   ============================================ */
+
+/* Scrollbar utilities */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
+/* Terminal scrollbar - minimal and subtle */
+.terminal-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.terminal-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.terminal-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.terminal-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+.terminal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--page-text-muted);
+}
+
+/* Fade-in animation utility */
+.animate-fade-in {
+  animation: fade-in 0.2s ease-in-out;
+}
+

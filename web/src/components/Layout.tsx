@@ -1,11 +1,23 @@
+/**
+ * @fileoverview Main Layout Component
+ * 
+ * Provides the main layout structure with navigation header and footer.
+ * Uses UnifiedAuthIndicator for combined Gmail + Wallet auth display.
+ */
+
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sparkles, Moon, Sun, Mail, LogOut, Home, Plus, Bookmark, Wallet } from 'lucide-react'
+import { Sparkles, Moon, Sun, Plus, Bookmark, FlaskConical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useAuth } from '@/contexts/AuthContext'
-import { useWallet, ConnectWalletModal, WalletStatus } from '@/wallet'
+import { UnifiedAuthIndicator } from '@/components/UnifiedAuthIndicator'
+import { WalletOperationsModal } from '@/components/WalletOperationsModal'
+import { SpiralCirclesBackground } from '@/components/SpiralCirclesBackground'
 import { cn } from '@/lib/utils'
+
+// ============================================
+// Types
+// ============================================
 
 interface LayoutProps {
   children: React.ReactNode
@@ -17,22 +29,27 @@ interface NavItem {
   icon: React.ReactNode
 }
 
+// ============================================
+// Navigation Items
+// ============================================
+
 const navItems: NavItem[] = [
-  { path: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
   { path: '/create', label: 'Create', icon: <Plus className="h-4 w-4" /> },
   { path: '/marks', label: 'My Marks', icon: <Bookmark className="h-4 w-4" /> },
 ]
 
+// ============================================
+// Component
+// ============================================
+
 export function Layout({ children }: LayoutProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
-  
-  // Auth states
-  const { isAuthenticated: isGmailConnected, userInfo, login: gmailLogin, logout: gmailLogout } = useAuth()
-  const { isConnected: isWalletConnected } = useWallet()
 
+  // Scroll detection for header gradient
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
@@ -42,9 +59,22 @@ export function Layout({ children }: LayoutProps) {
   }, [])
 
   const showGradient = isScrolled || isHovered
+  
+  // Home page uses wider layout, other pages use narrower
+  const isHomePage = location.pathname === '/'
+  const containerClass = isHomePage 
+    ? 'max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8' 
+    : 'max-w-5xl mx-auto px-4 sm:px-6'
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Animated Background - Global */}
+      <SpiralCirclesBackground 
+        count={14} 
+        speed={0.8}
+        paused={isWalletModalOpen}
+      />
+      
       {/* Navigation */}
       <header
         className={cn(
@@ -55,7 +85,8 @@ export function Layout({ children }: LayoutProps) {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Gradient overlay */}
+        {/* Minimal gradient overlay - no colors, just blur */}
+        {/* Gradient: 0% → 20% vertical transition, then transparent */}
         <div
           className={cn(
             'absolute inset-0 transition-opacity duration-300',
@@ -63,32 +94,41 @@ export function Layout({ children }: LayoutProps) {
           )}
           style={{
             background: theme === 'dark'
-              ? 'linear-gradient(to bottom, rgba(9, 66, 223, 0.2), rgba(4, 54, 224, 0.15))'
-              : 'linear-gradient(to bottom, rgba(240, 244, 249, 0.4), rgba(247, 249, 252, 0.3))',
-            backdropFilter: 'blur(12px)',
+              ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.03) 20%, transparent 100%)'
+              : 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.04) 20%, transparent 100%)',
+            backdropFilter: 'blur(32px)',
+            WebkitBackdropFilter: 'blur(32px)',
           }}
         />
 
-        <nav className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
-          {/* Logo */}
+        <nav className={cn("relative h-full flex items-center justify-between", containerClass)}>
+          {/* Logo - Icon + Text */}
           <Link to="/" className="flex items-center gap-2 group">
-            <Sparkles
-              className="h-5 w-5 sm:h-6 sm:w-6 transition-colors"
-              style={{ color: 'var(--page-text-primary)' }}
+            <img
+              src="/logo-icon.svg"
+              alt="MintMarks"
+              className="h-6 w-6 sm:h-7 sm:w-7 transition-opacity group-hover:opacity-90"
+              style={{
+                filter: theme === 'dark' 
+                  ? 'brightness(0) invert(1)' 
+                  : 'brightness(0)',
+              }}
             />
             <span
-              className="font-bold text-lg sm:text-xl"
+              className="text-xl sm:text-2xl font-semibold"
               style={{
                 color: 'var(--page-text-primary)',
                 textShadow: theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
+                fontFamily: "'Cute Font', ui-sans-serif, system-ui, sans-serif",
               }}
             >
-              mintmarks
+              MINTMARKS.FUN
             </span>
           </Link>
 
-          {/* Navigation Items */}
+          {/* Navigation Items + Auth */}
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* Nav Links - Neutral colors */}
             {navItems.map((item) => {
               const isActive = location.pathname === item.path
               return (
@@ -96,14 +136,18 @@ export function Layout({ children }: LayoutProps) {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    'flex items-center gap-1.5 px-3 sm:px-4 py-2',
-                    'text-xs sm:text-sm font-medium rounded-md',
-                    'transition-all',
+                    'flex items-center gap-2 px-3 sm:px-4 py-2',
+                    'text-sm font-medium rounded-md',
+                    'transition-colors transition-opacity backdrop-blur-sm',
                     isActive
-                      ? 'bg-primary/10 backdrop-blur-md'
-                      : 'opacity-70 hover:opacity-100 hover:bg-primary/5'
+                      ? 'bg-[var(--glass-bg-hover)]'
+                      : 'opacity-70 hover:opacity-100 hover:bg-[var(--glass-bg-secondary)]'
                   )}
-                  style={{ color: 'var(--page-text-primary)' }}
+                  style={{ 
+                    color: 'var(--page-text-primary)',
+                    transform: 'none',
+                    translate: 'none',
+                  }}
                 >
                   {item.icon}
                   <span className="hidden sm:inline">{item.label}</span>
@@ -117,6 +161,7 @@ export function Layout({ children }: LayoutProps) {
               size="sm"
               onClick={toggleTheme}
               className="ml-2"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {theme === 'dark' ? (
                 <Sun className="h-4 w-4" />
@@ -125,46 +170,10 @@ export function Layout({ children }: LayoutProps) {
               )}
             </Button>
 
-            {/* Gmail Auth Button */}
-            {isGmailConnected ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={gmailLogout}
-                className="gap-1.5"
-                title={userInfo?.email ?? 'Gmail Connected'}
-              >
-                <Mail className="h-4 w-4 text-green-500" />
-                <span className="hidden sm:inline text-xs">
-                  {userInfo?.email?.split('@')[0] ?? 'Gmail'}
-                </span>
-                <LogOut className="h-3 w-3 opacity-50" />
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={gmailLogin}
-                className="gap-1.5"
-              >
-                <Mail className="h-4 w-4" />
-                <span className="hidden sm:inline">Gmail</span>
-              </Button>
-            )}
-
-            {/* Wallet Status / Connect */}
-            {isWalletConnected ? (
-              <WalletStatus />
-            ) : (
-              <ConnectWalletModal
-                trigger={
-                  <Button variant="outline" size="sm" className="gap-1.5">
-                    <Wallet className="h-4 w-4" />
-                    <span className="hidden sm:inline">Wallet</span>
-                  </Button>
-                }
-              />
-            )}
+            {/* Unified Auth Indicator */}
+            <UnifiedAuthIndicator 
+              onWalletClick={() => setIsWalletModalOpen(true)}
+            />
           </div>
         </nav>
       </header>
@@ -176,7 +185,7 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Footer */}
       <footer className="mt-auto border-t border-transparent py-4 sm:py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
+        <div className={cn("text-center", containerClass)}>
           <p
             className="text-xs sm:text-sm opacity-70"
             style={{ color: 'var(--page-text-secondary)' }}
@@ -185,7 +194,38 @@ export function Layout({ children }: LayoutProps) {
           </p>
         </div>
       </footer>
+
+      {/* Wallet Operations Modal */}
+      <WalletOperationsModal
+        open={isWalletModalOpen}
+        onOpenChange={setIsWalletModalOpen}
+      />
+
+      {/* Floating Test Button - Development Only */}
+      {import.meta.env.DEV && (
+        <Link
+          to="/marks/test"
+          className={cn(
+            'fixed bottom-6 right-6 z-50',
+            'flex items-center gap-2 px-4 py-3',
+            'rounded-full shadow-lg border',
+            'backdrop-blur-[32px]',
+            'transition-all duration-200',
+            'hover:scale-105 active:scale-95'
+          )}
+          style={{
+            background: 'var(--glass-bg-primary)',
+            borderColor: location.pathname === '/marks/test' 
+              ? 'var(--glass-border-hover)' 
+              : 'var(--glass-border)',
+            color: 'var(--page-text-primary)',
+          }}
+          aria-label="Test Page"
+        >
+          <FlaskConical className="h-5 w-5" />
+          <span className="text-sm font-medium hidden sm:inline">Test</span>
+        </Link>
+      )}
     </div>
   )
 }
-

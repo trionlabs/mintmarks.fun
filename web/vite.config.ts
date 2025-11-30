@@ -5,6 +5,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import wasm from 'vite-plugin-wasm'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import path from 'path'
+import svgr from 'vite-plugin-svgr';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -16,6 +17,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       wasm(),
       topLevelAwait(),
+      svgr(),
       nodePolyfills({
         include: [
           'buffer',
@@ -73,7 +75,9 @@ export default defineConfig(({ mode }) => {
     assetsInclude: ['**/*.wasm', '**/*.wasm.gz'],
     server: {
       headers: {
-        'Cross-Origin-Embedder-Policy': 'require-corp',
+        // Use 'credentialless' instead of 'require-corp' to allow Coinbase Wallet SDK
+        // while still enabling SharedArrayBuffer for WASM (Noir/Aztec ZK proofs)
+        'Cross-Origin-Embedder-Policy': 'credentialless',
         'Cross-Origin-Opener-Policy': 'same-origin',
       },
       // Allow serving files from node_modules (including pnpm workspace root)

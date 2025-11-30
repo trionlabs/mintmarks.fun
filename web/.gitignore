@@ -127,8 +127,8 @@ temp/
 **/.anthropic/
 
 # Documentation (markdown files in all subdirectories)
-*.md
-**/*.md
+ *.md
+ **/*.md
 .env*
 **.env.local
 .cursor/

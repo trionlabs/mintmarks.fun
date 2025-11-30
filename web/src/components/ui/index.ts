@@ -31,3 +31,8 @@ export {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from './dropdown-menu'
+
+// Hero Glassmorphic Components
+export { DashedGrid } from './dashed-grid'
+export { MouseSpotlight } from './mouse-spotlight'
+export { HeroSection } from './hero-section'

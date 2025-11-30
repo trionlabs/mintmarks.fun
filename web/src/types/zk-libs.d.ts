@@ -105,3 +105,6 @@ declare module 'qrcode.react' {
   export const QRCodeCanvas: FC<QRCodeSVGProps>
 }
 
+
+
+

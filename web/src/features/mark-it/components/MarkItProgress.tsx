@@ -1,108 +1,142 @@
 /**
  * Mark It Progress Indicator
  * 
- * Shows the current step in the Mark It flow with visual progress.
+ * Vertical stepper with clickable steps for navigation.
+ * Shows status: connected, verified, etc.
  */
 
-import { Wallet, FileCheck, Shield, Sparkles, CheckCircle } from 'lucide-react'
+import React from 'react'
+import { Wallet, Fingerprint, Sparkles, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { MarkItStep } from '../types'
 
 interface MarkItProgressProps {
   currentStep: MarkItStep
-  progress: number
+  walletAddress?: string | null
+  isWalletConnected?: boolean
+  isPassportVerified?: boolean
+  onStepClick?: (step: MarkItStep) => void
 }
 
-const STEPS: { id: MarkItStep; label: string; icon: React.ElementType }[] = [
-  { id: 'wallet', label: 'Wallet', icon: Wallet },
-  { id: 'email-proof', label: 'Proof', icon: FileCheck },
-  { id: 'passport', label: 'Identity', icon: Shield },
-  { id: 'mint', label: 'Mint', icon: Sparkles },
+const STEPS: { 
+  id: MarkItStep
+  number: number
+  label: string
+  icon: React.ElementType
+}[] = [
+  { id: 'wallet', number: 1, label: 'Connect', icon: Wallet },
+  { id: 'passport', number: 2, label: 'ZKPassport', icon: Fingerprint },
+  { id: 'mint', number: 3, label: 'Mint', icon: Sparkles },
 ]
 
-export function MarkItProgress({ currentStep, progress }: MarkItProgressProps) {
+export function MarkItProgress({ 
+  currentStep, 
+  walletAddress,
+  isWalletConnected = false,
+  isPassportVerified = false,
+  onStepClick,
+}: MarkItProgressProps) {
   const currentIndex = STEPS.findIndex((s) => s.id === currentStep)
-  const isComplete = currentStep === 'success'
+  
+  const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
+
+  // Determine which steps are accessible (sequential logic)
+  const canAccessStep = (stepId: MarkItStep): boolean => {
+    if (stepId === 'wallet') {
+      return true // Always accessible
+    }
+    if (stepId === 'passport') {
+      return isWalletConnected // Only if wallet is connected
+    }
+    if (stepId === 'mint') {
+      return isPassportVerified // Only if passport is verified
+    }
+    return false
+  }
 
   return (
-    <div className="w-full">
-      {/* Step indicators */}
-      <div className="flex items-center justify-between mb-4">
-        {STEPS.map((step, index) => {
-          const isActive = step.id === currentStep
-          const isPast = index < currentIndex || isComplete
-          const Icon = isPast && !isActive ? CheckCircle : step.icon
+    <div className="flex items-center w-full overflow-x-auto no-scrollbar">
+      {STEPS.map((step, index) => {
+        const isActive = step.id === currentStep
+        const isPast = index < currentIndex
+        const Icon = step.icon
+        
+        const isCompleted = (step.id === 'wallet' && isWalletConnected) || 
+                           (step.id === 'passport' && isPassportVerified)
+        
+        // Step is clickable only if accessible AND (it's the current step OR it's completed)
+        const isAccessible = canAccessStep(step.id)
+        const isClickable = onStepClick && isAccessible && (isActive || isCompleted || isPast)
 
-          return (
-            <div key={step.id} className="flex flex-col items-center flex-1">
-              {/* Icon container */}
-              <div
-                className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300',
-                  isPast && 'bg-green-500/20',
-                  isActive && 'ring-2 ring-offset-2',
-                )}
-                style={{
-                  background: isPast
+        // Special handling for wallet step - show address if connected
+        const showWalletAddress = step.id === 'wallet' && isWalletConnected && walletAddress
+        const showPassportStatus = step.id === 'passport' && isPassportVerified
+
+        return (
+          <React.Fragment key={step.id}>
+            {/* Step button - minimal design */}
+            <button
+              onClick={() => isClickable && onStepClick?.(step.id)}
+              disabled={!isClickable}
+              className={cn(
+                'flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
+                isClickable && 'cursor-pointer hover:opacity-90 active:opacity-80',
+                !isClickable && 'cursor-default opacity-60',
+                isActive && 'shadow-sm',
+              )}
+              style={{
+                background: isActive 
+                  ? 'var(--foreground)' 
+                  : isCompleted
                     ? 'var(--status-confirmed-bg)'
-                    : isActive
-                      ? 'var(--Controls-Selected)'
-                      : 'var(--Controls-Idle)',
-                  color: isPast
+                    : 'var(--background)',
+                color: isActive 
+                  ? 'var(--background)' 
+                  : isCompleted
                     ? 'var(--status-confirmed)'
-                    : isActive
-                      ? 'white'
-                      : 'var(--page-text-muted)',
-                  // Ring color handled via className
-                }}
-              >
-                <Icon className="h-5 w-5" />
-              </div>
-
-              {/* Label */}
-              <span
-                className={cn(
-                  'mt-2 text-xs font-medium transition-colors',
-                  isActive && 'font-semibold'
+                    : 'var(--page-text-secondary)',
+                border: isActive 
+                  ? 'none' 
+                  : '1px solid var(--border)',
+              }}
+            >
+              {/* Icon */}
+              <div className="flex items-center justify-center flex-shrink-0">
+                {isCompleted && !isActive ? (
+                  <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.5} />
+                ) : (
+                  <Icon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 )}
-                style={{
-                  color: isActive
-                    ? 'var(--page-text-primary)'
-                    : 'var(--page-text-muted)',
+              </div>
+              
+              {/* Content - minimal: show address for wallet, label for others */}
+              {showWalletAddress ? (
+                <span className="font-mono text-[10px] sm:text-xs max-w-[80px] sm:max-w-none truncate">
+                  {formatAddress(walletAddress!)}
+                </span>
+              ) : showPassportStatus ? (
+                <span className="text-[10px] sm:text-xs opacity-70">verified</span>
+              ) : (
+                <span className="text-[10px] sm:text-xs">
+                  {step.number}. {step.label}
+                </span>
+              )}
+            </button>
+            
+            {/* Horizontal connector line - between steps */}
+            {index < STEPS.length - 1 && (
+              <div 
+                className="h-[1px] w-2 sm:w-3 mx-1.5 sm:mx-2 transition-colors duration-300 flex-shrink-0"
+                style={{ 
+                  background: isCompleted || (isPast && index < currentIndex - 1)
+                    ? 'var(--status-confirmed)'
+                    : 'var(--border)',
                 }}
-              >
-                {step.label}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Progress bar */}
-      <div
-        className="w-full h-2 rounded-full overflow-hidden"
-        style={{ background: 'var(--Controls-Idle)' }}
-      >
-        <div
-          className="h-full rounded-full transition-all duration-500 ease-out"
-          style={{
-            width: `${progress}%`,
-            background: isComplete
-              ? 'var(--status-confirmed)'
-              : 'var(--Controls-Selected)',
-          }}
-        />
-      </div>
-
-      {/* Progress text */}
-      <div className="flex justify-between mt-2">
-        <span className="text-xs" style={{ color: 'var(--page-text-muted)' }}>
-          {isComplete ? 'Complete!' : `Step ${currentIndex + 1} of 4`}
-        </span>
-        <span className="text-xs font-mono" style={{ color: 'var(--page-text-muted)' }}>
-          {progress}%
-        </span>
-      </div>
+              />
+            )}
+          </React.Fragment>
+        )
+      })}
     </div>
   )
 }
