@@ -28,44 +28,56 @@ export function Home() {
   const isFullyConnected = isGmailConnected && isWalletConnected
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-12">
+    <div className="max-w-5xl mx-auto px-4 pt-8 sm:px-6 sm:pt-12 md:pt-16 lg:pt-20">
       {/* Hero */}
-      <div className="text-center space-y-6">
-        <div
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
-          style={{
-            background: 'var(--page-badge-bg)',
-            border: '1px solid var(--page-border-color)',
-            backdropFilter: 'blur(16px)',
-          }}
-        >
-          <Sparkles className="h-4 w-4 text-[var(--Controls-Selected)]" />
-          <span
-            className="text-sm font-medium"
+      <header className="mb-16 sm:mb-20 md:mb-24 lg:mb-28 text-center">
+        <div className="max-w-4xl mx-auto">
+          {/* Badge */}
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-8 sm:mb-10 md:mb-12 border backdrop-blur-md"
+            style={{
+              backgroundColor: 'var(--page-badge-bg)',
+              borderColor: 'var(--page-badge-border)',
+            }}
+          >
+            <Sparkles
+              className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+              style={{ color: 'var(--page-text-primary)' }}
+            />
+            <span
+              className="text-xs sm:text-sm font-semibold tracking-wide uppercase"
+              style={{ color: 'var(--page-text-primary)', letterSpacing: '0.05em' }}
+            >
+              Own Your Commitments
+            </span>
+          </div>
+
+          {/* Main Title */}
+          <h1
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 sm:mb-8 md:mb-10 leading-[1.1] tracking-tight"
             style={{ color: 'var(--page-text-primary)' }}
           >
-            Own Your Commitments
-          </span>
-        </div>
+            Marks of Your Life.
+            <span className="block mt-3 sm:mt-4" style={{ color: 'var(--Controls-Selected)' }}>
+              Unlocked.
+            </span>
+          </h1>
 
-        <h1
-          className="text-4xl sm:text-5xl md:text-6xl font-bold"
-          style={{ color: 'var(--page-text-primary)' }}
-        >
-          Marks of Your Life.{' '}
-          <span style={{ color: 'var(--Controls-Selected)' }}>Unlocked.</span>
-        </h1>
+          {/* Description */}
+          <p
+            className="text-base sm:text-lg md:text-xl font-medium leading-relaxed max-w-2xl mx-auto mb-8 sm:mb-10 md:mb-12"
+            style={{ color: 'var(--page-text-secondary)' }}
+          >
+            Transform your email event confirmations into verified NFT
+            collectibles using{' '}
+            <span className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+              zero-knowledge proofs
+            </span>
+            .
+          </p>
 
-        <p
-          className="text-lg max-w-2xl mx-auto"
-          style={{ color: 'var(--page-text-secondary)' }}
-        >
-          Transform your email event confirmations into verified NFT
-          collectibles using zero-knowledge proofs.
-        </p>
-
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           {isFullyConnected ? (
             <Button
               size="lg"
@@ -95,16 +107,27 @@ export function Home() {
             </>
           )}
 
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => navigate('/create')}
-          >
-            Learn More
-          </Button>
-        </div>
-      </div>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => navigate('/create')}
+            >
+              Learn More
+            </Button>
+          </div>
 
+          {/* CTA Text */}
+          <p
+            className="text-lg sm:text-xl md:text-2xl font-bold leading-tight tracking-tight mt-10 sm:mt-12"
+            style={{ color: 'var(--page-text-primary)' }}
+          >
+            Transform. Build. Connect.
+          </p>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="space-y-16 sm:space-y-20">
       {/* Connection Status */}
       <Card>
         <CardHeader>
@@ -292,6 +315,7 @@ export function Home() {
             </p>
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   )

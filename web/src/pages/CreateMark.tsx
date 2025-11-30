@@ -317,41 +317,78 @@ export function CreateMark() {
 
   // Not connected state
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+    <div className="max-w-5xl mx-auto px-4 pt-8 sm:px-6 sm:pt-12 md:pt-16 lg:pt-20">
       {/* Hero Section */}
-      <div className="text-left mb-16 sm:mb-20">
-        <div
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-6 backdrop-blur-md"
-          style={{
-            background: 'var(--page-badge-bg)',
-            border: '1px solid var(--page-border-color)',
-            color: 'var(--page-text-secondary)',
-          }}
-        >
-          <Sparkles className="h-3 w-3" style={{ color: 'var(--Controls-Selected)' }} />
-          OWN YOUR COMMITMENTS
+      <header className="mb-16 sm:mb-20 md:mb-24 lg:mb-28 text-left">
+        <div className="max-w-3xl">
+          {/* Badge */}
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-8 sm:mb-10 md:mb-12 border backdrop-blur-md"
+            style={{
+              backgroundColor: 'var(--page-badge-bg)',
+              borderColor: 'var(--page-badge-border)',
+            }}
+          >
+            <Sparkles
+              className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+              style={{ color: 'var(--page-text-primary)' }}
+            />
+            <span
+              className="text-xs sm:text-sm font-semibold tracking-wide uppercase"
+              style={{ color: 'var(--page-text-primary)', letterSpacing: '0.05em' }}
+            >
+              Own Your Commitments
+            </span>
+          </div>
+
+          {/* Main Title */}
+          <h1
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 sm:mb-8 md:mb-10 leading-[1.1] tracking-tight"
+            style={{ color: 'var(--page-text-primary)' }}
+          >
+            Marks of Your Life.
+            <span className="block mt-3 sm:mt-4" style={{ color: 'var(--Controls-Selected)' }}>
+              Unlocked.
+            </span>
+          </h1>
+
+          {/* Description */}
+          <div className="space-y-6 sm:space-y-8">
+            <p
+              className="text-base sm:text-lg md:text-xl font-medium leading-relaxed max-w-2xl"
+              style={{ color: 'var(--page-text-secondary)' }}
+            >
+              Every email in your inbox tells a story. That event you attended. That newsletter you subscribed to. That community you joined.
+            </p>
+            <p
+              className="text-base sm:text-lg md:text-xl font-medium leading-relaxed max-w-2xl"
+              style={{ color: 'var(--page-text-secondary)' }}
+            >
+              Transform these digital commitments into permanent, on-chain Marks that become part of your identity.{' '}
+              <span className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+                Get recognized
+              </span>
+              ,{' '}
+              <span className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+                discover communities
+              </span>
+              , and{' '}
+              <span className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+                unlock new opportunities
+              </span>
+              .
+            </p>
+
+            {/* CTA Text */}
+            <p
+              className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight tracking-tight pt-2"
+              style={{ color: 'var(--page-text-primary)' }}
+            >
+              Transform. Build. Connect.
+            </p>
+          </div>
         </div>
-
-        <h1
-          className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6"
-          style={{ color: 'var(--page-text-primary)' }}
-        >
-          Marks of Your Life. Unlocked.
-        </h1>
-
-        <div className="max-w-2xl space-y-4 mb-8">
-          <p className="text-base sm:text-lg" style={{ color: 'var(--page-text-secondary)' }}>
-            Every email in your inbox tells a story. That event you attended. That newsletter you subscribed to. That community you joined.
-          </p>
-          <p className="text-base sm:text-lg" style={{ color: 'var(--page-text-secondary)' }}>
-            Transform these digital commitments into permanent, on-chain Marks that become part of your identity. <strong style={{ color: 'var(--page-text-primary)' }}>Get recognized, discover communities,</strong> and <strong style={{ color: 'var(--page-text-primary)' }}>unlock new opportunities.</strong>
-          </p>
-        </div>
-
-        <p className="text-xl sm:text-2xl font-bold" style={{ color: 'var(--page-text-primary)' }}>
-          Transform. Build. Connect.
-        </p>
-      </div>
+      </header>
 
       {!isGmailConnected ? (
         <Card>

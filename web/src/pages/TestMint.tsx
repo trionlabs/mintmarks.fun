@@ -313,23 +313,48 @@ export function TestMint() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12 space-y-6">
+    <div className="max-w-3xl mx-auto px-4 pt-8 sm:px-6 sm:pt-12 md:pt-16">
       {/* Header */}
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 mb-2">
-          <AlertTriangle className="h-3 w-3" />
-          Development Only
+      <header className="mb-12 sm:mb-16 md:mb-20 text-center">
+        {/* Badge */}
+        <div
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 sm:mb-8 border backdrop-blur-md"
+          style={{
+            backgroundColor: 'rgba(234, 179, 8, 0.1)',
+            borderColor: 'rgba(234, 179, 8, 0.3)',
+          }}
+        >
+          <AlertTriangle
+            className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-600 dark:text-yellow-400"
+          />
+          <span
+            className="text-xs sm:text-sm font-semibold tracking-wide uppercase text-yellow-600 dark:text-yellow-400"
+            style={{ letterSpacing: '0.05em' }}
+          >
+            Development Only
+          </span>
         </div>
+
+        {/* Main Title */}
         <h1
-          className="text-2xl sm:text-3xl font-bold"
+          className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 leading-[1.1] tracking-tight"
           style={{ color: 'var(--page-text-primary)' }}
         >
-          Test NFT Minting
+          Test NFT{' '}
+          <span style={{ color: 'var(--Controls-Selected)' }}>Minting</span>
         </h1>
-        <p style={{ color: 'var(--page-text-secondary)' }}>
-          Verify your wallet is working on Base Sepolia
+
+        {/* Description */}
+        <p
+          className="text-base sm:text-lg font-medium leading-relaxed max-w-xl mx-auto"
+          style={{ color: 'var(--page-text-secondary)' }}
+        >
+          Verify your wallet is working correctly on Base Sepolia testnet
         </p>
-      </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="space-y-8">
 
       {/* Contract Warning */}
       {!contractConfigured && (
@@ -805,6 +830,7 @@ export function TestMint() {
             </a>
           </p>
         )}
+      </div>
       </div>
     </div>
   )

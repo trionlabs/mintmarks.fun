@@ -526,10 +526,10 @@ export function MyMarks() {
   const showConnectState = !isConnected && !isDemo
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 pt-8 sm:px-6 sm:pt-12 md:pt-16 lg:pt-20">
       {/* Demo Badge */}
       {isDemo && (
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
             <Sparkles className="h-3 w-3" />
             Demo Mode
@@ -537,11 +537,11 @@ export function MyMarks() {
         </div>
       )}
 
-      {/* Header - Like in the HTML */}
-      <header className="mb-8 sm:mb-10 md:mb-12">
+      {/* Header */}
+      <header className="mb-16 sm:mb-20 md:mb-24">
         {/* Badge */}
         <div
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border mb-2 sm:mb-3"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border mb-8 sm:mb-10 md:mb-12 backdrop-blur-md"
           style={{
             backgroundColor: 'var(--page-badge-bg)',
             borderColor: 'var(--page-badge-border)',
@@ -549,7 +549,7 @@ export function MyMarks() {
         >
           <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: 'var(--page-text-primary)' }} aria-hidden="true" />
           <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase" style={{ color: 'var(--page-text-primary)', letterSpacing: '0.05em' }}>
-            Your MARKS
+            Your Collection
           </span>
         </div>
 
@@ -558,13 +558,16 @@ export function MyMarks() {
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight mb-6 sm:mb-8 md:mb-10"
           style={{ color: 'var(--page-text-primary)' }}
         >
-           Marks of Your Life.
+          Marks of Your Life.
+          <span className="block mt-3 sm:mt-4" style={{ color: 'var(--Controls-Selected)' }}>
+            Collected.
+          </span>
         </h1>
 
         {/* Content with Stats */}
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-12 xl:gap-16 items-start lg:items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 xl:gap-20 items-start lg:items-start">
           {/* Left Column - Text */}
-          <div className="flex-1 space-y-4 sm:space-y-5 md:space-y-6">
+          <div className="flex-1 space-y-5 sm:space-y-6 md:space-y-8">
             <p className="text-lg sm:text-xl md:text-2xl font-bold leading-tight" style={{ color: 'var(--page-text-primary)' }}>
               Be Seen. Unlock Doors.
             </p>
@@ -582,7 +585,7 @@ export function MyMarks() {
           </div>
 
           {/* Stats Cards - Next to text */}
-          <div className="flex-shrink-0 w-full lg:w-auto pt-3 lg:pt-0">
+          <div className="flex-shrink-0 w-full lg:w-auto pt-4 lg:pt-0">
             <StatsCards 
               stats={{
                 total: stats.userNfts,
@@ -595,7 +598,7 @@ export function MyMarks() {
         </div>
 
         {/* Actions - Minimalist, inline with header */}
-        <div className="flex flex-wrap items-center gap-2 mt-6">
+        <div className="flex flex-wrap items-center gap-3 mt-10 sm:mt-12">
           <ShareButton count={stats.userNfts} />
           <NetworkDropdown selected={networks} onChange={setNetworks} />
           <button
