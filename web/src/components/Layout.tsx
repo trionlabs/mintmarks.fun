@@ -33,11 +33,8 @@ interface NavItem {
 // ============================================
 
 const navItems: NavItem[] = [
-  { path: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
-  { path: '/create', label: 'Create', icon: <Plus className="h-4 w-4" /> },
-  { path: '/marks', label: 'My Marks', icon: <Bookmark className="h-4 w-4" /> },
-  // Development only: Test mint page
-  ...(import.meta.env.DEV ? [{ path: '/marks/test', label: 'Test', icon: <FlaskConical className="h-4 w-4" /> }] : []),
+  { path: '/create', label: 'Create', icon: <Plus className="h-5 w-5" /> },
+  { path: '/marks', label: 'My Marks', icon: <Bookmark className="h-5 w-5" /> },
 ]
 
 // ============================================
@@ -92,8 +89,8 @@ export function Layout({ children }: LayoutProps) {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <Sparkles
-              className="h-5 w-5 sm:h-6 sm:w-6 transition-colors"
-              style={{ color: 'var(--page-text-primary)' }}
+              className="h-6 w-6 sm:h-7 sm:w-7 transition-colors"
+              style={{ color: 'var(--primary)' }}
             />
             <span
               className="font-black text-xl sm:text-2xl"
@@ -177,6 +174,30 @@ export function Layout({ children }: LayoutProps) {
         open={isWalletModalOpen}
         onOpenChange={setIsWalletModalOpen}
       />
+
+      {/* Floating Test Button - Development Only */}
+      {import.meta.env.DEV && (
+        <Link
+          to="/marks/test"
+          className={cn(
+            'fixed bottom-6 right-6 z-50',
+            'flex items-center gap-2 px-4 py-3',
+            'rounded-full shadow-lg',
+            'bg-primary/90 hover:bg-primary',
+            'backdrop-blur-md',
+            'transition-all duration-200',
+            'hover:scale-105 active:scale-95',
+            location.pathname === '/marks/test' && 'ring-2 ring-primary ring-offset-2'
+          )}
+          style={{
+            color: 'var(--primary-foreground)',
+          }}
+          aria-label="Test Page"
+        >
+          <FlaskConical className="h-5 w-5" />
+          <span className="text-sm font-medium hidden sm:inline">Test</span>
+        </Link>
+      )}
     </div>
   )
 }
