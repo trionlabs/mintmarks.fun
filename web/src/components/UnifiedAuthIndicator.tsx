@@ -43,7 +43,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuthStatus } from '@/hooks/useAuthStatus'
 import { useToast } from '@/contexts/ToastContext'
+import { useWallet } from '@/wallet'
 import { ACTIVE_NETWORK, NETWORKS, getAddressUrl, type NetworkKey } from '@/config/contracts'
+import { isActiveNetwork } from '@/config/chains'
 import { cn } from '@/lib/utils'
 
 // ============================================
@@ -64,8 +66,7 @@ type AuthState =
   | 'WALLET_CONNECTION_ERROR'
   | 'BALANCE_FETCH_ERROR'
 
-// Active networks for display
-const ACTIVE_NETWORK_IDS = [84532, 11155111] // Base Sepolia, Ethereum Sepolia
+// Note: isActiveNetwork() helper imported from @/config/chains
 
 // Debounce delay
 const DEBOUNCE_MS = 300
@@ -180,6 +181,22 @@ export function UnifiedAuthIndicator({
   onWalletClick,
 }: UnifiedAuthIndicatorProps) {
   const { showToast } = useToast()
+  
+  // Get wallet capabilities first (needed for useAuthStatus override)
+  const { switchChain, canSwitchChain, isMultichain } = useWallet()
+  
+  // Selected network for CDP wallets (persisted in localStorage)
+  // Note: No SSR check needed - this is a Vite SPA (client-only)
+  const [selectedCdpNetwork, setSelectedCdpNetwork] = useState<number>(() => {
+    const saved = localStorage.getItem('mintmarks_selected_network')
+    if (saved) {
+      const parsed = parseInt(saved, 10)
+      if (isActiveNetwork(parsed)) return parsed
+    }
+    return ACTIVE_NETWORK.chainId // Default to Base Sepolia
+  })
+  
+  // Get auth status with optional chainId override for CDP wallets
   const {
     isGmailConnected,
     userEmail,
@@ -200,13 +217,17 @@ export function UnifiedAuthIndicator({
     retryGmailAuth,
     retryWalletConnection,
     retryBalanceFetch,
-  } = useAuthStatus()
+  } = useAuthStatus({ 
+    overrideChainId: isMultichain ? selectedCdpNetwork : undefined 
+  })
   
   // UI State
   const [copied, setCopied] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [isTouched, setIsTouched] = useState(false)
+  const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false)
+  const [switchingToChainId, setSwitchingToChainId] = useState<number | null>(null)
   
   // Touch handling refs
   const touchStartTimeRef = useRef<number>(0)
@@ -214,7 +235,8 @@ export function UnifiedAuthIndicator({
   const touchDisplayTimerRef = useRef<NodeJS.Timeout | null>(null)
   
   // Derived values
-  const chainId = ACTIVE_NETWORK.chainId
+  // For CDP wallets, use the user-selected network; for external wallets, use the actual connected chain
+  const chainId = isMultichain ? selectedCdpNetwork : (ACTIVE_NETWORK.chainId)
   const emailName = userEmail?.split('@')[0]?.slice(0, 10) || ''
   
   // Show address when hovered (desktop) or touched (mobile), but not when dropdown is open
@@ -287,6 +309,53 @@ export function UnifiedAuthIndicator({
     retryWalletConnection()
     onWalletClick?.()
   }, DEBOUNCE_MS)
+  
+  /**
+   * Handle network switch/selection
+   * - External wallets: Actually switch the connected chain
+   * - CDP wallets: Update selected network (for balance display & default)
+   */
+  const handleNetworkSwitch = useCallback(async (targetChainId: number) => {
+    // Don't switch if already on this chain
+    if (targetChainId === chainId) return
+    
+    // Check if network is active/supported
+    if (!isActiveNetwork(targetChainId)) {
+      showToast('This network is not yet available', 'warning')
+      return
+    }
+    
+    const networkName = Object.values(NETWORKS).find(n => n.chainId === targetChainId)?.name || 'Network'
+    
+    // CDP wallets: Just update the selected network (no actual switch needed)
+    if (isMultichain) {
+      setSelectedCdpNetwork(targetChainId)
+      localStorage.setItem('mintmarks_selected_network', targetChainId.toString())
+      showToast(`Viewing ${networkName}`, 'success')
+      return
+    }
+    
+    // External wallets: Actually switch the chain
+    if (!canSwitchChain || !switchChain) {
+      return
+    }
+    
+    setIsSwitchingNetwork(true)
+    setSwitchingToChainId(targetChainId)
+    
+    try {
+      await switchChain(targetChainId)
+      showToast(`Switched to ${networkName}`, 'success')
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('[UnifiedAuthIndicator] Network switch failed:', error)
+      }
+      showToast('Failed to switch network. Please try again.', 'error')
+    } finally {
+      setIsSwitchingNetwork(false)
+      setSwitchingToChainId(null)
+    }
+  }, [chainId, canSwitchChain, switchChain, isMultichain, showToast])
   
   // ============================================
   // Touch Handlers (Mobile Support)
@@ -546,12 +615,6 @@ export function UnifiedAuthIndicator({
           {/* Balance/Address Container - Fixed width to prevent layout shift */}
           <div 
             className="relative flex items-center gap-1 w-[70px] shrink-0"
-            onClick={showAddress ? (e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              handleCopyAddress()
-            } : undefined}
-            onPointerDown={showAddress ? (e) => e.stopPropagation() : undefined}
             style={showAddress ? { cursor: 'copy' } : undefined}
           >
             {balanceLoading ? (
@@ -588,7 +651,7 @@ export function UnifiedAuthIndicator({
                     "font-mono text-xs text-foreground flex items-center gap-0.5 transition-opacity duration-150 min-w-0",
                     showAddress ? "opacity-100" : "opacity-0 absolute pointer-events-none"
                   )}
-                  title={walletAddress}
+                  title={walletAddress ?? undefined}
                 >
                   <span className="truncate min-w-0">{truncateAddress(walletAddress || '')}</span>
                   {copied ? (
@@ -678,34 +741,72 @@ export function UnifiedAuthIndicator({
         
         {/* Networks */}
         <div className="p-2 border-b border-border/50">
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider px-1 mb-1.5">
-            Networks
+          <div className="flex items-center justify-between px-1 mb-1.5">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              Networks
+            </span>
+            {isMultichain && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                Multichain
+              </span>
+            )}
           </div>
           <div className="space-y-0.5">
             {(Object.entries(NETWORKS) as [NetworkKey, typeof NETWORKS[NetworkKey]][]).map(([key, network]) => {
-              const isActive = ACTIVE_NETWORK_IDS.includes(network.chainId)
+              const isActive = isActiveNetwork(network.chainId)
               const isCurrent = network.chainId === chainId
+              const isSwitchingToThis = switchingToChainId === network.chainId
+              // CDP wallets can also select networks (for balance view & default)
+              const canClick = isActive && !isCurrent && !isSwitchingNetwork
               
               return (
-                <div
+                <button
                   key={key}
+                  onClick={() => canClick && handleNetworkSwitch(network.chainId)}
+                  disabled={!isActive || isCurrent || isSwitchingNetwork}
                   className={cn(
-                    'flex items-center gap-2 px-2 py-1.5 rounded text-xs',
+                    'flex items-center gap-2 px-2 py-1.5 rounded text-xs w-full text-left',
+                    'transition-colors duration-150',
                     isCurrent && 'bg-primary/10',
-                    !isActive && 'opacity-40'
+                    !isActive && 'opacity-40',
+                    canClick && 'hover:bg-muted cursor-pointer',
+                    (!isActive || isCurrent) && 'cursor-default',
+                    isSwitchingNetwork && !isSwitchingToThis && 'opacity-50'
                   )}
-                  role="listitem"
+                  aria-label={
+                    isCurrent 
+                      ? `${network.name} - Current network` 
+                      : isActive 
+                        ? `Switch to ${network.name}` 
+                        : `${network.name} - Coming soon`
+                  }
                 >
                   <NetworkIcon chainId={network.chainId} />
                   <span className={cn(isCurrent && 'font-medium')}>{network.name}</span>
-                  {isCurrent && <Check className="w-3 h-3 text-primary ml-auto" aria-hidden="true" />}
-                  {!isActive && (
-                    <span className="text-[9px] text-muted-foreground ml-auto">Soon</span>
-                  )}
-                </div>
+                  
+                  {/* Status indicators */}
+                  <div className="ml-auto flex items-center gap-1">
+                    {isSwitchingToThis && (
+                      <RefreshCw className="w-3 h-3 text-primary animate-spin" aria-hidden="true" />
+                    )}
+                    {isCurrent && !isSwitchingToThis && (
+                      <Check className="w-3 h-3 text-primary" aria-hidden="true" />
+                    )}
+                    {!isActive && (
+                      <span className="text-[9px] text-muted-foreground">Soon</span>
+                    )}
+                  </div>
+                </button>
               )
             })}
           </div>
+          
+          {/* Multichain explanation for CDP users */}
+          {isMultichain && (
+            <p className="text-[9px] text-muted-foreground px-1 mt-2 leading-tight">
+              Your CDP wallet works on all chains. Select a network to view balance.
+            </p>
+          )}
         </div>
         
         {/* Logout Actions */}
