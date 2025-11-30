@@ -54,6 +54,10 @@
   --figma-card-blur: 16px;
   --figma-card-radius: 12px;
   --figma-ultra-dark: rgba(255, 255, 255, 0.85);
+  
+  /* Simple Card Shadows */
+  --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
 
   /* CTA Button Tokens (Light Mode) */
   --figma-cta1-bg: #1E1D1F;
@@ -121,6 +125,33 @@
   --auth-transition-fast: 150ms;
   --auth-transition-normal: 200ms;
   --auth-transition-slow: 300ms;
+
+  /* ===== HERO ANIMATION ===== */
+  /* Email Card */
+  --hero-card-bg: rgba(255, 255, 255, 0.8);
+  --hero-card-border: rgba(99, 150, 244, 0.1);
+  --hero-card-border-hover: rgba(99, 150, 244, 0.18);
+  --hero-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --hero-card-icon-bg: rgba(0, 0, 0, 0.03);
+  
+  /* Grid Background */
+  --hero-grid-color: rgba(99, 150, 244, 0.025);
+  
+  /* Container Background */
+  --hero-container-bg: linear-gradient(145deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.95));
+  
+  /* Mint Success States */
+  --mint-success: rgb(34, 197, 94);
+  --mint-success-light: rgb(52, 211, 153);
+  --mint-success-bg: rgba(34, 197, 94, 0.12);
+  --mint-success-border: rgba(34, 197, 94, 0.3);
+  --mint-success-shadow: 0 4px 24px rgba(34, 197, 94, 0.15);
+  --mint-success-glow: 0 4px 16px rgba(34, 197, 94, 0.4);
+  --mint-success-gradient: linear-gradient(135deg, rgb(34, 197, 94), rgb(16, 185, 129));
+  
+  /* Ambient Glow */
+  --hero-ambient-opacity: 0.02;
+  --hero-mouse-glow-opacity: 0.03;
 
   /* ===== EMAIL SOURCE COLORS ===== */
   /* Luma - Purple */
@@ -256,6 +287,10 @@
   --figma-card-blur: 8px;
   --figma-card-radius: 10px;
   --figma-ultra-dark: rgba(162, 162, 162, 0.92);
+  
+  /* Simple Card Shadows */
+  --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.25);
 
   /* CTA Button Tokens (Dark Mode) - GLASSMORPHIC (consistent with light mode) */
   --figma-cta1-bg: rgba(99, 150, 244, 0.15);
@@ -314,6 +349,33 @@
   --wallet-icon-disconnected-color: rgb(156, 163, 175);
   --wallet-icon-error-bg: rgba(239, 68, 68, 0.2);
   --wallet-icon-error-color: rgb(248, 113, 113);
+
+  /* ===== HERO ANIMATION (Dark Mode) ===== */
+  /* Email Card */
+  --hero-card-bg: rgba(20, 30, 50, 0.7);
+  --hero-card-border: rgba(99, 150, 244, 0.15);
+  --hero-card-border-hover: rgba(99, 150, 244, 0.25);
+  --hero-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --hero-card-icon-bg: rgba(255, 255, 255, 0.05);
+  
+  /* Grid Background */
+  --hero-grid-color: rgba(99, 150, 244, 0.03);
+  
+  /* Container Background */
+  --hero-container-bg: linear-gradient(145deg, rgba(12, 18, 30, 0.98), rgba(18, 25, 45, 0.95));
+  
+  /* Mint Success States (brighter for dark) */
+  --mint-success: rgb(74, 222, 128);
+  --mint-success-light: rgb(74, 222, 128);
+  --mint-success-bg: rgba(34, 197, 94, 0.15);
+  --mint-success-border: rgba(34, 197, 94, 0.35);
+  --mint-success-shadow: 0 4px 24px rgba(34, 197, 94, 0.2);
+  --mint-success-glow: 0 4px 16px rgba(34, 197, 94, 0.5);
+  --mint-success-gradient: linear-gradient(135deg, rgb(34, 197, 94), rgb(16, 185, 129));
+  
+  /* Ambient Glow */
+  --hero-ambient-opacity: 0.03;
+  --hero-mouse-glow-opacity: 0.05;
 
   /* ===== EMAIL SOURCE COLORS (Dark Mode) ===== */
   /* Luma - Purple (brighter for dark mode) */
