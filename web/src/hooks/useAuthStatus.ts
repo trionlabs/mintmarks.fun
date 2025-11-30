@@ -9,11 +9,11 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createPublicClient, http, formatEther } from 'viem'
-import { baseSepolia, base, sepolia, mainnet, arbitrum, optimism, polygon } from 'viem/chains'
 import { useAuth } from '@/contexts/AuthContext'
 import { useWallet } from '@/wallet'
 import { useToast } from '@/contexts/ToastContext'
 import { ACTIVE_NETWORK, NETWORKS } from '@/config/contracts'
+import { getViemChain, getNativeSymbol, isTestnet } from '@/config/chains'
 
 // ============================================
 // Types
@@ -81,41 +81,7 @@ const BALANCE_REFRESH_INTERVAL_MS = 30000 // 30 seconds
 // Helpers
 // ============================================
 
-/**
- * Get viem chain config by chainId
- */
-function getViemChain(chainId: number) {
-  switch (chainId) {
-    case 84532:
-      return baseSepolia
-    case 11155111:
-      return sepolia
-    case 8453:
-      return base
-    case 1:
-      return mainnet
-    case 42161:
-      return arbitrum
-    case 10:
-      return optimism
-    case 137:
-      return polygon
-    default:
-      return baseSepolia // Fallback
-  }
-}
-
-/**
- * Get native currency symbol for a chain
- */
-function getNativeSymbol(chainId: number): string {
-  switch (chainId) {
-    case 137:
-      return 'MATIC'
-    default:
-      return 'ETH'
-  }
-}
+// Note: getViemChain and getNativeSymbol imported from @/config/chains
 
 /**
  * Format balance for display
@@ -132,7 +98,13 @@ function formatBalance(balance: number, symbol: string): string {
 // Hook
 // ============================================
 
-export function useAuthStatus(): AuthStatus {
+interface UseAuthStatusOptions {
+  /** Override the chain ID for balance fetching (useful for CDP multichain wallets) */
+  overrideChainId?: number
+}
+
+export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
+  const { overrideChainId } = options
   const { showToast } = useToast()
   
   // Auth context
@@ -151,6 +123,7 @@ export function useAuthStatus(): AuthStatus {
     isLoading: walletLoading,
     disconnect: walletDisconnect,
     error: walletContextError,
+    chainId: walletChainId,
   } = useWallet()
   
   // Local state
@@ -170,12 +143,15 @@ export function useAuthStatus(): AuthStatus {
   const abortControllerRef = useRef<AbortController | null>(null)
   
   // Computed values
-  const chainId = ACTIVE_NETWORK.chainId
+  // Priority: override > wallet's chainId > ACTIVE_NETWORK (fallback for CDP)
+  const chainId = overrideChainId ?? walletChainId ?? ACTIVE_NETWORK.chainId
   const balanceSymbol = getNativeSymbol(chainId)
   const formattedBalance = formatBalance(balance, balanceSymbol)
   const userEmail = userInfo?.email ?? null
-  const networkName = ACTIVE_NETWORK.name
-  const isTestnet = chainId === 84532 || chainId === 11155111 // baseSepolia or sepolia
+  // Get network name from chainId (dynamic for external wallets)
+  const networkConfig = Object.values(NETWORKS).find(n => n.chainId === chainId)
+  const networkName = networkConfig?.name ?? ACTIVE_NETWORK.name
+  const isTestnetNetwork = isTestnet(chainId)
   
   // ============================================
   // Balance Fetching
@@ -284,7 +260,7 @@ export function useAuthStatus(): AuthStatus {
       }
       abortControllerRef.current?.abort()
     }
-  }, [isWalletConnected, walletAddress, fetchBalance])
+  }, [isWalletConnected, walletAddress, fetchBalance, chainId]) // Re-fetch when chain changes
   
   // ============================================
   // Wallet Context Error Handling
@@ -388,7 +364,7 @@ export function useAuthStatus(): AuthStatus {
     
     // Network
     networkName,
-    isTestnet,
+    isTestnet: isTestnetNetwork,
     
     // Error States
     gmailAuthError,
