@@ -185,8 +185,16 @@ export function MarkItFlowModal({
         style={{ borderColor: 'var(--border)' }}
         showCloseButton={canClose}
       >
-        {/* Header Section */}
-        <div className="px-6 pt-6 pb-4 border-b bg-background/80 backdrop-blur-sm z-10" style={{ borderColor: 'var(--border)' }}>
+        {/* Header Section - Glassmorphic */}
+        <div 
+          className="px-6 pt-6 pb-4 border-b z-10"
+          style={{ 
+            borderColor: 'var(--glass-border)',
+            background: 'var(--glass-bg-secondary)',
+            backdropFilter: 'blur(16px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+          }}
+        >
           <DialogHeader className="space-y-3">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
@@ -200,27 +208,27 @@ export function MarkItFlowModal({
               
               {/* Badges Container */}
               <div className="flex flex-col items-end gap-2">
-                {/* Network Badge - shows selected network */}
+                {/* Network Badge - Outline style */}
                 <div
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider border transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider border backdrop-blur-sm transition-colors"
                   style={{
-                    background: 'var(--Controls-Idle)',
-                    color: 'var(--Controls-Selected)',
-                    borderColor: 'var(--border)',
+                    background: 'transparent',
+                    color: 'var(--page-text-secondary)',
+                    borderColor: 'var(--glass-border)',
                   }}
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                   {MINT_NETWORKS[state.selectedNetwork].shortName}
                 </div>
 
-                {/* Demo Mode Badge */}
+                {/* Demo Mode Badge - Outline style */}
                 {state.isDemo && (
                   <div
-                    className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium border"
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium border backdrop-blur-sm"
                     style={{
-                      background: 'var(--status-pending-bg)',
+                      background: 'transparent',
                       color: 'var(--status-pending)',
-                      borderColor: 'var(--status-pending-border)',
+                      borderColor: 'var(--glass-border)',
                     }}
                   >
                     DEMO
@@ -231,8 +239,16 @@ export function MarkItFlowModal({
           </DialogHeader>
         </div>
 
-        {/* Progress Section - Sticky below header */}
-        <div className="bg-background/60 backdrop-blur-sm border-b z-10 transition-all" style={{ borderColor: 'var(--border)' }}>
+        {/* Progress Section - Sticky below header - Glassmorphic */}
+        <div 
+          className="border-b z-10 transition-all" 
+          style={{ 
+            borderColor: 'var(--glass-border)',
+            background: 'var(--glass-bg-tertiary)',
+            backdropFilter: 'blur(12px) saturate(150%)',
+            WebkitBackdropFilter: 'blur(12px) saturate(150%)',
+          }}
+        >
           {/* Terminal View - Collapsible */}
           <div className="border-b" style={{ borderColor: 'var(--border)' }}>
             <TerminalProofView
@@ -257,8 +273,13 @@ export function MarkItFlowModal({
           )}
         </div>
 
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto px-8 py-8 min-h-[240px] bg-background/40">
+        {/* Scrollable Content Area - Glassmorphic */}
+        <div 
+          className="flex-1 overflow-y-auto px-8 py-8 min-h-[240px]"
+          style={{
+            background: 'transparent',
+          }}
+        >
           <div className="flex flex-col h-full justify-center max-w-md mx-auto w-full">
             {/* Error Alert */}
             {state.error && (
@@ -320,9 +341,17 @@ export function MarkItFlowModal({
           </div>
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer Actions - Glassmorphic */}
         {state.error && (
-          <div className="px-6 py-4 border-t bg-background/80 backdrop-blur-sm flex justify-between items-center" style={{ borderColor: 'var(--border)' }}>
+          <div 
+            className="px-6 py-4 border-t flex justify-between items-center" 
+            style={{ 
+              borderColor: 'var(--glass-border)',
+              background: 'var(--glass-bg-secondary)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+            }}
+          >
             <span className="text-xs text-muted-foreground">Something went wrong</span>
             <div className="flex gap-3">
               <Button variant="ghost" size="sm" onClick={() => handleOpenChange(false)}>
@@ -370,10 +399,11 @@ function WalletStep({
           Wallet Connected
         </p>
         <p 
-          className="font-mono text-sm mb-6 px-3 py-1.5 rounded-md"
+          className="font-mono text-sm mb-6 px-3 py-1.5 rounded-md border backdrop-blur-sm"
           style={{ 
             color: 'var(--page-text-secondary)',
-            background: 'var(--Controls-Idle)',
+            background: 'var(--glass-bg-secondary)',
+            borderColor: 'var(--glass-border)',
           }}
         >
           {address.slice(0, 6)}...{address.slice(-4)}
@@ -410,8 +440,11 @@ function WalletStep({
     <div className="flex-1 flex flex-col items-center justify-center py-8">
       {/* Wallet icon */}
       <div
-        className="w-14 h-14 rounded-full flex items-center justify-center mb-4"
-        style={{ background: 'var(--Controls-Idle)' }}
+        className="w-14 h-14 rounded-full flex items-center justify-center mb-4 border backdrop-blur-sm"
+        style={{ 
+          background: 'var(--glass-bg-secondary)',
+          borderColor: 'var(--glass-border)',
+        }}
       >
         <Wallet className="h-7 w-7" style={{ color: 'var(--page-text-muted)' }} />
       </div>
@@ -529,7 +562,7 @@ function PassportStep({
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <Loader2
           className="h-12 w-12 animate-spin"
-          style={{ color: 'var(--Controls-Selected)' }}
+          style={{ color: 'var(--page-text-muted)' }}
         />
         <div className="text-center">
           <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
@@ -549,7 +582,7 @@ function PassportStep({
     <div className="flex-1 flex flex-col items-center justify-center gap-4">
       <Loader2
         className="h-12 w-12 animate-spin"
-        style={{ color: 'var(--Controls-Selected)' }}
+        style={{ color: 'var(--page-text-muted)' }}
       />
       <div className="text-center">
         <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
@@ -604,7 +637,7 @@ function MintStep({
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <Loader2
           className="h-12 w-12 animate-spin"
-          style={{ color: 'var(--Controls-Selected)' }}
+          style={{ color: 'var(--page-text-muted)' }}
         />
         <div className="text-center">
           <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
@@ -632,7 +665,7 @@ function MintStep({
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <Loader2
           className="h-12 w-12 animate-spin"
-          style={{ color: 'var(--Controls-Selected)' }}
+          style={{ color: 'var(--page-text-muted)' }}
         />
         <div className="text-center">
           <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
@@ -652,7 +685,7 @@ function MintStep({
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <Loader2
           className="h-12 w-12 animate-spin"
-          style={{ color: 'var(--Controls-Selected)' }}
+          style={{ color: 'var(--page-text-muted)' }}
         />
         <div className="text-center">
           <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
@@ -672,7 +705,7 @@ function MintStep({
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <Loader2
           className="h-12 w-12 animate-spin"
-          style={{ color: 'var(--Controls-Selected)' }}
+          style={{ color: 'var(--page-text-muted)' }}
         />
         <div className="text-center">
           <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
@@ -695,10 +728,13 @@ function MintStep({
         {/* Hero Section */}
         <div className="flex flex-col items-center text-center mb-8">
           <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
-            style={{ background: 'var(--Controls-Idle)' }}
+            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 border backdrop-blur-sm"
+            style={{ 
+              background: 'var(--glass-bg-secondary)',
+              borderColor: 'var(--glass-border)',
+            }}
           >
-            <CheckCircle className="h-7 w-7" style={{ color: 'var(--Controls-Selected)' }} />
+            <CheckCircle className="h-7 w-7" style={{ color: 'var(--mint-success)' }} />
           </div>
           
           <h3 
@@ -737,20 +773,21 @@ function MintStep({
                   key={net.id}
                   disabled={!isEnabled}
                   onClick={() => isEnabled && onNetworkChange(net.id)}
-                  className="w-full flex items-center justify-between p-3 rounded-xl transition-all"
+                  className="w-full flex items-center justify-between p-3 rounded-xl transition-all backdrop-blur-sm"
                   style={{
-                    background: isSelected ? 'var(--Controls-Idle)' : 'transparent',
-                    border: `1px solid ${isSelected ? 'var(--Controls-Selected)' : 'var(--border)'}`,
+                    background: isSelected ? 'var(--glass-bg-hover)' : 'var(--glass-bg-secondary)',
+                    border: `1px solid ${isSelected ? 'var(--glass-border-hover)' : 'var(--glass-border)'}`,
                     opacity: isEnabled ? 1 : 0.4,
                     cursor: isEnabled ? 'pointer' : 'not-allowed',
                   }}
                 >
                   <div className="flex items-center gap-3">
-                    {/* Network icon - theme colors */}
+                    {/* Network icon - minimal */}
                     <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold border"
                       style={{
-                        background: isSelected ? 'var(--Controls-Selected)' : 'var(--Controls-Idle)',
+                        background: isSelected ? 'var(--page-text-primary)' : 'transparent',
+                        borderColor: isSelected ? 'transparent' : 'var(--glass-border)',
                         color: isSelected ? 'var(--background)' : 'var(--page-text-secondary)',
                       }}
                     >
@@ -816,7 +853,7 @@ function MintStep({
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <Loader2
           className="h-12 w-12 animate-spin"
-          style={{ color: 'var(--Controls-Selected)' }}
+          style={{ color: 'var(--page-text-muted)' }}
         />
         <div className="text-center">
           <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
@@ -835,7 +872,7 @@ function MintStep({
     <div className="flex-1 flex flex-col items-center justify-center gap-4">
       <Loader2
         className="h-12 w-12 animate-spin"
-        style={{ color: 'var(--Controls-Selected)' }}
+        style={{ color: 'var(--page-text-muted)' }}
       />
       <div className="text-center">
         <p className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>

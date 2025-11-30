@@ -39,13 +39,11 @@ function extractSenderEmail(from: string | null): string {
 export function EmailPreviewCard({ email, className = '' }: EmailPreviewCardProps) {
   const handleMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.currentTarget.style.borderColor = 'var(--glass-border)'
-    e.currentTarget.style.transform = 'scale(1.01)'
     e.currentTarget.style.boxShadow = 'var(--glass-shadow-hover)'
   }, [])
 
   const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.currentTarget.style.borderColor = 'var(--glass-border)'
-    e.currentTarget.style.transform = 'scale(1)'
     e.currentTarget.style.boxShadow = 'var(--glass-shadow)'
   }, [])
 
@@ -82,7 +80,7 @@ export function EmailPreviewCard({ email, className = '' }: EmailPreviewCardProp
         <div className="flex items-center justify-center mb-6">
           <Bookmark 
             className="h-16 w-16 sm:h-20 sm:w-20" 
-            style={{ color: 'var(--Controls-Selected)' }}
+            style={{ color: 'var(--page-text-muted)' }}
           />
         </div>
 

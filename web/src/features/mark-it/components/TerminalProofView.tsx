@@ -129,14 +129,16 @@ export function TerminalProofView({
         </div>
       </button>
 
-      {/* Terminal content - collapsible */}
+      {/* Terminal content - collapsible - Glassmorphic */}
       <div
         className={cn(
           'overflow-hidden transition-all duration-300',
           isCollapsed ? 'max-h-0' : 'max-h-[180px]'
         )}
         style={{
-          background: 'var(--background)',
+          background: 'var(--glass-bg-tertiary)',
+          backdropFilter: 'blur(8px) saturate(150%)',
+          WebkitBackdropFilter: 'blur(8px) saturate(150%)',
         }}
       >
         <div
