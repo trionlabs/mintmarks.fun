@@ -39,67 +39,43 @@ export function Home() {
           >
             <div className="max-w-xl">
               {/* Badge */}
-              <div
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-8 sm:mb-10 md:mb-12 border backdrop-blur-md"
-                style={{
-                  backgroundColor: 'var(--page-badge-bg)',
-                  borderColor: 'var(--page-badge-border)',
-                }}
-              >
-                <Sparkles
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                  style={{ color: 'var(--page-text-primary)' }}
-                />
-                <span
-                  className="text-xs sm:text-sm font-semibold tracking-wide uppercase"
-                  style={{ color: 'var(--page-text-primary)', letterSpacing: '0.05em' }}
-                >
+              <div className="glass-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 sm:mb-7 md:mb-8">
+                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 glass-text-primary" />
+                <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase glass-text-primary" style={{ letterSpacing: '0.05em' }}>
                   Own Your Commitments
                 </span>
               </div>
 
-              {/* Main Title (Original) */}
-              <h1
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 sm:mb-8 md:mb-10 leading-[1.1] tracking-tight"
-                style={{ color: 'var(--page-text-primary)' }}
-              >
-                Marks of Your Life.
-                <span className="block mt-3 sm:mt-4" style={{ color: 'var(--Controls-Selected)' }}>
+              {/* Main Title */}
+              <h1 className="glass-text-primary text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-5 sm:mb-6 md:mb-7 leading-[1.15] tracking-tight">
+                Marks of Your Commitments.
+                <span className="block mt-2 sm:mt-3 text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-[var(--Controls-Selected)]">
                   Unlocked.
                 </span>
               </h1>
 
-              {/* Description (Original) */}
-              <div className="space-y-6 sm:space-y-8">
-                <p
-                  className="text-base sm:text-lg md:text-xl font-medium leading-relaxed"
-                  style={{ color: 'var(--page-text-secondary)' }}
-                >
+              {/* Description */}
+              <div className="space-y-4 sm:space-y-5 md:space-y-6">
+                <p className="glass-text-secondary text-sm sm:text-base md:text-lg font-medium leading-relaxed">
                   Every email in your inbox tells a story. That event you attended. 
                   That newsletter you subscribed to. That community you joined.
                 </p>
-                <p
-                  className="text-base sm:text-lg md:text-xl font-medium leading-relaxed"
-                  style={{ color: 'var(--page-text-secondary)' }}
-                >
+                <p className="glass-text-secondary text-sm sm:text-base md:text-lg font-medium leading-relaxed">
                   Transform these digital commitments into permanent, on-chain Marks using{' '}
-                  <span className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+                  <span className="font-semibold glass-text-primary">
                     zero-knowledge proofs
                   </span>
                   .
                 </p>
 
                 {/* CTA Text */}
-                <p
-                  className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight tracking-tight pt-2"
-                  style={{ color: 'var(--page-text-primary)' }}
-                >
+                <p className="glass-text-primary text-lg sm:text-xl md:text-2xl font-bold leading-tight tracking-tight pt-1 sm:pt-2">
                   Transform. Build. Connect.
                 </p>
               </div>
 
-              {/* CTA Buttons (Original) */}
-              <div className="flex flex-col sm:flex-row items-start gap-4 mt-10 sm:mt-12">
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row items-start gap-4 mt-8 sm:mt-9 md:mt-10">
                 {isFullyConnected ? (
                   <Button
                     size="lg"
@@ -140,8 +116,15 @@ export function Home() {
             </div>
           </div>
 
-          {/* Right Column: Email Scatter - Interactive */}
+          {/* Right Column: Email Scatter - Interactive (Desktop only) */}
           <div className="hidden lg:block relative">
+            <HeroEmailScatter />
+          </div>
+        </div>
+
+        {/* Mobile & Tablet: Compact Email Scatter below hero content */}
+        <div className="lg:hidden px-4 pb-8">
+          <div className="max-w-md sm:max-w-3xl mx-auto">
             <HeroEmailScatter />
           </div>
         </div>
@@ -150,16 +133,10 @@ export function Home() {
       {/* Features Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
         <div className="text-center mb-12">
-          <h2 
-            className="text-2xl sm:text-3xl font-bold mb-4"
-            style={{ color: 'var(--page-text-primary)' }}
-          >
+          <h2 className="glass-text-primary text-2xl sm:text-3xl font-bold mb-4">
             Why MintMarks?
           </h2>
-          <p 
-            className="text-base sm:text-lg max-w-2xl mx-auto"
-            style={{ color: 'var(--page-text-secondary)' }}
-          >
+          <p className="glass-text-secondary text-base sm:text-lg max-w-2xl mx-auto">
             Transform your digital commitments into verifiable on-chain credentials.
           </p>
         </div>
@@ -167,22 +144,13 @@ export function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card variant="glass">
             <CardContent className="pt-6">
-              <div
-                className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-                style={{ background: 'var(--Controls-Idle)' }}
-              >
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-[var(--Controls-Idle)]">
                 <Shield className="h-6 w-6 text-[var(--Controls-Selected)]" />
               </div>
-              <h3
-                className="font-semibold mb-2"
-                style={{ color: 'var(--page-text-primary)' }}
-              >
+              <h3 className="glass-text-primary font-semibold mb-2">
                 Privacy First
               </h3>
-              <p
-                className="text-sm"
-                style={{ color: 'var(--page-text-secondary)' }}
-              >
+              <p className="glass-text-secondary text-sm">
                 Zero-knowledge proofs verify your attendance without revealing
                 your email content.
               </p>
@@ -191,22 +159,13 @@ export function Home() {
 
           <Card variant="glass">
             <CardContent className="pt-6">
-              <div
-                className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-                style={{ background: 'var(--Controls-Idle)' }}
-              >
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-[var(--Controls-Idle)]">
                 <Zap className="h-6 w-6 text-[var(--Controls-Selected)]" />
               </div>
-              <h3
-                className="font-semibold mb-2"
-                style={{ color: 'var(--page-text-primary)' }}
-              >
+              <h3 className="glass-text-primary font-semibold mb-2">
                 Fast & Cheap
               </h3>
-              <p
-                className="text-sm"
-                style={{ color: 'var(--page-text-secondary)' }}
-              >
+              <p className="glass-text-secondary text-sm">
                 Mint on Base L2 for minimal gas fees and instant confirmations.
               </p>
             </CardContent>
@@ -214,22 +173,13 @@ export function Home() {
 
           <Card variant="glass">
             <CardContent className="pt-6">
-              <div
-                className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-                style={{ background: 'var(--Controls-Idle)' }}
-              >
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-[var(--Controls-Idle)]">
                 <Sparkles className="h-6 w-6 text-[var(--Controls-Selected)]" />
               </div>
-              <h3
-                className="font-semibold mb-2"
-                style={{ color: 'var(--page-text-primary)' }}
-              >
+              <h3 className="glass-text-primary font-semibold mb-2">
                 Unique Collectibles
               </h3>
-              <p
-                className="text-sm"
-                style={{ color: 'var(--page-text-secondary)' }}
-              >
+              <p className="glass-text-secondary text-sm">
                 Each Mark is a unique NFT representing your real-world
                 commitments.
               </p>

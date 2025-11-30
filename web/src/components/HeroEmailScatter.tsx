@@ -66,15 +66,30 @@ const EMAIL_TEMPLATES = [
   { sender: "Cursor", subject: "You're a Cursor Pro!" },
 ] as const
 
-const MAX_VISIBLE_EMAILS = 9 // 3x3 grid
+const MAX_VISIBLE_EMAILS_DESKTOP = 9 // 3x3 grid
+const MAX_VISIBLE_EMAILS_TABLET = 6 // 2x3 grid (iPad)
+const MAX_VISIBLE_EMAILS_MOBILE = 4 // 2x2 grid
 const SPARKLE_COUNT = 5
 const EMAIL_LIFETIME = 16000 // Good rotation speed
 const SPAWN_INTERVAL = 2000 // 2s between spawns
-const INITIAL_SPAWN_DELAYS = [0, 250, 500, 750, 1000, 1250, 1500, 1750, 2000] // Fill grid quickly
+// Generate random initial spawn delays for more organic feel
+const generateRandomDelays = (count: number, baseInterval: number, variance: number = 0.3) => {
+  const delays: number[] = []
+  for (let i = 0; i < count; i++) {
+    const randomVariance = (Math.random() - 0.5) * variance
+    const delay = i * baseInterval * (1 + randomVariance)
+    delays.push(Math.max(0, Math.round(delay)))
+  }
+  return delays.sort((a, b) => a - b) // Sort to ensure order
+}
 
-// Base grid positions - 3x3 matrix with good spacing
+const INITIAL_SPAWN_DELAYS_DESKTOP = generateRandomDelays(9, 250, 0.4) // Random delays for 9 slots
+const INITIAL_SPAWN_DELAYS_TABLET = generateRandomDelays(6, 200, 0.4) // Random delays for 6 slots
+const INITIAL_SPAWN_DELAYS_MOBILE = generateRandomDelays(4, 300, 0.4) // Random delays for 4 slots
+
+// Desktop grid positions - 3x3 matrix with good spacing
 // Cards are ~210px wide, container is ~600px = 35% per card
-const GRID_SLOTS_BASE = [
+const GRID_SLOTS_DESKTOP = [
   // Top row - staggered heights for natural feel
   { x: 0, y: 2 },
   { x: 33, y: 6 },
@@ -89,11 +104,83 @@ const GRID_SLOTS_BASE = [
   { x: 64, y: 70 },
 ] as const
 
+// Tablet (iPad) grid positions - 2x3 grid
+// Cards are ~200px wide (iPad için daha geniş), container is ~600px
+const GRID_SLOTS_TABLET = [
+  // Top row - daha geniş spacing
+  { x: 3, y: 8 },
+  { x: 52, y: 10 },
+  // Middle row
+  { x: 1, y: 45 },
+  { x: 50, y: 47 },
+  // Bottom row
+  { x: 3, y: 82 },
+  { x: 52, y: 84 },
+] as const
+
+// Mobile grid positions - 2x2 grid with larger cards
+// Cards are ~180px wide, container is ~380px
+// Optimized for mobile screens with bigger cards and better readability
+const GRID_SLOTS_MOBILE = [
+  // Top row - daha geniş spacing için ayarlandı
+  { x: 3, y: 8 },
+  { x: 52, y: 10 },
+  // Bottom row
+  { x: 5, y: 55 },
+  { x: 54, y: 58 },
+] as const
+
 // Add small random offset for natural look (±2%)
 const getRandomizedSlot = (baseSlot: { x: number; y: number }) => ({
   x: baseSlot.x + (Math.random() * 4 - 2),
   y: baseSlot.y + (Math.random() * 4 - 2),
 })
+
+// Screen size type
+type ScreenSize = 'mobile' | 'tablet' | 'desktop'
+
+// Get screen size based on width
+const getScreenSize = (width: number): ScreenSize => {
+  if (width < 640) return 'mobile'      // < sm breakpoint
+  if (width < 1024) return 'tablet'     // sm to lg breakpoint (iPad)
+  return 'desktop'                      // >= lg breakpoint
+}
+
+// Get grid slots based on screen size
+const getGridSlots = (screenSize: ScreenSize) => {
+  switch (screenSize) {
+    case 'mobile':
+      return GRID_SLOTS_MOBILE
+    case 'tablet':
+      return GRID_SLOTS_TABLET
+    case 'desktop':
+      return GRID_SLOTS_DESKTOP
+  }
+}
+
+// Get max emails based on screen size
+const getMaxEmails = (screenSize: ScreenSize) => {
+  switch (screenSize) {
+    case 'mobile':
+      return MAX_VISIBLE_EMAILS_MOBILE
+    case 'tablet':
+      return MAX_VISIBLE_EMAILS_TABLET
+    case 'desktop':
+      return MAX_VISIBLE_EMAILS_DESKTOP
+  }
+}
+
+// Get initial spawn delays based on screen size
+const getInitialSpawnDelays = (screenSize: ScreenSize) => {
+  switch (screenSize) {
+    case 'mobile':
+      return INITIAL_SPAWN_DELAYS_MOBILE
+    case 'tablet':
+      return INITIAL_SPAWN_DELAYS_TABLET
+    case 'desktop':
+      return INITIAL_SPAWN_DELAYS_DESKTOP
+  }
+}
 
 // Animation variants - optimized for hardware acceleration
 // Only using opacity + transform (GPU accelerated properties)
@@ -132,24 +219,33 @@ const generateMintAddress = (id: number): string => {
   return `0x${hex.slice(0, 4)}...${hex.slice(-4)}`
 }
 
-const getNextAvailableSlot = (existingEmails: ActiveEmail[]) => {
+const getNextAvailableSlot = (existingEmails: ActiveEmail[], screenSize: ScreenSize) => {
   const occupiedSlots = new Set<number>()
+  const gridSlots = getGridSlots(screenSize)
   
   existingEmails.forEach(email => {
-    GRID_SLOTS_BASE.forEach((slot, idx) => {
+    gridSlots.forEach((slot, idx) => {
       // Check if this slot area is already taken (with some tolerance for random offset)
-      if (Math.abs(slot.x - email.x) < 20 && Math.abs(slot.y - email.startY) < 20) {
+      const tolerance = screenSize === 'mobile' ? 15 : screenSize === 'tablet' ? 18 : 20
+      if (Math.abs(slot.x - email.x) < tolerance && Math.abs(slot.y - email.startY) < tolerance) {
         occupiedSlots.add(idx)
       }
     })
   })
   
-  for (let i = 0; i < GRID_SLOTS_BASE.length; i++) {
+  // Get all available slots
+  const availableSlots: number[] = []
+  for (let i = 0; i < gridSlots.length; i++) {
     if (!occupiedSlots.has(i)) {
-      return getRandomizedSlot(GRID_SLOTS_BASE[i])
+      availableSlots.push(i)
     }
   }
-  return null
+  
+  // Random selection from available slots
+  if (availableSlots.length === 0) return null
+  
+  const randomIndex = availableSlots[Math.floor(Math.random() * availableSlots.length)]
+  return getRandomizedSlot(gridSlots[randomIndex])
 }
 
 // Throttle function for mouse move
@@ -187,7 +283,7 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
       initial="enter"
       animate="visible"
       exit="exit"
-      className="w-[190px] sm:w-[210px]"
+      className="w-[180px] sm:w-[200px] md:w-[220px] lg:w-[210px]"
       style={{ 
         position: 'absolute', 
         left: `${email.x}%`, 
@@ -205,7 +301,7 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
             variants={mintBadgeVariants}
             initial="hidden"
             animate="visible"
-            className="absolute -top-11 left-1/2 -translate-x-1/2 z-20"
+            className="absolute -top-9 sm:-top-11 left-1/2 -translate-x-1/2 z-20"
           >
             {/* Sparkles - CSS animation instead of framer-motion */}
             <div className="sparkle-container">
@@ -222,19 +318,19 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
             </div>
             
             <div 
-              className="px-3 py-1.5 rounded-full flex items-center gap-1.5"
+              className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 md:px-3 md:py-1.5 lg:px-3 lg:py-1.5 rounded-full flex items-center gap-1.5 sm:gap-1.5"
               style={{
                 background: 'var(--mint-success-gradient)',
                 boxShadow: 'var(--mint-success-glow)',
               }}
             >
-              <Sparkles className="w-3 h-3 text-white" />
-              <span className="text-[10px] font-bold text-white uppercase tracking-wide">
+              <Sparkles className="w-3 h-3 sm:w-3 sm:h-3 md:w-3 md:h-3 lg:w-3 lg:h-3 text-white" />
+              <span className="text-[10px] sm:text-[10px] md:text-[10px] lg:text-[10px] font-bold text-white uppercase tracking-wide">
                 Minted
               </span>
             </div>
             <div 
-              className="text-[8px] font-mono text-center mt-1"
+              className="text-[8px] sm:text-[8px] md:text-[8px] lg:text-[8px] font-mono text-center mt-1 sm:mt-1"
               style={{ color: 'var(--page-text-secondary)' }}
             >
               {mintAddress}
@@ -246,7 +342,7 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
       {/* Card */}
       <div 
         onClick={handleClick}
-        className="relative p-3.5 rounded-xl backdrop-blur-md transition-all duration-200"
+        className="relative p-4 sm:p-4 md:p-4 lg:p-3.5 rounded-lg sm:rounded-xl backdrop-blur-md transition-all duration-200"
         style={{
           background: 'var(--hero-card-bg)',
           border: `1px solid var(${
@@ -271,9 +367,9 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
         )}
 
         {/* Content */}
-        <div className="flex items-center gap-2.5 relative z-10">
+        <div className="flex items-start gap-3 sm:gap-3 md:gap-3 lg:gap-2.5 relative z-10">
           <div 
-            className="p-1.5 rounded-lg shrink-0 transition-colors duration-200"
+            className="p-2.5 sm:p-2 md:p-2 lg:p-1.5 rounded-md sm:rounded-lg shrink-0 transition-colors duration-200 mt-0.5 sm:mt-0"
             style={{ 
               backgroundColor: email.isMinted 
                 ? 'var(--mint-success-bg)'
@@ -283,7 +379,7 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
             }}
           >
             <Mail 
-              className="h-3.5 w-3.5 transition-colors duration-200"
+              className="h-5 w-5 sm:h-4 sm:w-4 md:h-4 md:w-4 lg:h-3.5 lg:w-3.5 transition-colors duration-200"
               style={{ 
                 color: email.isMinted 
                   ? 'var(--mint-success)'
@@ -295,7 +391,7 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
           </div>
           <div className="overflow-hidden min-w-0 flex-1">
             <div 
-              className="text-[9px] font-medium uppercase tracking-wider mb-0.5 truncate transition-colors duration-200"
+              className="text-[11px] sm:text-[10px] md:text-[10px] lg:text-[9px] font-medium uppercase tracking-wider mb-2 sm:mb-1 md:mb-1 lg:mb-0.5 transition-colors duration-200 break-words"
               style={{ 
                 color: email.isMinted 
                   ? 'var(--mint-success)'
@@ -307,7 +403,7 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
               {email.sender}
             </div>
             <div 
-              className="text-[13px] font-medium truncate leading-tight"
+              className="text-[15px] sm:text-[15px] md:text-[15px] lg:text-[13px] font-medium leading-relaxed sm:leading-relaxed md:leading-relaxed lg:leading-tight break-words"
               style={{ color: 'var(--page-text-primary)' }}
             >
               {email.subject}
@@ -316,10 +412,10 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
 
           {/* Mark It hint */}
           {isHovered && !email.isMinted && (
-            <div className="shrink-0 flex items-center gap-1 pl-2 animate-fade-in">
-              <Sparkles className="w-3 h-3" style={{ color: 'var(--Controls-Selected)' }} />
+            <div className="shrink-0 flex items-center gap-1 sm:gap-1 pl-1.5 sm:pl-2 animate-fade-in">
+              <Sparkles className="w-3 h-3 sm:w-3 sm:h-3 md:w-3 md:h-3 lg:w-3 lg:h-3" style={{ color: 'var(--Controls-Selected)' }} />
               <span 
-                className="text-[9px] font-semibold uppercase tracking-wide whitespace-nowrap"
+                className="text-[9px] sm:text-[9px] md:text-[9px] lg:text-[9px] font-semibold uppercase tracking-wide whitespace-nowrap"
                 style={{ color: 'var(--Controls-Selected)' }}
               >
                 Mark It
@@ -341,10 +437,20 @@ export const HeroEmailScatter: React.FC = () => {
   const [emails, setEmails] = useState<ActiveEmail[]>([])
   const [isVisible, setIsVisible] = useState(false)
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 })
+  const [screenSize, setScreenSize] = useState<ScreenSize>('desktop')
   
   const emailIdRef = useRef(0)
-  const templateIndexRef = useRef(0)
   const intervalsRef = useRef<{ spawn?: NodeJS.Timeout; cleanup?: NodeJS.Timeout }>({})
+
+  // Detect screen size (mobile, tablet, desktop)
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setScreenSize(getScreenSize(window.innerWidth))
+    }
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
 
   // Intersection Observer - pause when not visible
   useEffect(() => {
@@ -360,17 +466,19 @@ export const HeroEmailScatter: React.FC = () => {
     return () => observer.disconnect()
   }, [])
 
-  // Spawn email function
+  // Spawn email function - random slot and template selection
   const spawnEmail = useCallback(() => {
     setEmails(prev => {
       const activeEmails = prev.filter(e => Date.now() - e.createdAt < EMAIL_LIFETIME)
-      if (activeEmails.length >= MAX_VISIBLE_EMAILS) return activeEmails
+      const maxEmails = getMaxEmails(screenSize)
+      if (activeEmails.length >= maxEmails) return activeEmails
       
-      const position = getNextAvailableSlot(activeEmails)
+      const position = getNextAvailableSlot(activeEmails, screenSize)
       if (!position) return activeEmails
 
-      const template = EMAIL_TEMPLATES[templateIndexRef.current % EMAIL_TEMPLATES.length]
-      templateIndexRef.current++
+      // Random template selection instead of sequential
+      const randomTemplateIndex = Math.floor(Math.random() * EMAIL_TEMPLATES.length)
+      const template = EMAIL_TEMPLATES[randomTemplateIndex]
       
       return [...activeEmails, {
         id: emailIdRef.current++,
@@ -382,7 +490,7 @@ export const HeroEmailScatter: React.FC = () => {
         isMinted: false,
       }]
     })
-  }, [])
+  }, [screenSize])
 
   // Handle mint
   const handleMint = useCallback((id: number) => {
@@ -398,11 +506,19 @@ export const HeroEmailScatter: React.FC = () => {
       return
     }
 
-    // Initial spawn with staggered delays
-    const timers = INITIAL_SPAWN_DELAYS.map(delay => setTimeout(spawnEmail, delay))
+    // Initial spawn with random staggered delays based on screen size
+    const initialDelays = getInitialSpawnDelays(screenSize)
+    const timers = initialDelays.map(delay => setTimeout(spawnEmail, delay))
     
-    // Continue spawning
-    intervalsRef.current.spawn = setInterval(spawnEmail, SPAWN_INTERVAL)
+    // Continue spawning with random intervals (1.5s - 2.5s) for more organic feel
+    const scheduleNextSpawn = () => {
+      const randomDelay = SPAWN_INTERVAL + (Math.random() - 0.5) * 1000 // 1500-2500ms
+      intervalsRef.current.spawn = setTimeout(() => {
+        spawnEmail()
+        scheduleNextSpawn() // Schedule next spawn recursively
+      }, randomDelay) as unknown as NodeJS.Timeout
+    }
+    scheduleNextSpawn()
     
     // Cleanup old emails
     intervalsRef.current.cleanup = setInterval(() => {
@@ -411,14 +527,14 @@ export const HeroEmailScatter: React.FC = () => {
     
     return () => {
       timers.forEach(clearTimeout)
-      if (intervalsRef.current.spawn) clearInterval(intervalsRef.current.spawn)
+      if (intervalsRef.current.spawn) clearTimeout(intervalsRef.current.spawn)
       if (intervalsRef.current.cleanup) clearInterval(intervalsRef.current.cleanup)
     }
-  }, [isVisible, spawnEmail])
+  }, [isVisible, screenSize, spawnEmail])
 
-  // Throttled mouse tracking - only when visible
+  // Throttled mouse tracking - only when visible and desktop
   useEffect(() => {
-    if (!isVisible) return
+    if (!isVisible || screenSize !== 'desktop') return
 
     const handleMouseMove = throttle((e: MouseEvent) => {
       setMousePos({
@@ -429,12 +545,22 @@ export const HeroEmailScatter: React.FC = () => {
 
     window.addEventListener("mousemove", handleMouseMove)
     return () => window.removeEventListener("mousemove", handleMouseMove)
-  }, [isVisible])
+  }, [isVisible, screenSize])
+
+  const isMobile = screenSize === 'mobile'
+  const isTablet = screenSize === 'tablet'
+  const isDesktop = screenSize === 'desktop'
 
   return (
     <div 
       ref={containerRef}
-      className="relative h-full min-h-[600px] lg:min-h-[700px] overflow-hidden"
+      className={`relative h-full ${
+        isMobile 
+          ? 'min-h-[360px] overflow-hidden' 
+          : isTablet
+            ? 'min-h-[500px] overflow-hidden'
+            : 'min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-[700px] overflow-hidden'
+      }`}
       style={{ background: 'var(--hero-container-bg)' }}
     >
       {/* Grid Background - pure CSS */}
@@ -445,21 +571,29 @@ export const HeroEmailScatter: React.FC = () => {
             linear-gradient(var(--hero-grid-color) 1px, transparent 1px),
             linear-gradient(90deg, var(--hero-grid-color) 1px, transparent 1px)
           `,
-          backgroundSize: '60px 60px',
+          backgroundSize: isMobile ? '40px 40px' : isTablet ? '50px 50px' : '60px 60px',
         }}
       />
       
-      {/* Mouse-following gradient - CSS transition instead of motion value */}
-      <div
-        className="absolute inset-0 pointer-events-none z-0 transition-all duration-300"
-        style={{
-          background: `radial-gradient(600px circle at ${mousePos.x}% ${mousePos.y}%, var(--hero-grid-color), transparent 60%)`,
-        }}
-      />
+      {/* Mouse-following gradient - CSS transition instead of motion value (desktop only) */}
+      {isDesktop && (
+        <div
+          className="absolute inset-0 pointer-events-none z-0 transition-all duration-300"
+          style={{
+            background: `radial-gradient(600px circle at ${mousePos.x}% ${mousePos.y}%, var(--hero-grid-color), transparent 60%)`,
+          }}
+        />
+      )}
       
-      {/* Ambient glow */}
+      {/* Ambient glow - responsive sizes */}
       <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none z-0"
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[80px] sm:blur-[100px] pointer-events-none z-0 ${
+          isMobile 
+            ? 'w-[200px] h-[200px]' 
+            : isTablet
+              ? 'w-[300px] h-[300px]'
+              : 'w-[250px] h-[250px] sm:w-[300px] sm:h-[300px] md:w-[400px] md:h-[400px]'
+        }`}
         style={{ 
           backgroundColor: 'var(--Controls-Selected)', 
           opacity: 'var(--hero-ambient-opacity)' 
