@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { createPublicClient, http, parseAbiItem } from 'viem'
-import { CHAIN, CONTRACTS, MINTMARKS_ABI, RPC_URL } from '../config.js'
+import { createPublicClient, createWalletClient, custom, http, parseAbiItem } from 'viem'
+import { QRCodeSVG } from 'qrcode.react'
+import { CHAIN, CONTRACTS, MINTMARKS_ABI, ZKPASSPORT_CONFIG, RPC_URL } from '../config.js'
 
 // Create client outside component to avoid recreation on every render
 const publicClient = createPublicClient({
@@ -98,6 +99,74 @@ const styles = {
     borderRadius: '4px',
     marginTop: '0.5rem',
   },
+  verifiedBadge: {
+    display: 'inline-block',
+    background: '#4ade80',
+    color: '#000',
+    fontSize: '0.65rem',
+    padding: '0.2rem 0.5rem',
+    borderRadius: '4px',
+    marginTop: '0.5rem',
+    marginLeft: '0.25rem',
+  },
+  emailOnlyBadge: {
+    display: 'inline-block',
+    background: '#fbbf24',
+    color: '#000',
+    fontSize: '0.65rem',
+    padding: '0.2rem 0.5rem',
+    borderRadius: '4px',
+    marginTop: '0.5rem',
+    marginLeft: '0.25rem',
+  },
+  upgradeButton: {
+    background: '#4ade80',
+    color: '#000',
+    border: 'none',
+    padding: '0.5rem 1rem',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '0.8rem',
+    marginTop: '0.5rem',
+    width: '100%',
+    fontWeight: 'bold',
+  },
+  upgradeModal: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0,0,0,0.8)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    background: '#16213e',
+    borderRadius: '12px',
+    padding: '2rem',
+    maxWidth: '400px',
+    width: '90%',
+    border: '1px solid #4ade80',
+  },
+  modalTitle: {
+    fontSize: '1.2rem',
+    color: '#4ade80',
+    marginBottom: '1rem',
+    textAlign: 'center',
+  },
+  modalClose: {
+    background: 'transparent',
+    border: '1px solid #666',
+    color: '#888',
+    padding: '0.5rem 1rem',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    marginTop: '1rem',
+    width: '100%',
+  },
   loading: {
     textAlign: 'center',
     padding: '3rem',
@@ -146,6 +215,13 @@ export function Gallery({ account }) {
   const [filter, setFilter] = useState('all') // 'all' | 'mine'
   const [hoveredCard, setHoveredCard] = useState(null)
 
+  // Upgrade modal state
+  const [upgradeModal, setUpgradeModal] = useState(null) // { tokenId, eventName }
+  const [passportUrl, setPassportUrl] = useState(null)
+  const [passportProof, setPassportProof] = useState(null)
+  const [upgradeStatus, setUpgradeStatus] = useState(null)
+  const [upgradeLoading, setUpgradeLoading] = useState(false)
+
   const fetchNFTs = useCallback(async () => {
     setLoading(true)
     try {
@@ -177,8 +253,6 @@ export function Gallery({ account }) {
         const data = await response.json()
 
         if (data.result?.transfers) {
-          console.log(`Found ${data.result.transfers.length} transfers via Alchemy API`)
-
           // Convert to our format - need to get event names from contract
           for (const transfer of data.result.transfers) {
             if (transfer.from === '0x0000000000000000000000000000000000000000') {
@@ -225,8 +299,6 @@ export function Gallery({ account }) {
         })
       }
 
-      console.log(`Processing ${logs.length} mint events`)
-
       // Parse events and fetch metadata sequentially to avoid rate limits
       const nftData = []
       for (const log of logs) {
@@ -236,14 +308,16 @@ export function Gallery({ account }) {
         // Skip timestamp to reduce RPC calls - use block number instead
         const timestamp = null
 
-        // Get token URI for the SVG - with delay to avoid rate limits
+        // Get user-specific token URI for correct verification badge
         let imageUri = null
+        let isVerified = false
         try {
+          // Use userTokenURI for correct per-user verification status
           const uri = await publicClient.readContract({
             address: CONTRACTS.mintmarks,
             abi: MINTMARKS_ABI,
-            functionName: 'uri',
-            args: [tokenId],
+            functionName: 'userTokenURI',
+            args: [to, tokenId],
           })
 
           if (uri) {
@@ -251,12 +325,28 @@ export function Gallery({ account }) {
             const jsonBase64 = uri.replace('data:application/json;base64,', '')
             const json = JSON.parse(atob(jsonBase64))
             imageUri = json.image
+            // Check verification from attributes
+            const verificationAttr = json.attributes?.find(a => a.trait_type === 'Verification')
+            isVerified = verificationAttr?.value === 'Passport Verified'
           }
+
           // Small delay between calls
           await new Promise((r) => setTimeout(r, 100))
         } catch {
           // Generate fallback SVG
           imageUri = generateFallbackSVG(eventName)
+        }
+
+        // Also fetch verification status directly for reliability
+        try {
+          isVerified = await publicClient.readContract({
+            address: CONTRACTS.mintmarks,
+            abi: MINTMARKS_ABI,
+            functionName: 'getVerificationStatus',
+            args: [to, tokenId],
+          })
+        } catch {
+          // Keep the value from metadata parsing
         }
 
         nftData.push({
@@ -267,6 +357,7 @@ export function Gallery({ account }) {
           blockNumber: blockNumber?.toString(),
           imageUri,
           txHash: log.transactionHash,
+          isVerified,
         })
       }
 
@@ -288,6 +379,130 @@ export function Gallery({ account }) {
   useEffect(() => {
     fetchNFTs()
   }, [fetchNFTs])
+
+  // Start upgrade process
+  const startUpgrade = useCallback(async (nft) => {
+    if (!account) return
+
+    setUpgradeModal({ tokenId: nft.tokenId, eventName: nft.eventName })
+    setPassportUrl(null)
+    setPassportProof(null)
+    setUpgradeStatus(null)
+
+    try {
+      const { ZKPassport } = await import('@zkpassport/sdk')
+      const zkPassport = new ZKPassport(ZKPASSPORT_CONFIG.domain)
+
+      const queryBuilder = await zkPassport.request({
+        name: 'Mintmarks',
+        logo: 'https://mintmarks.fun/logo.png',
+        purpose: `Upgrade "${nft.eventName}" to passport-verified`,
+        scope: ZKPASSPORT_CONFIG.scope,
+        mode: 'compressed-evm',
+        devMode: ZKPASSPORT_CONFIG.devMode,
+      })
+
+      const { url, onProofGenerated, onResult } = queryBuilder
+        .gte('age', 18)
+        .bind('user_address', account)
+        .bind('chain', 'ethereum_sepolia')
+        .done()
+
+      setPassportUrl(url)
+
+      onProofGenerated((proof) => {
+        const verifierParams = zkPassport.getSolidityVerifierParameters({
+          proof,
+          scope: ZKPASSPORT_CONFIG.scope,
+          devMode: ZKPASSPORT_CONFIG.devMode,
+        })
+        setPassportProof(verifierParams)
+      })
+
+      onResult(({ verified }) => {
+        if (!verified) {
+          setUpgradeStatus('Passport verification failed')
+          setPassportProof(null)
+        }
+      })
+    } catch (err) {
+      console.error('Failed to start passport verification:', err)
+      setUpgradeStatus(`Error: ${err.message}`)
+    }
+  }, [account])
+
+  // Execute upgrade transaction
+  const executeUpgrade = useCallback(async () => {
+    if (!account || !passportProof || !upgradeModal) return
+
+    setUpgradeLoading(true)
+    setUpgradeStatus('Preparing upgrade transaction...')
+
+    try {
+      const tokenId = BigInt(upgradeModal.tokenId)
+
+      // Simulate first
+      setUpgradeStatus('Simulating transaction...')
+      try {
+        await publicClient.simulateContract({
+          address: CONTRACTS.mintmarks,
+          abi: MINTMARKS_ABI,
+          functionName: 'upgradeToVerified',
+          args: [tokenId, passportProof],
+          account,
+        })
+      } catch (simError) {
+        console.error('Simulation failed:', simError)
+        const reason = simError.cause?.reason || simError.shortMessage || simError.message
+        setUpgradeStatus(`Simulation failed: ${reason}`)
+        return
+      }
+
+      const walletClient = createWalletClient({
+        account,
+        chain: CHAIN,
+        transport: custom(window.ethereum),
+      })
+
+      setUpgradeStatus('Sending upgrade transaction...')
+      const hash = await walletClient.writeContract({
+        address: CONTRACTS.mintmarks,
+        abi: MINTMARKS_ABI,
+        functionName: 'upgradeToVerified',
+        args: [tokenId, passportProof],
+      })
+
+      setUpgradeStatus('Waiting for confirmation...')
+      const receipt = await publicClient.waitForTransactionReceipt({ hash })
+
+      if (receipt.status === 'success') {
+        setUpgradeStatus('Upgraded successfully!')
+        // Refresh NFTs to show new verification status
+        setTimeout(() => {
+          setUpgradeModal(null)
+          setPassportUrl(null)
+          setPassportProof(null)
+          setUpgradeStatus(null)
+          fetchNFTs()
+        }, 2000)
+      } else {
+        setUpgradeStatus('Transaction failed')
+      }
+    } catch (err) {
+      console.error('Upgrade failed:', err)
+      const reason = err.cause?.reason || err.shortMessage || err.message
+      setUpgradeStatus(`Error: ${reason}`)
+    } finally {
+      setUpgradeLoading(false)
+    }
+  }, [account, passportProof, upgradeModal, fetchNFTs])
+
+  const closeUpgradeModal = useCallback(() => {
+    setUpgradeModal(null)
+    setPassportUrl(null)
+    setPassportProof(null)
+    setUpgradeStatus(null)
+  }, [])
 
   // Filter NFTs based on selected filter
   const filteredNfts = filter === 'mine' && account
@@ -411,10 +626,125 @@ export function Gallery({ account }) {
                     {nft.timestamp.toLocaleDateString()}
                   </div>
                 )}
-                <div style={styles.badge}>SOULBOUND</div>
+                <div>
+                  <span style={styles.badge}>SOULBOUND</span>
+                  <span style={nft.isVerified ? styles.verifiedBadge : styles.emailOnlyBadge}>
+                    {nft.isVerified ? 'PASSPORT' : 'EMAIL ONLY'}
+                  </span>
+                </div>
+                {/* Show upgrade button for user's email-only mints */}
+                {account &&
+                  nft.owner.toLowerCase() === account.toLowerCase() &&
+                  !nft.isVerified && (
+                    <button
+                      style={styles.upgradeButton}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        startUpgrade(nft)
+                      }}
+                    >
+                      + Upgrade to Passport Verified
+                    </button>
+                  )}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Upgrade Modal */}
+      {upgradeModal && (
+        <div style={styles.upgradeModal} onClick={closeUpgradeModal}>
+          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>
+              Upgrade to Passport Verified
+            </h3>
+            <p style={{ color: '#888', fontSize: '0.9rem', marginBottom: '1rem', textAlign: 'center' }}>
+              Event: {upgradeModal.eventName}
+            </p>
+
+            {!passportUrl ? (
+              <p style={{ color: '#888', textAlign: 'center' }}>
+                Starting passport verification...
+              </p>
+            ) : !passportProof ? (
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ marginBottom: '1rem', color: '#888', fontSize: '0.85rem' }}>
+                  Scan with ZKPassport app:
+                </p>
+                <div style={{
+                  background: '#fff',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  display: 'inline-block',
+                }}>
+                  <QRCodeSVG
+                    value={passportUrl}
+                    size={180}
+                    level="M"
+                    marginSize={0}
+                  />
+                </div>
+                <p style={{ marginTop: '1rem', color: '#888', fontSize: '0.75rem' }}>
+                  Or on mobile:{' '}
+                  <a
+                    href={passportUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#4ade80', textDecoration: 'underline' }}
+                  >
+                    Open in app
+                  </a>
+                </p>
+                <p style={{ marginTop: '0.5rem', color: '#4ade80', fontSize: '0.85rem' }}>
+                  Waiting for proof...
+                </p>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ color: '#4ade80', marginBottom: '1rem' }}>
+                  Passport proof received!
+                </p>
+                <button
+                  style={{
+                    ...styles.upgradeButton,
+                    opacity: upgradeLoading ? 0.6 : 1,
+                    cursor: upgradeLoading ? 'not-allowed' : 'pointer',
+                  }}
+                  onClick={executeUpgrade}
+                  disabled={upgradeLoading}
+                >
+                  {upgradeLoading ? 'Processing...' : 'Complete Upgrade'}
+                </button>
+              </div>
+            )}
+
+            {upgradeStatus && (
+              <p style={{
+                marginTop: '1rem',
+                padding: '0.5rem',
+                borderRadius: '6px',
+                fontSize: '0.85rem',
+                textAlign: 'center',
+                background: upgradeStatus.includes('success')
+                  ? 'rgba(74, 222, 128, 0.15)'
+                  : upgradeStatus.includes('Error') || upgradeStatus.includes('failed')
+                  ? 'rgba(248, 113, 113, 0.15)'
+                  : 'rgba(96, 165, 250, 0.15)',
+                color: upgradeStatus.includes('success')
+                  ? '#4ade80'
+                  : upgradeStatus.includes('Error') || upgradeStatus.includes('failed')
+                  ? '#f87171'
+                  : '#60a5fa',
+              }}>
+                {upgradeStatus}
+              </p>
+            )}
+
+            <button style={styles.modalClose} onClick={closeUpgradeModal}>
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </div>
