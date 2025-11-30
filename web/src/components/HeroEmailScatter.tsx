@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { Mail, Sparkles } from 'lucide-react'
 
 // ============================================
@@ -278,18 +278,40 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
   }, [email.id, email.isMinted, onMint])
 
   return (
-    <motion.div
+    <m.div
       variants={emailVariants}
       initial="enter"
       animate="visible"
       exit="exit"
-      className="w-[180px] sm:w-[200px] md:w-[220px] lg:w-[210px]"
+      layout
+      layoutDependency={email.isMinted}
+      className="w-[200px] sm:w-[230px] md:w-[260px] lg:w-[250px] rounded-2xl"
       style={{ 
         position: 'absolute', 
         left: `${email.x}%`, 
         top: `${email.startY}%`,
         pointerEvents: 'auto',
-        willChange: 'transform, opacity', // GPU layer promotion
+        zIndex: isHovered ? 50 : 10,
+        // GLASSMORPHIC STYLES ON WRAPPER - backdrop-filter must be on same element as transform
+        background: email.isMinted 
+          ? 'rgba(34, 197, 94, 0.08)'
+          : isHovered
+            ? 'rgba(99, 150, 244, 0.15)'
+            : 'rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'blur(64px) saturate(200%)',
+        WebkitBackdropFilter: 'blur(64px) saturate(200%)',
+        border: `1px solid var(${
+          email.isMinted 
+            ? '--mint-success-border' 
+            : isHovered 
+              ? '--hero-card-border-hover' 
+              : '--glass-border'
+        })`,
+        boxShadow: email.isMinted 
+          ? 'var(--mint-success-shadow)' 
+          : isHovered
+            ? 'var(--glass-shadow-hover)'
+            : 'var(--glass-shadow)',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -297,7 +319,7 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
       {/* Minted Badge */}
       <AnimatePresence>
         {email.isMinted && (
-          <motion.div
+          <m.div
             variants={mintBadgeVariants}
             initial="hidden"
             animate="visible"
@@ -335,27 +357,18 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
             >
               {mintAddress}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
-      {/* Card */}
+      {/* Card Content - styles moved to wrapper m.div for backdrop-filter to work */}
       <div 
         onClick={handleClick}
-        className="relative p-4 sm:p-4 md:p-4 lg:p-3.5 rounded-lg sm:rounded-xl backdrop-blur-md transition-all duration-200"
+        className="relative p-4 sm:p-5 md:p-5 lg:p-4 transition-all duration-200"
         style={{
-          background: 'var(--hero-card-bg)',
-          border: `1px solid var(${
-            email.isMinted 
-              ? '--mint-success-border' 
-              : isHovered 
-                ? '--hero-card-border-hover' 
-                : '--hero-card-border'
-          })`,
-          boxShadow: email.isMinted 
-            ? 'var(--mint-success-shadow)' 
-            : 'var(--hero-card-shadow)',
           cursor: email.isMinted ? 'default' : 'pointer',
+          width: '100%',
+          maxWidth: '100%',
         }}
       >
         {/* Glow effect */}
@@ -367,56 +380,59 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
         )}
 
         {/* Content */}
-        <div className="flex items-start gap-3 sm:gap-3 md:gap-3 lg:gap-2.5 relative z-10">
+        <div className="flex items-start gap-3 sm:gap-3.5 md:gap-3.5 lg:gap-3 relative z-10">
           <div 
-            className="p-2.5 sm:p-2 md:p-2 lg:p-1.5 rounded-md sm:rounded-lg shrink-0 transition-colors duration-200 mt-0.5 sm:mt-0"
+            className="p-2.5 sm:p-2.5 md:p-2.5 lg:p-2 rounded-md sm:rounded-lg shrink-0 transition-colors duration-200 mt-0.5 sm:mt-0 border"
             style={{ 
               backgroundColor: email.isMinted 
                 ? 'var(--mint-success-bg)'
                 : isHovered
-                  ? 'var(--Controls-Idle)'
-                  : 'var(--hero-card-icon-bg)'
+                  ? 'var(--glass-bg-hover)'
+                  : 'var(--glass-bg-secondary)',
+              borderColor: email.isMinted 
+                ? 'var(--mint-success-border)'
+                : 'var(--glass-border)'
             }}
           >
             <Mail 
-              className="h-5 w-5 sm:h-4 sm:w-4 md:h-4 md:w-4 lg:h-3.5 lg:w-3.5 transition-colors duration-200"
+              className="h-5 w-5 sm:h-5 sm:w-5 md:h-5 md:w-5 lg:h-4 lg:w-4 transition-colors duration-200"
               style={{ 
                 color: email.isMinted 
                   ? 'var(--mint-success)'
                   : isHovered
-                    ? 'var(--Controls-Selected)'
-                    : 'var(--page-text-secondary)' 
+                    ? 'var(--page-text-primary)'
+                    : 'var(--page-text-muted)' 
               }} 
             />
           </div>
-          <div className="overflow-hidden min-w-0 flex-1">
+          <div className="overflow-hidden min-w-0 flex-1 pr-2">
             <div 
-              className="text-[11px] sm:text-[10px] md:text-[10px] lg:text-[9px] font-medium uppercase tracking-wider mb-2 sm:mb-1 md:mb-1 lg:mb-0.5 transition-colors duration-200 break-words"
+              className="text-[11px] sm:text-[11px] md:text-[11px] lg:text-[10px] font-medium uppercase tracking-wider mb-2 sm:mb-1.5 md:mb-1.5 lg:mb-1 transition-colors duration-200 break-words"
               style={{ 
                 color: email.isMinted 
                   ? 'var(--mint-success)'
                   : isHovered
-                    ? 'var(--Controls-Selected)'
-                    : 'var(--page-text-secondary)' 
+                    ? 'var(--page-text-primary)'
+                    : 'var(--page-text-muted)' 
               }}
             >
               {email.sender}
             </div>
             <div 
-              className="text-[15px] sm:text-[15px] md:text-[15px] lg:text-[13px] font-medium leading-relaxed sm:leading-relaxed md:leading-relaxed lg:leading-tight break-words"
+              className="text-[15px] sm:text-[16px] md:text-[16px] lg:text-[15px] font-medium leading-relaxed sm:leading-relaxed md:leading-relaxed lg:leading-snug break-words"
               style={{ color: 'var(--page-text-primary)' }}
             >
               {email.subject}
             </div>
           </div>
 
-          {/* Mark It hint */}
+          {/* Mark It hint - Absolute positioned to prevent card expansion */}
           {isHovered && !email.isMinted && (
-            <div className="shrink-0 flex items-center gap-1 sm:gap-1 pl-1.5 sm:pl-2 animate-fade-in">
-              <Sparkles className="w-3 h-3 sm:w-3 sm:h-3 md:w-3 md:h-3 lg:w-3 lg:h-3" style={{ color: 'var(--Controls-Selected)' }} />
+            <div className="absolute top-2 right-2 flex items-center gap-1 sm:gap-1 animate-fade-in z-20">
+              <Sparkles className="w-3 h-3 sm:w-3 sm:h-3 md:w-3 md:h-3 lg:w-3 lg:h-3" style={{ color: 'var(--page-text-secondary)' }} />
               <span 
                 className="text-[9px] sm:text-[9px] md:text-[9px] lg:text-[9px] font-semibold uppercase tracking-wide whitespace-nowrap"
-                style={{ color: 'var(--Controls-Selected)' }}
+                style={{ color: 'var(--page-text-secondary)' }}
               >
                 Mark It
               </span>
@@ -424,7 +440,7 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
           )}
         </div>
       </div>
-    </motion.div>
+    </m.div>
   )
 })
 
@@ -559,35 +575,35 @@ export const HeroEmailScatter: React.FC = () => {
           ? 'min-h-[360px] overflow-hidden' 
           : isTablet
             ? 'min-h-[500px] overflow-hidden'
-            : 'min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-[700px] overflow-hidden'
+            : 'min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-[700px] overflow-visible'
       }`}
-      style={{ background: 'var(--hero-container-bg)' }}
+      style={{ background: 'transparent' }}
     >
-      {/* Grid Background - pure CSS */}
+      {/* Grid Background */}
       <div 
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none opacity-30"
         style={{
           backgroundImage: `
-            linear-gradient(var(--hero-grid-color) 1px, transparent 1px),
-            linear-gradient(90deg, var(--hero-grid-color) 1px, transparent 1px)
+            linear-gradient(var(--glass-border) 1px, transparent 1px),
+            linear-gradient(90deg, var(--glass-border) 1px, transparent 1px)
           `,
           backgroundSize: isMobile ? '40px 40px' : isTablet ? '50px 50px' : '60px 60px',
         }}
       />
       
-      {/* Mouse-following gradient - CSS transition instead of motion value (desktop only) */}
+      {/* Mouse-following spotlight (desktop only) */}
       {isDesktop && (
         <div
-          className="absolute inset-0 pointer-events-none z-0 transition-all duration-300"
+          className="absolute inset-0 pointer-events-none z-0 transition-all duration-300 mix-blend-overlay"
           style={{
-            background: `radial-gradient(600px circle at ${mousePos.x}% ${mousePos.y}%, var(--hero-grid-color), transparent 60%)`,
+            background: `radial-gradient(500px circle at ${mousePos.x}% ${mousePos.y}%, rgba(255, 255, 255, 0.03), transparent 60%)`,
           }}
         />
       )}
       
-      {/* Ambient glow - responsive sizes */}
+      {/* Ambient glow */}
       <div 
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[80px] sm:blur-[100px] pointer-events-none z-0 ${
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[100px] sm:blur-[120px] pointer-events-none z-0 ${
           isMobile 
             ? 'w-[200px] h-[200px]' 
             : isTablet
@@ -595,8 +611,8 @@ export const HeroEmailScatter: React.FC = () => {
               : 'w-[250px] h-[250px] sm:w-[300px] sm:h-[300px] md:w-[400px] md:h-[400px]'
         }`}
         style={{ 
-          backgroundColor: 'var(--Controls-Selected)', 
-          opacity: 'var(--hero-ambient-opacity)' 
+          backgroundColor: 'var(--page-text-primary)', 
+          opacity: 0.03
         }}
       />
 
