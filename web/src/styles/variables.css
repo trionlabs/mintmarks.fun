@@ -1,0 +1,559 @@
+/* ============================================
+   MINTMARKS THEME VARIABLES
+   Primary: #6396F4 (Blue)
+   Style: Glassmorphic
+   
+   Light Mode (:root) and Dark Mode (.dark)
+   ============================================ */
+
+:root {
+  /* Core Theme Colors */
+  /* Light Mode: "Porcelain+" - Slightly darker than pure porcelain, closer to Slate-100/Gray-100 mix */
+  --background: #F1F5F9;
+  --foreground: oklch(0.2126 0.0231 246.3010);
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.2126 0.0231 246.3010);
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.2126 0.0231 246.3010);
+  --primary: oklch(0.6396 0.1928 262.1643);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0.01 246);
+  --secondary-foreground: oklch(0.205 0.02 246);
+  --muted: oklch(0.97 0.01 246);
+  --muted-foreground: oklch(0.556 0.02 246);
+  --accent: oklch(0.97 0.01 246);
+  --accent-foreground: oklch(0.205 0.02 246);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.9324 0.0168 230.9139);
+  --input: oklch(0.9324 0.0168 230.9139);
+  --ring: oklch(0.6396 0.1928 262.1643);
+  --radius: 0.625rem;
+
+  /* Page Content Colors */
+  --page-text-primary: oklch(0.15 0.02 246);
+  --page-text-secondary: oklch(0.4 0.02 246);
+  --page-text-muted: oklch(0.55 0.02 246);
+  --page-badge-bg: rgba(255, 255, 255, 0.85);
+  --page-badge-border: rgba(255, 255, 255, 0.5);
+  --page-border-color: rgba(255, 255, 255, 0.4);
+  --page-content-bg: rgba(247, 249, 252, 0.8);
+  --page-content-border: rgba(240, 244, 249, 0.5);
+
+  /* Glassmorphic System - Light Mode (Enhanced transparency + blur) */
+  --glass-bg-primary: rgba(255, 255, 255, 0.35);
+  --glass-bg-secondary: rgba(255, 255, 255, 0.25);
+  --glass-bg-tertiary: rgba(255, 255, 255, 0.15);
+  --glass-bg-hover: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-border-hover: rgba(255, 255, 255, 0.6);
+  --glass-blur: 40px;
+  --glass-blur-heavy: 64px;
+  --glass-saturate: 180%;
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  --glass-shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+
+  /* Figma Card System */
+  --figma-card-stroke: rgba(255, 255, 255, 0.3);
+  --figma-card-blur: 16px;
+  --figma-card-radius: 12px;
+  --figma-ultra-dark: rgba(255, 255, 255, 0.85);
+
+  /* Simple Card Shadows */
+  --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  /* CTA Button Tokens (Light Mode) */
+  --figma-cta1-bg: #1E1D1F;
+  --figma-cta1-border: #F7F9FC;
+  --figma-cta1-text: #F7F9FC;
+  --figma-cta1-hover-bg: #7B797D;
+  --figma-cta1-hover-border: #F7F9FC;
+  --figma-cta1-hover-text: #F7F9FC;
+  --figma-cta1-active-bg: #7B797D;
+
+  /* Outline Button (cta2) */
+  --figma-cta2-bg: #F7FBFF;
+  --figma-cta2-border: #FFFFFF;
+  --figma-cta2-text: rgba(30, 29, 31, 0.92);
+
+  /* Secondary Button (cta3) */
+  --figma-cta3-bg: rgba(10, 75, 255, 0.08);
+  --figma-cta3-border: rgba(10, 75, 255, 0.2);
+  --figma-cta3-text: #0A4BFF;
+
+  /* CTA Outline Card */
+  --cta-outline-card-border: rgba(100, 116, 139, 0.25);
+  --cta-outline-card-bg: rgba(255, 255, 255, 0.85);
+  --cta-outline-card-blur: 16px;
+  --cta-outline-card-blend: normal;
+
+  /* Background Animation Colors */
+  --bg-animation-gradient-start: #F0F4F9;
+  --bg-animation-gradient-mid: #F7F9FC;
+  --bg-animation-gradient-end: #F0F4F9;
+  --bg-animation-bar-color-light: rgba(247, 249, 252, 0.6);
+  --bg-animation-bar-color-mid: rgba(240, 244, 249, 0.5);
+  --bg-animation-bar-color-dark: rgba(240, 244, 249, 0.5);
+  --bg-animation-line-color: rgba(230, 244, 249, 0.15);
+
+  /* Controls */
+  --Controls-Selected: #6396F4;
+  --Controls-Idle: rgba(99, 150, 244, 0.1);
+  --controls-selected-light: rgba(99, 150, 244, 0.4);
+
+  /* ===== AUTH INDICATOR ===== */
+  /* Container */
+  --auth-indicator-bg: var(--glass-bg-secondary);
+  --auth-indicator-bg-hover: var(--glass-bg-primary);
+  --auth-indicator-shadow: var(--glass-shadow);
+  --auth-indicator-shadow-hover: var(--glass-shadow-hover);
+
+  /* Gmail Icon States */
+  --gmail-icon-connected-bg: rgba(34, 197, 94, 0.15);
+  --gmail-icon-connected-color: rgb(34, 197, 94);
+  --gmail-icon-connected-glow: 0 0 8px rgba(34, 197, 94, 0.2);
+  --gmail-icon-error-bg: rgba(239, 68, 68, 0.15);
+  --gmail-icon-error-color: rgb(239, 68, 68);
+
+  /* Wallet Icon States */
+  --wallet-icon-connected-bg: rgba(34, 197, 94, 0.15);
+  --wallet-icon-connected-color: rgb(34, 197, 94);
+  --wallet-icon-connected-glow: 0 0 12px rgba(34, 197, 94, 0.25);
+  --wallet-icon-disconnected-bg: rgba(107, 114, 128, 0.1);
+  --wallet-icon-disconnected-color: rgb(107, 114, 128);
+  --wallet-icon-error-bg: rgba(239, 68, 68, 0.15);
+  --wallet-icon-error-color: rgb(239, 68, 68);
+
+  /* Animation Timing */
+  --auth-transition-fast: 150ms;
+  --auth-transition-normal: 200ms;
+  --auth-transition-slow: 300ms;
+
+  /* ===== HERO ANIMATION ===== */
+  /* Email Card */
+  --hero-card-bg: rgba(255, 255, 255, 0.8);
+  --hero-card-border: rgba(99, 150, 244, 0.1);
+  --hero-card-border-hover: rgba(99, 150, 244, 0.18);
+  --hero-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --hero-card-icon-bg: rgba(0, 0, 0, 0.03);
+
+  /* Hero Background Gradients - for backdrop blur visibility */
+  --hero-gradient-from: rgba(99, 150, 244, 0.25);
+  --hero-gradient-to: rgba(168, 85, 247, 0.2);
+  --hero-gradient-accent: rgba(59, 130, 246, 0.15);
+
+  /* Grid Background */
+  --hero-grid-color: rgba(99, 150, 244, 0.025);
+
+  /* Container Background */
+  --hero-container-bg: linear-gradient(145deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.95));
+
+  /* Mint Success States */
+  --mint-success: rgb(34, 197, 94);
+  --mint-success-light: rgb(52, 211, 153);
+  --mint-success-bg: rgba(34, 197, 94, 0.12);
+  --mint-success-border: rgba(34, 197, 94, 0.3);
+  --mint-success-shadow: 0 4px 24px rgba(34, 197, 94, 0.15);
+  --mint-success-glow: 0 4px 16px rgba(34, 197, 94, 0.4);
+  --mint-success-gradient: linear-gradient(135deg, rgb(34, 197, 94), rgb(16, 185, 129));
+
+  /* Ambient Glow */
+  --hero-ambient-opacity: 0.02;
+  --hero-mouse-glow-opacity: 0.03;
+
+  /* ===== HERO GLASSMORPHIC CARDS (Light Mode) ===== */
+  /* White/transparent glass cards on colored backgrounds */
+  --hero-glass-bg: rgba(255, 255, 255, 0.1);
+  --hero-glass-bg-hover: rgba(255, 255, 255, 0.15);
+  --hero-glass-border: rgba(255, 255, 255, 0.3);
+  --hero-glass-border-hover: rgba(255, 255, 255, 0.4);
+  --hero-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  --hero-glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  --hero-glass-blur: 24px;
+
+  /* Hero Page Background */
+  --hero-page-bg: linear-gradient(135deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%);
+  --hero-page-bg-secondary: linear-gradient(180deg, #1e40af 0%, #1d4ed8 100%);
+
+  /* Hero Text Colors (on dark bg) */
+  --hero-text-primary: rgba(255, 255, 255, 1);
+  --hero-text-secondary: rgba(191, 219, 254, 1);
+  --hero-text-muted: rgba(147, 197, 253, 0.8);
+
+  /* Hero Dashed Grid */
+  --hero-dashed-grid-color: rgba(255, 255, 255, 0.08);
+  --hero-dashed-grid-glow: rgba(255, 255, 255, 0.1);
+
+  /* Hero Spotlight */
+  --hero-spotlight-color: rgba(255, 255, 255, 0.15);
+  --hero-spotlight-size: 800px;
+
+  /* Hero Icon Backgrounds */
+  --hero-icon-bg-blue: rgba(59, 130, 246, 1);
+  --hero-icon-bg-yellow: rgba(234, 179, 8, 0.2);
+  --hero-icon-bg-red: rgba(239, 68, 68, 0.2);
+  --hero-icon-bg-green: rgba(34, 197, 94, 0.2);
+  --hero-icon-bg-purple: rgba(168, 85, 247, 0.2);
+  --hero-icon-bg-orange: rgba(249, 115, 22, 0.2);
+  --hero-icon-bg-pink: rgba(236, 72, 153, 0.2);
+
+  /* ===== EMAIL SOURCE COLORS - Minimal ===== */
+  /* Luma - Subtle purple */
+  --source-luma: oklch(0.55 0.08 292);
+  --source-luma-bg: rgba(0, 0, 0, 0.03);
+  --source-luma-border: rgba(0, 0, 0, 0.08);
+
+  /* Substack - Subtle orange */
+  --source-substack: oklch(0.55 0.08 47);
+  --source-substack-bg: rgba(0, 0, 0, 0.03);
+  --source-substack-border: rgba(0, 0, 0, 0.08);
+
+  /* Eventbrite - Subtle red */
+  --source-eventbrite: oklch(0.55 0.08 29);
+  --source-eventbrite-bg: rgba(0, 0, 0, 0.03);
+  --source-eventbrite-border: rgba(0, 0, 0, 0.08);
+
+  /* Amazon - Subtle amber */
+  --source-amazon: oklch(0.55 0.08 70);
+  --source-amazon-bg: rgba(0, 0, 0, 0.03);
+  --source-amazon-border: rgba(0, 0, 0, 0.08);
+
+  /* ===== STATUS COLORS - Minimal ===== */
+  /* Confirmed - Subtle green */
+  --status-confirmed: oklch(0.5 0.1 142);
+  --status-confirmed-bg: rgba(0, 0, 0, 0.03);
+  --status-confirmed-border: rgba(0, 0, 0, 0.08);
+
+  /* Pending - Subtle amber */
+  --status-pending: oklch(0.55 0.1 86);
+  --status-pending-bg: rgba(0, 0, 0, 0.03);
+  --status-pending-border: rgba(0, 0, 0, 0.08);
+
+  /* Attended - Subtle blue */
+  --status-attended: oklch(0.5 0.1 255);
+  --status-attended-bg: rgba(0, 0, 0, 0.03);
+  --status-attended-border: rgba(0, 0, 0, 0.08);
+
+  /* Minted - Subtle teal */
+  --status-minted: oklch(0.5 0.1 180);
+  --status-minted-bg: rgba(0, 0, 0, 0.03);
+  --status-minted-border: rgba(0, 0, 0, 0.08);
+
+  /* Failed - Subtle red */
+  --status-failed: oklch(0.55 0.15 25);
+  --status-failed-bg: rgba(239, 68, 68, 0.08);
+  --status-failed-border: rgba(239, 68, 68, 0.15);
+
+  /* ===== SEMANTIC TOKENS (Hybrid Layer) ===== */
+
+  /* Surface Tokens */
+  --surface-base: var(--background);
+  --surface-elevated: var(--glass-bg-primary);
+  --surface-overlay: var(--page-badge-bg);
+  --surface-card: var(--card);
+
+  /* Text Tokens */
+  --text-primary: var(--page-text-primary);
+  --text-secondary: var(--page-text-secondary);
+  --text-muted: var(--page-text-muted);
+  --text-inverse: var(--primary-foreground);
+  --text-on-primary: var(--primary-foreground);
+  --text-on-destructive: var(--destructive-foreground);
+
+  /* Border Tokens */
+  --border-subtle: var(--page-border-color);
+  --border-medium: var(--border);
+  --border-strong: var(--page-badge-border);
+
+  /* Interactive Tokens */
+  --interactive-primary: var(--primary);
+  --interactive-primary-hover: var(--ring);
+  --interactive-secondary: var(--secondary);
+  --interactive-muted: var(--muted);
+
+  /* ===== BUTTON COMPONENT TOKENS ===== */
+
+  /* Outline Button */
+  --button-outline-bg: rgba(255, 255, 255, 0.8);
+  --button-outline-border: oklch(0.9324 0.0168 230.9139);
+  --button-outline-text: oklch(0.205 0.02 246);
+  --button-outline-hover-bg: oklch(0.99 0.01 246);
+  --button-outline-hover-border: oklch(0.88 0.02 230);
+
+  /* Ghost Button */
+  --button-ghost-bg: transparent;
+  --button-ghost-text: oklch(0.35 0.02 246);
+  --button-ghost-hover-bg: oklch(0.98 0.01 246);
+  --button-ghost-hover-text: oklch(0.15 0.02 246);
+
+  /* Destructive Button */
+  --button-destructive-bg: oklch(0.577 0.245 27.325);
+  --button-destructive-border: oklch(0.52 0.25 27);
+  --button-destructive-text: oklch(0.985 0 0);
+  --button-destructive-hover-bg: oklch(0.52 0.25 27);
+  --button-destructive-hover-border: oklch(0.48 0.25 27);
+
+  /* Link Button */
+  --button-link-text: oklch(0.6 0.19 262);
+  --button-link-hover-text: oklch(0.55 0.19 262);
+}
+
+.dark {
+  /* Core Theme Colors - Enhanced for Glassmorphic */
+  --background: oklch(0.10 0.005 0);
+  --foreground: oklch(0.95 0.005 236);
+  --card: oklch(0.12 0.015 246);
+  --card-foreground: oklch(0.95 0.005 236);
+  --popover: oklch(0.12 0.015 246);
+  --popover-foreground: oklch(0.95 0.005 236);
+  --primary: oklch(0.7 0.15 262);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.22 0.015 246);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.22 0.015 246);
+  --muted-foreground: oklch(0.72 0.01 246);
+  --accent: oklch(0.22 0.015 246);
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.28 0.015 248);
+  --input: oklch(0.28 0.015 248);
+  --ring: oklch(0.65 0.18 262);
+
+  /* Page Content Colors - Minimal */
+  --page-text-primary: rgba(255, 255, 255, 0.95);
+  --page-text-secondary: rgba(255, 255, 255, 0.7);
+  --page-text-muted: rgba(255, 255, 255, 0.5);
+  --page-badge-bg: rgba(255, 255, 255, 0.05);
+  --page-badge-border: rgba(255, 255, 255, 0.1);
+  --page-border-color: rgba(255, 255, 255, 0.12);
+  --page-content-bg: rgba(255, 255, 255, 0.03);
+  --page-content-border: rgba(255, 255, 255, 0.08);
+
+  /* Glassmorphic System - Dark Mode: Enhanced transparency + heavy blur */
+  /* Idle: darker, subtle | Hover: brighter, more visible */
+  --glass-bg-primary: rgba(255, 255, 255, 0.08);
+  --glass-bg-secondary: rgba(255, 255, 255, 0.05);
+  --glass-bg-tertiary: rgba(255, 255, 255, 0.03);
+  --glass-bg-hover: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-border-hover: rgba(255, 255, 255, 0.25);
+  --glass-blur: 40px;
+  --glass-blur-heavy: 64px;
+  --glass-saturate: 180%;
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --glass-shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+  /* Figma Card System */
+  --figma-card-stroke: rgba(168, 168, 168, 0.71);
+  --figma-card-blur: 8px;
+  --figma-card-radius: 10px;
+  --figma-ultra-dark: rgba(162, 162, 162, 0.92);
+
+  /* Simple Card Shadows */
+  --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  /* CTA Button Tokens (Dark Mode) - WHITE PRIMARY (like hero) */
+  --figma-cta1-bg: rgba(255, 255, 255, 1);
+  --figma-cta1-border: rgba(255, 255, 255, 1);
+  --figma-cta1-text: rgba(30, 41, 59, 1);
+  --figma-cta1-hover-bg: rgba(241, 245, 249, 1);
+  --figma-cta1-hover-border: rgba(241, 245, 249, 1);
+  --figma-cta1-hover-text: rgba(15, 23, 42, 1);
+  --figma-cta1-active-bg: rgba(226, 232, 240, 1);
+
+  /* Outline Button (cta2) - Dark - Pure blur, transparent */
+  --figma-cta2-bg: transparent;
+  --figma-cta2-border: rgba(255, 255, 255, 0.3);
+  --figma-cta2-text: rgba(255, 255, 255, 0.9);
+
+  /* Secondary Button (cta3) - Dark - Darker gray glass */
+  --figma-cta3-bg: rgba(255, 255, 255, 0.08);
+  --figma-cta3-border: rgba(255, 255, 255, 0.15);
+  --figma-cta3-text: rgba(255, 255, 255, 0.9);
+
+  /* CTA Outline Card - Dark - Neutral */
+  --cta-outline-card-border: rgba(255, 255, 255, 0.2);
+  --cta-outline-card-bg: rgba(255, 255, 255, 0.08);
+  --cta-outline-card-blur: 32px;
+  --cta-outline-card-blend: normal;
+
+  /* Background Animation Colors - OPTIMIZED (Subtle, not aggressive) */
+  --bg-animation-gradient-start: oklch(0.12 0.02 246);
+  --bg-animation-gradient-mid: oklch(0.15 0.02 246);
+  --bg-animation-gradient-end: oklch(0.12 0.02 246);
+  --bg-animation-bar-color-light: rgba(99, 150, 244, 0.08);
+  --bg-animation-bar-color-mid: rgba(99, 150, 244, 0.06);
+  --bg-animation-bar-color-dark: rgba(99, 150, 244, 0.04);
+  --bg-animation-line-color: rgba(99, 150, 244, 0.08);
+
+  /* Controls */
+  --Controls-Selected: #6396F4;
+  --Controls-Idle: rgba(99, 150, 244, 0.2);
+  --controls-selected-light: rgba(99, 150, 244, 0.5);
+
+  /* ===== AUTH INDICATOR (Dark Mode) ===== */
+  /* Container - inherits from glass vars, no override needed */
+
+  /* Gmail Icon States (brighter for dark mode) */
+  --gmail-icon-connected-bg: rgba(34, 197, 94, 0.2);
+  --gmail-icon-connected-color: rgb(74, 222, 128);
+  --gmail-icon-connected-glow: 0 0 10px rgba(34, 197, 94, 0.3);
+  --gmail-icon-error-bg: rgba(239, 68, 68, 0.2);
+  --gmail-icon-error-color: rgb(248, 113, 113);
+
+  /* Wallet Icon States (brighter for dark mode) */
+  --wallet-icon-connected-bg: rgba(34, 197, 94, 0.2);
+  --wallet-icon-connected-color: rgb(74, 222, 128);
+  --wallet-icon-connected-glow: 0 0 14px rgba(34, 197, 94, 0.35);
+  --wallet-icon-disconnected-bg: rgba(156, 163, 175, 0.15);
+  --wallet-icon-disconnected-color: rgb(156, 163, 175);
+  --wallet-icon-error-bg: rgba(239, 68, 68, 0.2);
+  --wallet-icon-error-color: rgb(248, 113, 113);
+
+  /* ===== HERO ANIMATION (Dark Mode) - Enhanced Glassmorphic ===== */
+  /* Email Card - Better visibility */
+  --hero-card-bg: rgba(25, 40, 70, 0.75);
+  --hero-card-border: rgba(99, 150, 244, 0.2);
+  --hero-card-border-hover: rgba(99, 150, 244, 0.35);
+  --hero-card-shadow: 0 4px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(99, 150, 244, 0.08);
+  --hero-card-icon-bg: rgba(99, 150, 244, 0.1);
+
+  /* Hero Background Gradients - for backdrop blur visibility (darker, more subtle) */
+  --hero-gradient-from: rgba(99, 150, 244, 0.2);
+  --hero-gradient-to: rgba(168, 85, 247, 0.15);
+  --hero-gradient-accent: rgba(59, 130, 246, 0.1);
+
+  /* Grid Background - More visible */
+  --hero-grid-color: rgba(99, 150, 244, 0.05);
+
+  /* Container Background - Richer gradient */
+  --hero-container-bg: linear-gradient(145deg,
+      rgba(12, 20, 35, 0.98),
+      rgba(18, 28, 50, 0.96));
+
+  /* Mint Success States - Vibrant for dark */
+  --mint-success: oklch(0.8 0.18 150);
+  --mint-success-light: oklch(0.85 0.15 150);
+  --mint-success-bg: rgba(34, 197, 94, 0.18);
+  --mint-success-border: rgba(34, 197, 94, 0.4);
+  --mint-success-shadow: 0 4px 28px rgba(34, 197, 94, 0.25);
+  --mint-success-glow: 0 0 24px rgba(34, 197, 94, 0.5);
+  --mint-success-gradient: linear-gradient(135deg, oklch(0.75 0.2 150), oklch(0.7 0.18 165));
+
+  /* Ambient Glow - Stronger presence */
+  --hero-ambient-opacity: 0.06;
+  --hero-mouse-glow-opacity: 0.08;
+
+  /* ===== HERO GLASSMORPHIC CARDS (Dark Mode) ===== */
+  /* White/transparent glass cards - more vibrant on dark blue bg */
+  --hero-glass-bg: rgba(255, 255, 255, 0.1);
+  --hero-glass-bg-hover: rgba(255, 255, 255, 0.18);
+  --hero-glass-border: rgba(255, 255, 255, 0.3);
+  --hero-glass-border-hover: rgba(255, 255, 255, 0.45);
+  --hero-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  --hero-glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  --hero-glass-blur: 24px;
+
+  /* Hero Page Background - Vibrant Blue */
+  --hero-page-bg: linear-gradient(135deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%);
+  --hero-page-bg-secondary: linear-gradient(180deg, #1e40af 0%, #1d4ed8 100%);
+
+  /* Hero Text Colors */
+  --hero-text-primary: rgba(255, 255, 255, 1);
+  --hero-text-secondary: rgba(191, 219, 254, 1);
+  --hero-text-muted: rgba(147, 197, 253, 0.8);
+
+  /* Hero Dashed Grid - More visible on dark */
+  --hero-dashed-grid-color: rgba(255, 255, 255, 0.08);
+  --hero-dashed-grid-glow: rgba(255, 255, 255, 0.12);
+
+  /* Hero Spotlight - Brighter */
+  --hero-spotlight-color: rgba(255, 255, 255, 0.18);
+  --hero-spotlight-size: 800px;
+
+  /* Hero Icon Backgrounds - Solid colors for dark mode */
+  --hero-icon-bg-blue: rgba(59, 130, 246, 1);
+  --hero-icon-bg-yellow: rgba(234, 179, 8, 0.3);
+  --hero-icon-bg-red: rgba(239, 68, 68, 0.3);
+  --hero-icon-bg-green: rgba(34, 197, 94, 0.3);
+  --hero-icon-bg-purple: rgba(168, 85, 247, 0.3);
+  --hero-icon-bg-orange: rgba(249, 115, 22, 0.3);
+  --hero-icon-bg-pink: rgba(236, 72, 153, 0.3);
+
+  /* ===== EMAIL SOURCE COLORS (Dark Mode) - Minimal: near-transparent bg, subtle colored text ===== */
+  /* Luma - Subtle purple */
+  --source-luma: oklch(0.7 0.06 292);
+  --source-luma-bg: rgba(255, 255, 255, 0.03);
+  --source-luma-border: rgba(255, 255, 255, 0.08);
+
+  /* Substack - Subtle orange */
+  --source-substack: oklch(0.72 0.06 47);
+  --source-substack-bg: rgba(255, 255, 255, 0.03);
+  --source-substack-border: rgba(255, 255, 255, 0.08);
+
+  /* Eventbrite - Subtle red */
+  --source-eventbrite: oklch(0.68 0.08 29);
+  --source-eventbrite-bg: rgba(255, 255, 255, 0.03);
+  --source-eventbrite-border: rgba(255, 255, 255, 0.08);
+
+  /* Amazon - Subtle amber */
+  --source-amazon: oklch(0.72 0.06 70);
+  --source-amazon-bg: rgba(255, 255, 255, 0.03);
+  --source-amazon-border: rgba(255, 255, 255, 0.08);
+
+  /* ===== STATUS COLORS (Dark Mode) - Minimal: near-transparent bg, subtle colored text ===== */
+  --status-confirmed: oklch(0.68 0.08 142);
+  --status-confirmed-bg: rgba(255, 255, 255, 0.03);
+  --status-confirmed-border: rgba(255, 255, 255, 0.08);
+
+  --status-pending: oklch(0.72 0.08 86);
+  --status-pending-bg: rgba(255, 255, 255, 0.03);
+  --status-pending-border: rgba(255, 255, 255, 0.08);
+
+  --status-attended: oklch(0.65 0.08 255);
+  --status-attended-bg: rgba(255, 255, 255, 0.03);
+  --status-attended-border: rgba(255, 255, 255, 0.08);
+
+  --status-minted: oklch(0.68 0.08 180);
+  --status-minted-bg: rgba(255, 255, 255, 0.03);
+  --status-minted-border: rgba(255, 255, 255, 0.08);
+
+  /* Failed - Subtle red */
+  --status-failed: oklch(0.68 0.15 25);
+  --status-failed-bg: rgba(239, 68, 68, 0.12);
+  --status-failed-border: rgba(239, 68, 68, 0.2);
+
+  /* ===== SEMANTIC TOKENS ===== */
+  /* Semantic tokens inherit from theme-aware values, no overrides needed for dark mode */
+  /* Values automatically adjust via --background, --foreground, etc. */
+
+  /* ===== BUTTON COMPONENT TOKENS ===== */
+
+  /* Outline Button - Pure blur, transparent bg */
+  --button-outline-bg: transparent;
+  --button-outline-border: rgba(255, 255, 255, 0.3);
+  --button-outline-text: rgba(255, 255, 255, 0.9);
+  --button-outline-hover-bg: rgba(255, 255, 255, 0.1);
+  --button-outline-hover-border: rgba(255, 255, 255, 0.4);
+  --button-outline-hover-text: rgba(255, 255, 255, 1);
+
+  /* Ghost Button - Minimal */
+  --button-ghost-bg: transparent;
+  --button-ghost-text: rgba(255, 255, 255, 0.7);
+  --button-ghost-hover-bg: rgba(255, 255, 255, 0.1);
+  --button-ghost-hover-text: rgba(255, 255, 255, 0.95);
+
+  /* Destructive Button */
+  --button-destructive-bg: oklch(0.48 0.18 27);
+  --button-destructive-border: oklch(0.52 0.2 27);
+  --button-destructive-text: oklch(0.985 0 0);
+  --button-destructive-hover-bg: oklch(0.52 0.2 27);
+  --button-destructive-hover-border: oklch(0.48 0.18 27);
+
+  /* Link Button */
+  --button-link-text: oklch(0.7 0.15 262);
+  --button-link-hover-text: oklch(0.75 0.15 262);
+}
