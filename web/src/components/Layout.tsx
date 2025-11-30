@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/ThemeContext'
 import { UnifiedAuthIndicator } from '@/components/UnifiedAuthIndicator'
 import { WalletOperationsModal } from '@/components/WalletOperationsModal'
+import { SpiralCirclesBackground } from '@/components/SpiralCirclesBackground'
 import { cn } from '@/lib/utils'
 
 // ============================================
@@ -33,8 +34,8 @@ interface NavItem {
 // ============================================
 
 const navItems: NavItem[] = [
-  { path: '/create', label: 'Create', icon: <Plus className="h-5 w-5" /> },
-  { path: '/marks', label: 'My Marks', icon: <Bookmark className="h-5 w-5" /> },
+  { path: '/create', label: 'Create', icon: <Plus className="h-4 w-4" /> },
+  { path: '/marks', label: 'My Marks', icon: <Bookmark className="h-4 w-4" /> },
 ]
 
 // ============================================
@@ -67,6 +68,13 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Animated Background - Global */}
+      <SpiralCirclesBackground 
+        count={14} 
+        speed={0.8}
+        paused={isWalletModalOpen}
+      />
+      
       {/* Navigation */}
       <header
         className={cn(
@@ -78,7 +86,7 @@ export function Layout({ children }: LayoutProps) {
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Minimal gradient overlay - no colors, just blur */}
-        {/* Gradient: 0% → 20% dikey geçiş, sonra transparent */}
+        {/* Gradient: 0% → 20% vertical transition, then transparent */}
         <div
           className={cn(
             'absolute inset-0 transition-opacity duration-300',
@@ -94,14 +102,20 @@ export function Layout({ children }: LayoutProps) {
         />
 
         <nav className={cn("relative h-full flex items-center justify-between", containerClass)}>
-          {/* Logo - Neutral colors only */}
+          {/* Logo - Icon + Text */}
           <Link to="/" className="flex items-center gap-2 group">
-            <Sparkles
-              className="h-5 w-5 sm:h-6 sm:w-6 transition-colors"
-              style={{ color: 'var(--page-text-primary)' }}
+            <img
+              src="/logo-icon.svg"
+              alt="MintMarks"
+              className="h-6 w-6 sm:h-7 sm:w-7 transition-opacity group-hover:opacity-90"
+              style={{
+                filter: theme === 'dark' 
+                  ? 'brightness(0) invert(1)' 
+                  : 'brightness(0)',
+              }}
             />
             <span
-              className="text-2xl sm:text-3xl"
+              className="text-xl sm:text-2xl font-semibold"
               style={{
                 color: 'var(--page-text-primary)',
                 textShadow: theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
@@ -122,14 +136,18 @@ export function Layout({ children }: LayoutProps) {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    'flex items-center gap-1.5 px-3 sm:px-4 py-2',
-                    'text-sm sm:text-base font-medium rounded-md',
-                    'transition-all backdrop-blur-sm',
+                    'flex items-center gap-2 px-3 sm:px-4 py-2',
+                    'text-sm font-medium rounded-md',
+                    'transition-colors transition-opacity backdrop-blur-sm',
                     isActive
                       ? 'bg-[var(--glass-bg-hover)]'
                       : 'opacity-70 hover:opacity-100 hover:bg-[var(--glass-bg-secondary)]'
                   )}
-                  style={{ color: 'var(--page-text-primary)' }}
+                  style={{ 
+                    color: 'var(--page-text-primary)',
+                    transform: 'none',
+                    translate: 'none',
+                  }}
                 >
                   {item.icon}
                   <span className="hidden sm:inline">{item.label}</span>
