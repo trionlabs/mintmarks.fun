@@ -60,25 +60,19 @@ function NFTCard({ nft }: { nft: MintmarkNFT }) {
       href={getTransactionUrl(nft.network, nft.txHash)}
       target="_blank"
       rel="noopener noreferrer"
-      className="block h-full"
+      className="block h-full group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className="relative rounded-xl p-4 border transition-all duration-200 overflow-hidden h-full flex flex-col"
-        style={{
-          background: 'var(--card)',
-          borderColor: isHovered ? 'var(--border)' : 'transparent',
-          boxShadow: isHovered ? 'var(--card-shadow-hover)' : 'var(--card-shadow)',
-        }}
+        className="glass-card glass-card-hover relative rounded-xl p-4 overflow-hidden h-full flex flex-col"
       >
-
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center">
           {/* Circular Image/Icon */}
           <div
-            className="w-28 h-28 rounded-full flex items-center justify-center mb-2 overflow-hidden flex-shrink-0"
-            style={{ background: 'var(--muted)' }}
+            className="w-28 h-28 rounded-full flex items-center justify-center mb-2 overflow-hidden flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
+            style={{ background: 'var(--glass-bg-secondary)' }}
           >
             {nft.imageUri ? (
               nft.imageUri.startsWith('data:image/svg+xml') ? (
@@ -99,23 +93,21 @@ function NFTCard({ nft }: { nft: MintmarkNFT }) {
             ) : (
               <Bookmark
                 className="h-10 w-10"
-                style={{ color: 'var(--primary-foreground)' }}
+                style={{ color: 'var(--Controls-Selected)' }}
               />
             )}
           </div>
 
           {/* Source Label (small, uppercase) */}
           <p
-            className="text-[9px] font-medium uppercase"
-            style={{ color: 'var(--page-text-muted)' }}
+            className="text-[9px] font-medium uppercase tracking-wider glass-text-muted"
           >
             {sourceLabel}
           </p>
 
           {/* Event Name - compact */}
           <h3
-            className="font-semibold text-center text-[13px] leading-tight line-clamp-2"
-            style={{ color: 'var(--page-text-primary)' }}
+            className="font-semibold text-center text-[13px] leading-tight line-clamp-2 glass-text-primary"
           >
             {nft.eventName}
           </h3>
@@ -130,14 +122,11 @@ function NFTCard({ nft }: { nft: MintmarkNFT }) {
                 pointerEvents: isHovered ? 'none' : 'auto',
               }}
             >
-              <span
-                className="text-xs"
-                style={{ color: 'var(--page-text-muted)' }}
-              >
+              <span className="text-xs glass-text-muted">
                 {formatDate(nft.mintedAt)}
               </span>
-              <span style={{ color: 'var(--page-text-muted)' }}>•</span>
-              <div className="flex items-center gap-1" style={{ color: 'var(--page-text-muted)' }}>
+              <span className="glass-text-muted">•</span>
+              <div className="flex items-center gap-1 glass-text-muted">
                 <Fingerprint className="w-3 h-3" />
                 <span className="text-xs font-mono">#{shortTokenId}</span>
               </div>
@@ -365,40 +354,40 @@ function StatsCards({ stats }: { stats: { total: number; thisMonth: number; most
   return (
     <div className="flex flex-row gap-2.5 sm:gap-3">
       {/* TOTAL MARKS */}
-      <div className="card-figma rounded-xl p-4 sm:p-5 md:p-6 min-w-[110px] sm:min-w-[120px]">
+      <div className="glass-card rounded-xl p-4 sm:p-5 md:p-6 min-w-[110px] sm:min-w-[120px]">
         <div className="text-center">
-          <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wide" style={{ color: 'var(--page-text-muted)' }}>
+          <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wider glass-text-muted">
             Total Marks
           </p>
-          <p className="text-2xl sm:text-3xl font-bold" style={{ color: 'var(--page-text-primary)' }}>
+          <p className="text-2xl sm:text-3xl font-bold glass-text-primary">
             {stats.total}
           </p>
         </div>
       </div>
 
       {/* THIS MONTH */}
-      <div className="card-figma rounded-xl p-4 sm:p-5 md:p-6 min-w-[110px] sm:min-w-[120px]">
+      <div className="glass-card rounded-xl p-4 sm:p-5 md:p-6 min-w-[110px] sm:min-w-[120px]">
         <div className="text-center">
-          <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wide" style={{ color: 'var(--page-text-muted)' }}>
+          <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wider glass-text-muted">
             This Month
           </p>
-          <p className="text-2xl sm:text-3xl font-bold" style={{ color: 'var(--page-text-primary)' }}>
+          <p className="text-2xl sm:text-3xl font-bold glass-text-primary">
             {stats.thisMonth}
           </p>
         </div>
       </div>
 
       {/* MOST ACTIVE */}
-      <div className="card-figma rounded-xl p-4 sm:p-5 md:p-6 min-w-[130px] sm:min-w-[140px]">
+      <div className="glass-card rounded-xl p-4 sm:p-5 md:p-6 min-w-[130px] sm:min-w-[140px]">
         <div className="text-center">
-          <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wide" style={{ color: 'var(--page-text-muted)' }}>
+          <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wider glass-text-muted">
             Most Active
           </p>
-          <p className="text-base sm:text-lg font-bold leading-tight" style={{ color: 'var(--page-text-primary)' }}>
+          <p className="text-base sm:text-lg font-bold leading-tight glass-text-primary">
             {stats.mostActiveMonth || '—'}
           </p>
           {stats.mostActiveCount !== undefined && stats.mostActiveCount > 0 && (
-            <p className="text-[10px] sm:text-xs mt-1" style={{ color: 'var(--page-text-muted)' }}>
+            <p className="text-[10px] sm:text-xs mt-1 glass-text-muted">
               {stats.mostActiveCount} mark{stats.mostActiveCount !== 1 ? 's' : ''}
             </p>
           )}

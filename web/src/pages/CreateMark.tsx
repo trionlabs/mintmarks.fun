@@ -36,7 +36,6 @@ import {
   ExternalLink,
   AlertCircle,
   Loader2,
-  CheckCircle,
   ChevronDown,
   FilterX,
   AlertTriangle,
@@ -99,7 +98,6 @@ export function CreateMark() {
   } = useAuth()
   const {
     isConnected: isWalletConnected,
-    address: walletAddress,
     error: walletError,
   } = useWallet()
   const { showToast } = useToast()
@@ -475,18 +473,6 @@ export function CreateMark() {
             </Alert>
           )}
 
-          {/* Wallet Connected Info */}
-          {isWalletConnected && walletAddress && !isWrongNetwork && (
-            <Alert variant="success">
-              <CheckCircle className="h-4 w-4" />
-              <AlertTitle>Wallet Connected</AlertTitle>
-              <AlertDescription>
-                Ready to mint on Base • {walletAddress.slice(0, 6)}...
-                {walletAddress.slice(-4)}
-              </AlertDescription>
-            </Alert>
-          )}
-
           {/* Filter Section */}
           <EmailFilter
             filters={filters}
@@ -595,19 +581,19 @@ export function CreateMark() {
               {emails.map((email) => (
                 <Card
                   key={email.id}
-                  className="transition-all hover:scale-[1.01]"
-                  style={{
-                    borderColor:
-                      selectedEmail === email.id
-                        ? 'var(--Controls-Selected)'
-                        : undefined,
-                  }}
+                  variant="figma-hover"
+                  className={`cursor-pointer ${
+                    selectedEmail === email.id 
+                      ? 'ring-2 ring-[var(--Controls-Selected)] ring-offset-2 ring-offset-transparent' 
+                      : ''
+                  }`}
+                  onClick={() => handleMarkIt(email)}
                 >
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                       {/* Email Icon */}
                       <div
-                        className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105"
                         style={{ background: SOURCE_COLORS[email.source].bg }}
                       >
                         <Mail
@@ -622,7 +608,7 @@ export function CreateMark() {
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                           {/* Source Badge */}
                           <span
-                            className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
+                            className="glass-badge inline-block px-2.5 py-1 rounded-full text-xs font-medium"
                             style={{
                               background: SOURCE_COLORS[email.source].bg,
                               color: SOURCE_COLORS[email.source].text,
@@ -635,7 +621,7 @@ export function CreateMark() {
                           {/* Status Badge */}
                           {email.registrationStatus !== 'unknown' && (
                             <span
-                              className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
+                              className="glass-badge inline-block px-2.5 py-1 rounded-full text-xs font-medium"
                               style={{
                                 background:
                                   STATUS_COLORS[email.registrationStatus].bg,
@@ -658,15 +644,15 @@ export function CreateMark() {
 
                         {/* From & Date */}
                         <div
-                          className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm"
+                          className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-sm"
                           style={{ color: 'var(--page-text-secondary)' }}
                         >
-                          <span className="flex items-center gap-1">
-                            <ExternalLink className="h-3 w-3" />
+                          <span className="flex items-center gap-1.5">
+                            <ExternalLink className="h-3.5 w-3.5" />
                             {extractSenderName(email.from)}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="h-3.5 w-3.5" />
                             {formatDate(email.date)}
                           </span>
                         </div>
@@ -681,9 +667,13 @@ export function CreateMark() {
                       </div>
 
                       {/* Mark It Button */}
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 self-center sm:self-start">
                         <Button
-                          onClick={() => handleMarkIt(email)}
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleMarkIt(email)
+                          }}
                           className="gap-2"
                         >
                           <Sparkles className="h-4 w-4" />

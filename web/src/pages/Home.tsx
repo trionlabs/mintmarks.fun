@@ -27,18 +27,17 @@ export function Home() {
   return (
     <>
       {/* Hero Section - Full Width Split Layout */}
-      <section className="relative w-full min-h-[calc(100vh-4rem)]">
-        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-4rem)]">
-          {/* Left Column: Content - aligned with header using calc */}
-          <div 
-            className="relative z-10 flex items-center py-12 lg:py-20"
-            style={{
-              paddingLeft: 'max(1rem, calc((100vw - 80rem) / 2 + 2rem))',
-              paddingRight: '1.5rem',
-            }}
-          >
-            <div className="max-w-xl">
-              {/* Badge */}
+      <section className="relative w-full min-h-[calc(100vh-4rem)] overflow-visible">
+        {/* Container - same as header for alignment */}
+        <div className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-4rem)]">
+          {/* Grid: Left narrower (5/12), Right wider (7/12) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-4rem)]">
+            {/* Left Column: Content - narrower (5 columns) */}
+            <div 
+              className="relative z-20 flex items-center py-12 lg:py-20 lg:col-span-5"
+            >
+              <div className="max-w-lg">
+                {/* Badge */}
               <div className="glass-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 sm:mb-7 md:mb-8">
                 <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 glass-text-primary" />
                 <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase glass-text-primary" style={{ letterSpacing: '0.05em' }}>
@@ -49,7 +48,7 @@ export function Home() {
               {/* Main Title */}
               <h1 className="glass-text-primary text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-5 sm:mb-6 md:mb-7 leading-[1.15] tracking-tight">
                 Marks of Your Commitments.
-                <span className="block mt-2 sm:mt-3 text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-[var(--Controls-Selected)]">
+                <span className="block mt-2 sm:mt-3 text-4xl sm:text-5xl md:text-6xl lg:text-7xl glass-text-secondary">
                   Unlocked.
                 </span>
               </h1>
@@ -108,30 +107,34 @@ export function Home() {
                 <Button
                   variant="outline"
                   size="lg"
-                  onClick={() => navigate('/marks')}
+                  onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
                 >
-                  View My Marks
+                  How It Works
                 </Button>
+              </div>
+              </div>
+            </div>
+
+            {/* Right Column: Email Scatter - wider (7 columns), overflow allowed */}
+            <div className="hidden lg:block relative lg:col-span-7 overflow-visible">
+              {/* Overflow container - cards can spill out */}
+              <div className="absolute inset-0 -left-12 -right-8 overflow-visible z-10">
+                <HeroEmailScatter />
               </div>
             </div>
           </div>
 
-          {/* Right Column: Email Scatter - Interactive (Desktop only) */}
-          <div className="hidden lg:block relative">
-            <HeroEmailScatter />
-          </div>
-        </div>
-
-        {/* Mobile & Tablet: Compact Email Scatter below hero content */}
-        <div className="lg:hidden px-4 pb-8">
-          <div className="max-w-md sm:max-w-3xl mx-auto">
-            <HeroEmailScatter />
+          {/* Mobile & Tablet: Compact Email Scatter below hero content */}
+          <div className="lg:hidden pb-8">
+            <div className="max-w-md sm:max-w-3xl mx-auto">
+              <HeroEmailScatter />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
+      <section id="how-it-works" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
         <div className="text-center mb-12">
           <h2 className="glass-text-primary text-2xl sm:text-3xl font-bold mb-4">
             Why MintMarks?
@@ -144,8 +147,14 @@ export function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card variant="glass">
             <CardContent className="pt-6">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-[var(--Controls-Idle)]">
-                <Shield className="h-6 w-6 text-[var(--Controls-Selected)]" />
+              <div 
+                className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 border backdrop-blur-sm"
+                style={{ 
+                  background: 'var(--glass-bg-secondary)',
+                  borderColor: 'var(--glass-border)'
+                }}
+              >
+                <Shield className="h-6 w-6" style={{ color: 'var(--page-text-secondary)' }} />
               </div>
               <h3 className="glass-text-primary font-semibold mb-2">
                 Privacy First
@@ -159,8 +168,14 @@ export function Home() {
 
           <Card variant="glass">
             <CardContent className="pt-6">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-[var(--Controls-Idle)]">
-                <Zap className="h-6 w-6 text-[var(--Controls-Selected)]" />
+              <div 
+                className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 border backdrop-blur-sm"
+                style={{ 
+                  background: 'var(--glass-bg-secondary)',
+                  borderColor: 'var(--glass-border)'
+                }}
+              >
+                <Zap className="h-6 w-6" style={{ color: 'var(--page-text-secondary)' }} />
               </div>
               <h3 className="glass-text-primary font-semibold mb-2">
                 Fast & Cheap
@@ -173,8 +188,14 @@ export function Home() {
 
           <Card variant="glass">
             <CardContent className="pt-6">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-[var(--Controls-Idle)]">
-                <Sparkles className="h-6 w-6 text-[var(--Controls-Selected)]" />
+              <div 
+                className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 border backdrop-blur-sm"
+                style={{ 
+                  background: 'var(--glass-bg-secondary)',
+                  borderColor: 'var(--glass-border)'
+                }}
+              >
+                <Sparkles className="h-6 w-6" style={{ color: 'var(--page-text-secondary)' }} />
               </div>
               <h3 className="glass-text-primary font-semibold mb-2">
                 Unique Collectibles
