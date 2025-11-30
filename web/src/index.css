@@ -94,6 +94,34 @@
   --Controls-Idle: rgba(99, 150, 244, 0.1);
   --controls-selected-light: rgba(99, 150, 244, 0.4);
 
+  /* ===== AUTH INDICATOR ===== */
+  /* Container */
+  --auth-indicator-bg: var(--glass-bg-secondary);
+  --auth-indicator-bg-hover: var(--glass-bg-primary);
+  --auth-indicator-shadow: var(--glass-shadow);
+  --auth-indicator-shadow-hover: var(--glass-shadow-hover);
+  
+  /* Gmail Icon States */
+  --gmail-icon-connected-bg: rgba(34, 197, 94, 0.15);
+  --gmail-icon-connected-color: rgb(34, 197, 94);
+  --gmail-icon-connected-glow: 0 0 8px rgba(34, 197, 94, 0.2);
+  --gmail-icon-error-bg: rgba(239, 68, 68, 0.15);
+  --gmail-icon-error-color: rgb(239, 68, 68);
+  
+  /* Wallet Icon States */
+  --wallet-icon-connected-bg: rgba(34, 197, 94, 0.15);
+  --wallet-icon-connected-color: rgb(34, 197, 94);
+  --wallet-icon-connected-glow: 0 0 12px rgba(34, 197, 94, 0.25);
+  --wallet-icon-disconnected-bg: rgba(107, 114, 128, 0.1);
+  --wallet-icon-disconnected-color: rgb(107, 114, 128);
+  --wallet-icon-error-bg: rgba(239, 68, 68, 0.15);
+  --wallet-icon-error-color: rgb(239, 68, 68);
+  
+  /* Animation Timing */
+  --auth-transition-fast: 150ms;
+  --auth-transition-normal: 200ms;
+  --auth-transition-slow: 300ms;
+
   /* ===== EMAIL SOURCE COLORS ===== */
   /* Luma - Purple */
   --source-luma: oklch(0.628 0.195 292);
@@ -267,6 +295,25 @@
   --Controls-Selected: #6396F4;
   --Controls-Idle: rgba(99, 150, 244, 0.2);
   --controls-selected-light: rgba(99, 150, 244, 0.5);
+
+  /* ===== AUTH INDICATOR (Dark Mode) ===== */
+  /* Container - inherits from glass vars, no override needed */
+  
+  /* Gmail Icon States (brighter for dark mode) */
+  --gmail-icon-connected-bg: rgba(34, 197, 94, 0.2);
+  --gmail-icon-connected-color: rgb(74, 222, 128);
+  --gmail-icon-connected-glow: 0 0 10px rgba(34, 197, 94, 0.3);
+  --gmail-icon-error-bg: rgba(239, 68, 68, 0.2);
+  --gmail-icon-error-color: rgb(248, 113, 113);
+  
+  /* Wallet Icon States (brighter for dark mode) */
+  --wallet-icon-connected-bg: rgba(34, 197, 94, 0.2);
+  --wallet-icon-connected-color: rgb(74, 222, 128);
+  --wallet-icon-connected-glow: 0 0 14px rgba(34, 197, 94, 0.35);
+  --wallet-icon-disconnected-bg: rgba(156, 163, 175, 0.15);
+  --wallet-icon-disconnected-color: rgb(156, 163, 175);
+  --wallet-icon-error-bg: rgba(239, 68, 68, 0.2);
+  --wallet-icon-error-color: rgb(248, 113, 113);
 
   /* ===== EMAIL SOURCE COLORS (Dark Mode) ===== */
   /* Luma - Purple (brighter for dark mode) */
