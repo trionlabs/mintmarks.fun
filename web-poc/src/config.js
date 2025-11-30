@@ -33,7 +33,9 @@ export const ZKPASSPORT_CONFIG = {
   // Domain must match origin for WebSocket to work
   // In devMode, proofs are generated with this domain - contract must accept it
   domain: isDev ? 'localhost' : 'mintmarks.fun',
-  scope: 'mintmarks-personhood',
+  // Fixed scope produces stable passportId for 1:1 wallet-passport binding
+  // Same passport always produces same uniqueIdentifier across all events
+  scope: 'mintmarks',
   devMode: isDev,
 }
 
@@ -45,11 +47,15 @@ export const MINTMARKS_ABI = [
   { type: 'error', name: 'InvalidPassportScope', inputs: [] },
   { type: 'error', name: 'InvalidBoundAddress', inputs: [] },
   { type: 'error', name: 'InvalidBoundChain', inputs: [] },
-  { type: 'error', name: 'InvalidBoundEmailNullifier', inputs: [] },
   { type: 'error', name: 'EmailNullifierAlreadyUsed', inputs: [] },
-  { type: 'error', name: 'PassportIdAlreadyUsed', inputs: [] },
+  { type: 'error', name: 'AlreadyMintedThisEvent', inputs: [] },
+  { type: 'error', name: 'PassportAlreadyUsedForEvent', inputs: [] },
   { type: 'error', name: 'EventNameTooLong', inputs: [] },
   { type: 'error', name: 'NonTransferable', inputs: [] },
+  { type: 'error', name: 'NotMinted', inputs: [] },
+  { type: 'error', name: 'AlreadyVerified', inputs: [] },
+  { type: 'error', name: 'WalletBoundToDifferentPassport', inputs: [] },
+  { type: 'error', name: 'PassportBoundToDifferentWallet', inputs: [] },
   // Events
   {
     type: 'event',
@@ -60,6 +66,7 @@ export const MINTMARKS_ABI = [
       { name: 'eventName', type: 'string', indexed: false },
       { name: 'emailNullifier', type: 'bytes32', indexed: false },
       { name: 'passportId', type: 'bytes32', indexed: false },
+      { name: 'passportVerified', type: 'bool', indexed: false },
     ],
   },
   {
@@ -73,7 +80,27 @@ export const MINTMARKS_ABI = [
       { name: 'value', type: 'uint256', indexed: false },
     ],
   },
-  // Functions
+  {
+    type: 'event',
+    name: 'Upgraded',
+    inputs: [
+      { name: 'user', type: 'address', indexed: true },
+      { name: 'tokenId', type: 'uint256', indexed: true },
+      { name: 'passportId', type: 'bytes32', indexed: false },
+    ],
+  },
+  // Functions: Email-only mint
+  {
+    inputs: [
+      { name: 'emailProof', type: 'bytes' },
+      { name: 'emailPublicInputs', type: 'bytes32[]' },
+    ],
+    name: 'mint',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // Functions: Passport-verified mint
   {
     inputs: [
       { name: 'emailProof', type: 'bytes' },
@@ -106,7 +133,44 @@ export const MINTMARKS_ABI = [
         ],
       },
     ],
-    name: 'mint',
+    name: 'mintWithPassport',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // Functions: Upgrade email-only to passport-verified
+  {
+    inputs: [
+      { name: 'tokenId', type: 'uint256' },
+      {
+        name: 'passportParams',
+        type: 'tuple',
+        components: [
+          { name: 'version', type: 'bytes32' },
+          {
+            name: 'proofVerificationData',
+            type: 'tuple',
+            components: [
+              { name: 'vkeyHash', type: 'bytes32' },
+              { name: 'proof', type: 'bytes' },
+              { name: 'publicInputs', type: 'bytes32[]' },
+            ],
+          },
+          { name: 'committedInputs', type: 'bytes' },
+          {
+            name: 'serviceConfig',
+            type: 'tuple',
+            components: [
+              { name: 'validityPeriodInSeconds', type: 'uint256' },
+              { name: 'domain', type: 'string' },
+              { name: 'scope', type: 'string' },
+              { name: 'devMode', type: 'bool' },
+            ],
+          },
+        ],
+      },
+    ],
+    name: 'upgradeToVerified',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -116,6 +180,26 @@ export const MINTMARKS_ABI = [
     name: 'getTokenId',
     outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'user', type: 'address' },
+      { name: 'tokenId', type: 'uint256' },
+    ],
+    name: 'getVerificationStatus',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'users', type: 'address[]' },
+      { name: 'tokenIds', type: 'uint256[]' },
+    ],
+    name: 'getVerificationStatusBatch',
+    outputs: [{ name: '', type: 'bool[]' }],
+    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -136,6 +220,16 @@ export const MINTMARKS_ABI = [
     type: 'function',
   },
   {
+    inputs: [
+      { name: 'user', type: 'address' },
+      { name: 'tokenId', type: 'uint256' },
+    ],
+    name: 'userTokenURI',
+    outputs: [{ name: '', type: 'string' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [{ name: 'tokenId', type: 'uint256' }],
     name: 'tokenNames',
     outputs: [{ name: '', type: 'string' }],
@@ -146,6 +240,40 @@ export const MINTMARKS_ABI = [
     inputs: [{ name: '', type: 'bytes32' }],
     name: 'emailNullifierUsed',
     outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: '', type: 'address' },
+      { name: '', type: 'uint256' },
+    ],
+    name: 'hasMinted',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: '', type: 'address' },
+      { name: '', type: 'uint256' },
+    ],
+    name: 'isPassportVerified',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: '', type: 'address' }],
+    name: 'walletPassport',
+    outputs: [{ name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: '', type: 'bytes32' }],
+    name: 'passportWallet',
+    outputs: [{ name: '', type: 'address' }],
     stateMutability: 'view',
     type: 'function',
   },

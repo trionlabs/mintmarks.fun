@@ -119,6 +119,7 @@ contract MintmarksTest is Test {
         sampleEmailInputs[323] = bytes32(eventName.length);
 
         // Setup passport params (mostly empty for mock)
+        // Fixed scope "mintmarks" produces stable passportId for 1:1 wallet binding
         samplePassportParams = ProofVerificationParams({
             version: bytes32(0),
             proofVerificationData: ProofVerificationData({
@@ -130,30 +131,33 @@ contract MintmarksTest is Test {
             serviceConfig: ServiceConfig({
                 validityPeriodInSeconds: 3600,
                 domain: "mintmarks.fun",
-                scope: "mintmarks-personhood",
+                scope: "mintmarks",
                 devMode: false
             })
         });
 
         // Setup mock helper with correct bound data
-        // Email nullifier as hex string: 0x000...abcd
-        string memory nullifierHex = _bytes32ToHexString(sampleEmailInputs[1]);
-        mockPassportVerifier.helper().setBoundData(alice, block.chainid, nullifierHex);
+        mockPassportVerifier.helper().setBoundData(alice, block.chainid, "");
     }
 
-    function test_mint_success() public {
+    /*//////////////////////////////////////////////////////////////
+                         EMAIL-ONLY MINT TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_mint_email_only_success() public {
         vm.prank(alice);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mint("", sampleEmailInputs);
 
         uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
 
         assertEq(mintmarks.balanceOf(alice, tokenId), 1);
         assertEq(mintmarks.tokenNames(tokenId), "NPC Side Event");
         assertTrue(mintmarks.emailNullifierUsed(sampleEmailInputs[1]));
-        assertTrue(mintmarks.passportIdUsed(mockPassportVerifier.uniqueId()));
+        assertTrue(mintmarks.hasMinted(alice, tokenId));
+        assertFalse(mintmarks.isPassportVerified(alice, tokenId));
     }
 
-    function test_mint_emits_event() public {
+    function test_mint_email_only_emits_event() public {
         uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
 
         vm.expectEmit(true, true, false, true);
@@ -162,86 +166,218 @@ contract MintmarksTest is Test {
             tokenId,
             "NPC Side Event",
             sampleEmailInputs[1],
-            mockPassportVerifier.uniqueId()
+            bytes32(0),
+            false
         );
 
         vm.prank(alice);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mint("", sampleEmailInputs);
     }
 
-    function test_mint_reverts_on_invalid_email_proof() public {
+    function test_mint_email_only_reverts_on_invalid_proof() public {
         mockEmailVerifier.setVerify(false);
 
         vm.prank(alice);
         vm.expectRevert(Mintmarks.InvalidEmailProof.selector);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mint("", sampleEmailInputs);
     }
 
-    function test_mint_reverts_on_invalid_passport_proof() public {
+    function test_mint_email_only_reverts_on_nullifier_reuse() public {
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        vm.prank(bob);
+        vm.expectRevert(Mintmarks.EmailNullifierAlreadyUsed.selector);
+        mintmarks.mint("", sampleEmailInputs);
+    }
+
+    function test_mint_email_only_reverts_on_same_event_twice() public {
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        // Different email nullifier, same event
+        sampleEmailInputs[1] = bytes32(uint256(0xdead));
+
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.AlreadyMintedThisEvent.selector);
+        mintmarks.mint("", sampleEmailInputs);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                      PASSPORT-VERIFIED MINT TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_mint_with_passport_success() public {
+        vm.prank(alice);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        assertEq(mintmarks.balanceOf(alice, tokenId), 1);
+        assertEq(mintmarks.tokenNames(tokenId), "NPC Side Event");
+        assertTrue(mintmarks.emailNullifierUsed(sampleEmailInputs[1]));
+        assertTrue(mintmarks.hasMinted(alice, tokenId));
+        assertTrue(mintmarks.isPassportVerified(alice, tokenId));
+        assertTrue(mintmarks.passportUsedForEvent(mockPassportVerifier.uniqueId(), tokenId));
+    }
+
+    function test_mint_with_passport_emits_event() public {
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        vm.expectEmit(true, true, false, true);
+        emit Mintmarks.Minted(
+            alice,
+            tokenId,
+            "NPC Side Event",
+            sampleEmailInputs[1],
+            mockPassportVerifier.uniqueId(),
+            true
+        );
+
+        vm.prank(alice);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+    }
+
+    function test_mint_with_passport_reverts_on_invalid_email_proof() public {
+        mockEmailVerifier.setVerify(false);
+
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.InvalidEmailProof.selector);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+    }
+
+    function test_mint_with_passport_reverts_on_invalid_passport_proof() public {
         mockPassportVerifier.setVerify(false);
 
         vm.prank(alice);
         vm.expectRevert(Mintmarks.InvalidPassportProof.selector);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
     }
 
-    function test_mint_reverts_on_invalid_scope() public {
+    function test_mint_with_passport_reverts_on_invalid_scope() public {
         mockPassportVerifier.helper().setScopeValid(false);
 
         vm.prank(alice);
         vm.expectRevert(Mintmarks.InvalidPassportScope.selector);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
     }
 
-    function test_mint_reverts_on_wrong_sender() public {
-        // Bound data has alice, but bob is calling
+    function test_mint_with_passport_reverts_on_wrong_sender() public {
         vm.prank(bob);
         vm.expectRevert(Mintmarks.InvalidBoundAddress.selector);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
     }
 
-    function test_mint_reverts_on_wrong_chain() public {
-        // Set wrong chain ID in bound data
-        string memory nullifierHex = _bytes32ToHexString(sampleEmailInputs[1]);
-        mockPassportVerifier.helper().setBoundData(alice, 999, nullifierHex);
+    function test_mint_with_passport_reverts_on_wrong_chain() public {
+        mockPassportVerifier.helper().setBoundData(alice, 999, "");
 
         vm.prank(alice);
         vm.expectRevert(Mintmarks.InvalidBoundChain.selector);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
     }
 
-    function test_mint_reverts_on_wrong_email_nullifier_binding() public {
-        // Set wrong email nullifier in bound data
-        mockPassportVerifier.helper().setBoundData(alice, block.chainid, "0xwrongnullifier");
+    function test_mint_with_passport_reverts_on_same_event_twice() public {
+        vm.prank(alice);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
+        // Different email nullifier, same event
+        sampleEmailInputs[1] = bytes32(uint256(0xdead));
 
         vm.prank(alice);
-        vm.expectRevert(Mintmarks.InvalidBoundEmailNullifier.selector);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        vm.expectRevert(Mintmarks.AlreadyMintedThisEvent.selector);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
     }
 
-    function test_mint_reverts_on_email_nullifier_reuse() public {
+    function test_mint_with_passport_reverts_on_passport_reuse_different_wallet() public {
         vm.prank(alice);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
 
-        // Try to mint again with same email nullifier but different passport
+        // Setup bob with different email but same passport
+        sampleEmailInputs[1] = bytes32(uint256(0xbeef));
+        mockPassportVerifier.helper().setBoundData(bob, block.chainid, "");
+        // Keep same passport uniqueId - now bound to Alice's wallet
+
+        // 1:1 binding: passport already bound to alice, can't be used by bob
+        vm.prank(bob);
+        vm.expectRevert(Mintmarks.PassportBoundToDifferentWallet.selector);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                    1:1 WALLET-PASSPORT BINDING TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_wallet_bound_to_different_passport_reverts() public {
+        // Alice mints with passport 1
+        vm.prank(alice);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
+        // Alice tries to use a different passport for another event
+        sampleEmailInputs[1] = bytes32(uint256(0xdead));
+        bytes memory eventName2 = "Another Event";
+        for (uint256 i = 0; i < eventName2.length && i < 256; i++) {
+            sampleEmailInputs[67 + i] = bytes32(uint256(uint8(eventName2[i])));
+        }
+        for (uint256 i = eventName2.length; i < 256; i++) {
+            sampleEmailInputs[67 + i] = bytes32(0);
+        }
+        sampleEmailInputs[323] = bytes32(eventName2.length);
+
+        // Set a different passport uniqueId
         mockPassportVerifier.setUniqueId(bytes32(uint256(0x2222)));
 
+        // Alice tries to mint with different passport - should fail
+        // 1:1 binding: wallet already bound to passport 0x1111
         vm.prank(alice);
-        vm.expectRevert(Mintmarks.EmailNullifierAlreadyUsed.selector);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        vm.expectRevert(Mintmarks.WalletBoundToDifferentPassport.selector);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
     }
 
-    function test_same_passport_can_mint_different_emails() public {
-        // First mint with email nullifier 0xabcd
+    function test_wallet_passport_mappings_set_correctly() public {
+        bytes32 passportId = mockPassportVerifier.uniqueId();
+
+        // Before mint, mappings should be empty
+        assertEq(mintmarks.walletPassport(alice), bytes32(0));
+        assertEq(mintmarks.passportWallet(passportId), address(0));
+
+        // Alice mints with passport
         vm.prank(alice);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
 
-        // Same passport, different email nullifier - should work
+        // Mappings should be set
+        assertEq(mintmarks.walletPassport(alice), passportId);
+        assertEq(mintmarks.passportWallet(passportId), alice);
+    }
+
+    function test_upgrade_sets_wallet_passport_binding() public {
+        bytes32 passportId = mockPassportVerifier.uniqueId();
+
+        // Alice mints email-only
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        // Before upgrade, mappings should be empty
+        assertEq(mintmarks.walletPassport(alice), bytes32(0));
+        assertEq(mintmarks.passportWallet(passportId), address(0));
+
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        // Alice upgrades
+        vm.prank(alice);
+        mintmarks.upgradeToVerified(tokenId, samplePassportParams);
+
+        // Mappings should be set
+        assertEq(mintmarks.walletPassport(alice), passportId);
+        assertEq(mintmarks.passportWallet(passportId), alice);
+    }
+
+    function test_upgrade_reverts_if_wallet_bound_to_different_passport() public {
+        // Alice mints with passport for event 1
+        vm.prank(alice);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
+        // Alice mints email-only for event 2
         sampleEmailInputs[1] = bytes32(uint256(0xdead));
-        string memory newNullifierHex = _bytes32ToHexString(sampleEmailInputs[1]);
-        mockPassportVerifier.helper().setBoundData(alice, block.chainid, newNullifierHex);
-
-        // Change event name for second mint
         bytes memory eventName2 = "Another Event";
         for (uint256 i = 0; i < eventName2.length && i < 256; i++) {
             sampleEmailInputs[67 + i] = bytes32(uint256(uint8(eventName2[i])));
@@ -252,44 +388,385 @@ contract MintmarksTest is Test {
         sampleEmailInputs[323] = bytes32(eventName2.length);
 
         vm.prank(alice);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mint("", sampleEmailInputs);
 
-        // Alice should have both tokens
+        uint256 tokenId2 = mintmarks.getTokenId("Another Event");
+
+        // Alice tries to upgrade with a different passport
+        mockPassportVerifier.setUniqueId(bytes32(uint256(0x3333)));
+
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.WalletBoundToDifferentPassport.selector);
+        mintmarks.upgradeToVerified(tokenId2, samplePassportParams);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                    CROSS-MODE AND MULTI-MINT TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_same_passport_can_mint_different_events() public {
+        // First mint event 1
+        vm.prank(alice);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
+        // Different email nullifier and event name
+        sampleEmailInputs[1] = bytes32(uint256(0xdead));
+        bytes memory eventName2 = "Another Event";
+        for (uint256 i = 0; i < eventName2.length && i < 256; i++) {
+            sampleEmailInputs[67 + i] = bytes32(uint256(uint8(eventName2[i])));
+        }
+        for (uint256 i = eventName2.length; i < 256; i++) {
+            sampleEmailInputs[67 + i] = bytes32(0);
+        }
+        sampleEmailInputs[323] = bytes32(eventName2.length);
+
+        // Same passport, different event - should work
+        vm.prank(alice);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
         uint256 tokenId1 = mintmarks.getTokenId("NPC Side Event");
         uint256 tokenId2 = mintmarks.getTokenId("Another Event");
         assertEq(mintmarks.balanceOf(alice, tokenId1), 1);
         assertEq(mintmarks.balanceOf(alice, tokenId2), 1);
+        assertTrue(mintmarks.isPassportVerified(alice, tokenId1));
+        assertTrue(mintmarks.isPassportVerified(alice, tokenId2));
     }
 
-    function test_different_users_can_mint_same_event() public {
+    function test_different_users_can_mint_same_event_email_only() public {
         // Alice mints
         vm.prank(alice);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mint("", sampleEmailInputs);
 
-        // Setup for Bob with different nullifiers
+        // Bob mints with different email nullifier
         sampleEmailInputs[1] = bytes32(uint256(0xbeef));
-        string memory bobNullifierHex = _bytes32ToHexString(sampleEmailInputs[1]);
-        mockPassportVerifier.helper().setBoundData(bob, block.chainid, bobNullifierHex);
-        mockPassportVerifier.setUniqueId(bytes32(uint256(0x3333)));
 
-        // Bob mints
         vm.prank(bob);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mint("", sampleEmailInputs);
 
         uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
         assertEq(mintmarks.balanceOf(alice, tokenId), 1);
         assertEq(mintmarks.balanceOf(bob, tokenId), 1);
+        assertFalse(mintmarks.isPassportVerified(alice, tokenId));
+        assertFalse(mintmarks.isPassportVerified(bob, tokenId));
     }
+
+    function test_different_users_can_mint_same_event_with_passport() public {
+        // Alice mints with passport
+        vm.prank(alice);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
+        // Setup for Bob with different email and passport
+        sampleEmailInputs[1] = bytes32(uint256(0xbeef));
+        mockPassportVerifier.helper().setBoundData(bob, block.chainid, "");
+        mockPassportVerifier.setUniqueId(bytes32(uint256(0x3333)));
+
+        // Bob mints with passport
+        vm.prank(bob);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+        assertEq(mintmarks.balanceOf(alice, tokenId), 1);
+        assertEq(mintmarks.balanceOf(bob, tokenId), 1);
+        assertTrue(mintmarks.isPassportVerified(alice, tokenId));
+        assertTrue(mintmarks.isPassportVerified(bob, tokenId));
+    }
+
+    function test_user_cannot_mint_same_event_with_different_modes() public {
+        // Alice mints email-only first
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        // Alice tries to mint same event with passport
+        sampleEmailInputs[1] = bytes32(uint256(0xdead));
+
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.AlreadyMintedThisEvent.selector);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                          UPGRADE TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_upgrade_success() public {
+        // Alice mints email-only first
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        // Verify initial state
+        assertTrue(mintmarks.hasMinted(alice, tokenId));
+        assertFalse(mintmarks.isPassportVerified(alice, tokenId));
+
+        // Alice upgrades to verified
+        vm.prank(alice);
+        mintmarks.upgradeToVerified(tokenId, samplePassportParams);
+
+        // Verify upgraded state
+        assertTrue(mintmarks.isPassportVerified(alice, tokenId));
+        assertTrue(mintmarks.passportUsedForEvent(mockPassportVerifier.uniqueId(), tokenId));
+    }
+
+    function test_upgrade_emits_event() public {
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        vm.expectEmit(true, true, false, true);
+        emit Mintmarks.Upgraded(alice, tokenId, mockPassportVerifier.uniqueId());
+
+        vm.prank(alice);
+        mintmarks.upgradeToVerified(tokenId, samplePassportParams);
+    }
+
+    function test_upgrade_reverts_if_not_minted() public {
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.NotMinted.selector);
+        mintmarks.upgradeToVerified(tokenId, samplePassportParams);
+    }
+
+    function test_upgrade_reverts_if_already_verified() public {
+        // Alice mints with passport (already verified)
+        vm.prank(alice);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        // Try to upgrade - should fail
+        mockPassportVerifier.setUniqueId(bytes32(uint256(0x2222))); // Different passport
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.AlreadyVerified.selector);
+        mintmarks.upgradeToVerified(tokenId, samplePassportParams);
+    }
+
+    function test_upgrade_reverts_on_invalid_passport() public {
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        mockPassportVerifier.setVerify(false);
+
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.InvalidPassportProof.selector);
+        mintmarks.upgradeToVerified(tokenId, samplePassportParams);
+    }
+
+    function test_upgrade_reverts_if_user_hasnt_minted() public {
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        // Bob tries to upgrade but Bob hasn't minted this token
+        // The hasMinted check fails before reaching bound address check
+        vm.prank(bob);
+        vm.expectRevert(Mintmarks.NotMinted.selector);
+        mintmarks.upgradeToVerified(tokenId, samplePassportParams);
+    }
+
+    function test_upgrade_reverts_on_wrong_bound_address() public {
+        // Alice mints email-only
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        // Set passport bound data to Bob (not Alice)
+        mockPassportVerifier.helper().setBoundData(bob, block.chainid, "");
+
+        // Alice tries to upgrade with passport bound to Bob
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.InvalidBoundAddress.selector);
+        mintmarks.upgradeToVerified(tokenId, samplePassportParams);
+    }
+
+    function test_upgrade_reverts_on_passport_bound_to_different_wallet() public {
+        // Alice mints email-only
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        // Bob mints with passport for same event (passport now bound to Bob)
+        sampleEmailInputs[1] = bytes32(uint256(0xbeef));
+        mockPassportVerifier.helper().setBoundData(bob, block.chainid, "");
+        // Keep same passport uniqueId
+
+        vm.prank(bob);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
+        // Alice tries to upgrade with same passport - should fail
+        // 1:1 binding: passport bound to bob, alice can't use it
+        mockPassportVerifier.helper().setBoundData(alice, block.chainid, "");
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.PassportBoundToDifferentWallet.selector);
+        mintmarks.upgradeToVerified(tokenId, samplePassportParams);
+    }
+
+    function test_same_passport_can_upgrade_different_events() public {
+        // Alice mints email-only for event 1
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        // Alice mints email-only for event 2
+        sampleEmailInputs[1] = bytes32(uint256(0xdead));
+        bytes memory eventName2 = "Another Event";
+        for (uint256 i = 0; i < eventName2.length && i < 256; i++) {
+            sampleEmailInputs[67 + i] = bytes32(uint256(uint8(eventName2[i])));
+        }
+        for (uint256 i = eventName2.length; i < 256; i++) {
+            sampleEmailInputs[67 + i] = bytes32(0);
+        }
+        sampleEmailInputs[323] = bytes32(eventName2.length);
+
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        uint256 tokenId1 = mintmarks.getTokenId("NPC Side Event");
+        uint256 tokenId2 = mintmarks.getTokenId("Another Event");
+
+        // Upgrade both with same passport
+        vm.prank(alice);
+        mintmarks.upgradeToVerified(tokenId1, samplePassportParams);
+
+        vm.prank(alice);
+        mintmarks.upgradeToVerified(tokenId2, samplePassportParams);
+
+        assertTrue(mintmarks.isPassportVerified(alice, tokenId1));
+        assertTrue(mintmarks.isPassportVerified(alice, tokenId2));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                    VERIFICATION STATUS QUERIES
+    //////////////////////////////////////////////////////////////*/
+
+    function test_get_verification_status() public {
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        // Before mint
+        assertFalse(mintmarks.getVerificationStatus(alice, tokenId));
+
+        // After email-only mint
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+        assertFalse(mintmarks.getVerificationStatus(alice, tokenId));
+
+        // Setup bob with passport
+        sampleEmailInputs[1] = bytes32(uint256(0xbeef));
+        mockPassportVerifier.helper().setBoundData(bob, block.chainid, "");
+        mockPassportVerifier.setUniqueId(bytes32(uint256(0x3333)));
+
+        // After passport mint
+        vm.prank(bob);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+        assertTrue(mintmarks.getVerificationStatus(bob, tokenId));
+    }
+
+    function test_get_verification_status_batch() public {
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        // Alice mints email-only
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        // Bob mints with passport
+        sampleEmailInputs[1] = bytes32(uint256(0xbeef));
+        mockPassportVerifier.helper().setBoundData(bob, block.chainid, "");
+        mockPassportVerifier.setUniqueId(bytes32(uint256(0x3333)));
+
+        vm.prank(bob);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
+        // Batch query
+        address[] memory users = new address[](2);
+        users[0] = alice;
+        users[1] = bob;
+
+        uint256[] memory tokenIds = new uint256[](2);
+        tokenIds[0] = tokenId;
+        tokenIds[1] = tokenId;
+
+        bool[] memory statuses = mintmarks.getVerificationStatusBatch(users, tokenIds);
+        assertFalse(statuses[0]); // Alice - email only
+        assertTrue(statuses[1]);  // Bob - passport verified
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                         METADATA TESTS
+    //////////////////////////////////////////////////////////////*/
 
     function test_uri_returns_base64_json() public {
         vm.prank(alice);
-        mintmarks.mint("", sampleEmailInputs, samplePassportParams);
+        mintmarks.mint("", sampleEmailInputs);
 
         uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
         string memory tokenUri = mintmarks.uri(tokenId);
 
         assertTrue(bytes(tokenUri).length > 0);
         assertTrue(_startsWith(tokenUri, "data:application/json;base64,"));
+    }
+
+    function test_userTokenURI_returns_correct_verification_status() public {
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        // Alice mints email-only
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        // Bob mints with passport
+        sampleEmailInputs[1] = bytes32(uint256(0xbeef));
+        mockPassportVerifier.helper().setBoundData(bob, block.chainid, "");
+        mockPassportVerifier.setUniqueId(bytes32(uint256(0x3333)));
+
+        vm.prank(bob);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+
+        // Check Alice's userTokenURI (email only - should show yellow badge)
+        string memory aliceUri = mintmarks.userTokenURI(alice, tokenId);
+        assertTrue(bytes(aliceUri).length > 0);
+        assertTrue(_startsWith(aliceUri, "data:application/json;base64,"));
+
+        // Check Bob's userTokenURI (passport verified - should show green badge)
+        string memory bobUri = mintmarks.userTokenURI(bob, tokenId);
+        assertTrue(bytes(bobUri).length > 0);
+        assertTrue(_startsWith(bobUri, "data:application/json;base64,"));
+
+        // URIs should be different (different verification levels)
+        assertTrue(keccak256(bytes(aliceUri)) != keccak256(bytes(bobUri)));
+    }
+
+    function test_userTokenURI_returns_empty_for_non_holder() public {
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        // Alice hasn't minted
+        string memory uri = mintmarks.userTokenURI(alice, tokenId);
+        assertEq(bytes(uri).length, 0);
+    }
+
+    function test_userTokenURI_updates_after_upgrade() public {
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+
+        // Alice mints email-only
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        // Get URI before upgrade
+        string memory uriBefore = mintmarks.userTokenURI(alice, tokenId);
+
+        // Alice upgrades
+        vm.prank(alice);
+        mintmarks.upgradeToVerified(tokenId, samplePassportParams);
+
+        // Get URI after upgrade
+        string memory uriAfter = mintmarks.userTokenURI(alice, tokenId);
+
+        // URIs should be different (verification changed)
+        assertTrue(keccak256(bytes(uriBefore)) != keccak256(bytes(uriAfter)));
     }
 
     function test_name_and_symbol() public view {
@@ -303,18 +780,9 @@ contract MintmarksTest is Test {
         assertTrue(_startsWith(contractUri, "data:application/json;base64,"));
     }
 
-    // Helper: convert bytes32 to hex string (must match contract implementation)
-    function _bytes32ToHexString(bytes32 data) internal pure returns (string memory) {
-        bytes memory alphabet = "0123456789abcdef";
-        bytes memory str = new bytes(66);
-        str[0] = "0";
-        str[1] = "x";
-        for (uint256 i = 0; i < 32; i++) {
-            str[2 + i * 2] = alphabet[uint8(data[i] >> 4)];
-            str[3 + i * 2] = alphabet[uint8(data[i] & 0x0f)];
-        }
-        return string(str);
-    }
+    /*//////////////////////////////////////////////////////////////
+                            HELPERS
+    //////////////////////////////////////////////////////////////*/
 
     function _startsWith(string memory str, string memory prefix) internal pure returns (bool) {
         bytes memory strBytes = bytes(str);
