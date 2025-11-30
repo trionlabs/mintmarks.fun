@@ -31,39 +31,39 @@ export interface AuthStatus {
   userEmail: string | null
   gmailLogin: () => void
   gmailLogout: () => void
-  
+
   // Wallet
   isWalletConnected: boolean
   walletAddress: string | null
   walletSource: 'cdp' | 'external' | null
   walletLoading: boolean
   walletDisconnect: () => Promise<void>
-  
+
   // Balance
   balance: number
   balanceLoading: boolean
   balanceSymbol: string
   formattedBalance: string
-  
+
   // Network
   networkName: string
   isTestnet: boolean
-  
+
   // Error States
   gmailAuthError: AuthStatusError | null
   walletConnectionError: AuthStatusError | null
   balanceError: AuthStatusError | null
-  
+
   // Retry Functions
   retryGmailAuth: () => void
   retryWalletConnection: () => void
   retryBalanceFetch: () => void
-  
+
   // Combined States
   connectionTimeout: boolean
   needsWalletCreation: boolean
   isFullyConnected: boolean
-  
+
   // Full Logout (Gmail + Wallet)
   handleFullLogout: () => Promise<void>
   isLoggingOut: boolean
@@ -106,7 +106,7 @@ interface UseAuthStatusOptions {
 export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
   const { overrideChainId } = options
   const { showToast } = useToast()
-  
+
   // Auth context
   const {
     isAuthenticated: isGmailConnected,
@@ -114,7 +114,7 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
     login: gmailLogin,
     logout: gmailLogout,
   } = useAuth()
-  
+
   // Wallet context
   const {
     isConnected: isWalletConnected,
@@ -125,23 +125,23 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
     error: walletContextError,
     chainId: walletChainId,
   } = useWallet()
-  
+
   // Local state
   const [balance, setBalance] = useState(0)
   const [balanceLoading, setBalanceLoading] = useState(false)
   const [connectionTimeout, setConnectionTimeout] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  
+
   // Error states
   const [gmailAuthError, setGmailAuthError] = useState<AuthStatusError | null>(null)
   const [walletConnectionError, setWalletConnectionError] = useState<AuthStatusError | null>(null)
   const [balanceError, setBalanceError] = useState<AuthStatusError | null>(null)
-  
+
   // Refs for cleanup
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const balanceIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
-  
+
   // Computed values
   // Priority: override > wallet's chainId > ACTIVE_NETWORK (fallback for CDP)
   const chainId = overrideChainId ?? walletChainId ?? ACTIVE_NETWORK.chainId
@@ -152,47 +152,47 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
   const networkConfig = Object.values(NETWORKS).find(n => n.chainId === chainId)
   const networkName = networkConfig?.name ?? ACTIVE_NETWORK.name
   const isTestnetNetwork = isTestnet(chainId)
-  
+
   // ============================================
   // Balance Fetching
   // ============================================
-  
+
   const fetchBalance = useCallback(async (address: string) => {
     if (!address) return
-    
+
     // Abort previous request
     abortControllerRef.current?.abort()
     abortControllerRef.current = new AbortController()
-    
+
     setBalanceLoading(true)
     setBalanceError(null)
-    
+
     try {
       const chain = getViemChain(chainId)
       const network = Object.values(NETWORKS).find(n => n.chainId === chainId)
-      
+
       const client = createPublicClient({
         chain,
         transport: http(network?.rpcUrl),
       })
-      
+
       // Add timeout
       const balancePromise = client.getBalance({
         address: address as `0x${string}`,
       })
-      
+
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Balance fetch timeout')), BALANCE_FETCH_TIMEOUT_MS)
       })
-      
+
       const balanceWei = await Promise.race([balancePromise, timeoutPromise])
       const balanceEth = parseFloat(formatEther(balanceWei))
-      
+
       setBalance(balanceEth)
       setBalanceError(null)
     } catch (error) {
       if ((error as Error).name === 'AbortError') return
-      
+
       console.error('[useAuthStatus] Balance fetch failed:', error)
       setBalanceError({
         type: 'balance',
@@ -203,11 +203,11 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
       setBalanceLoading(false)
     }
   }, [chainId])
-  
+
   // ============================================
   // Connection Timeout
   // ============================================
-  
+
   useEffect(() => {
     // Only track timeout when Gmail is connected but wallet is loading
     if (isGmailConnected && walletLoading && !isWalletConnected) {
@@ -221,29 +221,29 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
         clearTimeout(timeoutRef.current)
         timeoutRef.current = null
       }
-      
+
       // Reset timeout flag when connected
       if (isWalletConnected) {
         setConnectionTimeout(false)
       }
     }
-    
+
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
       }
     }
   }, [isGmailConnected, walletLoading, isWalletConnected])
-  
+
   // ============================================
   // Balance Auto-Refresh
   // ============================================
-  
+
   useEffect(() => {
     if (isWalletConnected && walletAddress) {
       // Initial fetch
       fetchBalance(walletAddress)
-      
+
       // Set up interval
       balanceIntervalRef.current = setInterval(() => {
         fetchBalance(walletAddress)
@@ -253,7 +253,7 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
       setBalance(0)
       setBalanceError(null)
     }
-    
+
     return () => {
       if (balanceIntervalRef.current) {
         clearInterval(balanceIntervalRef.current)
@@ -261,11 +261,11 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
       abortControllerRef.current?.abort()
     }
   }, [isWalletConnected, walletAddress, fetchBalance, chainId]) // Re-fetch when chain changes
-  
+
   // ============================================
   // Wallet Context Error Handling
   // ============================================
-  
+
   useEffect(() => {
     if (walletContextError) {
       setWalletConnectionError({
@@ -277,51 +277,51 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
       setWalletConnectionError(null)
     }
   }, [walletContextError])
-  
+
   // ============================================
   // Retry Functions
   // ============================================
-  
+
   const retryGmailAuth = useCallback(() => {
     setGmailAuthError(null)
     gmailLogin()
   }, [gmailLogin])
-  
+
   const retryWalletConnection = useCallback(() => {
     setWalletConnectionError(null)
     setConnectionTimeout(false)
     // Wallet connection is handled by ConnectWalletModal
     // This just clears the error state
   }, [])
-  
+
   const retryBalanceFetch = useCallback(() => {
     if (walletAddress) {
       fetchBalance(walletAddress)
     }
   }, [walletAddress, fetchBalance])
-  
+
   // ============================================
   // Full Logout (Gmail + Wallet)
   // ============================================
-  
+
   const handleFullLogout = useCallback(async () => {
     setIsLoggingOut(true)
-    
+
     try {
       // 1. Disconnect wallet first (if connected)
       if (isWalletConnected) {
         await walletDisconnect()
       }
-      
+
       // 2. Logout Gmail
       gmailLogout()
-      
+
       // 3. Clear all state
       setBalance(0)
       setBalanceError(null)
       setWalletConnectionError(null)
       setConnectionTimeout(false)
-      
+
       showToast('Logged out successfully', 'success')
     } catch (error) {
       console.error('[useAuthStatus] Logout failed:', error)
@@ -330,57 +330,75 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
       setIsLoggingOut(false)
     }
   }, [isWalletConnected, walletDisconnect, gmailLogout, showToast])
-  
+
+  // ============================================
+  // Linked Logout Listener
+  // ============================================
+
+  useEffect(() => {
+    const handleAuthLogout = () => {
+      if (isWalletConnected) {
+        console.log('[useAuthStatus] Detected auth:logout event, disconnecting wallet...')
+        walletDisconnect().catch(err => {
+          console.error('[useAuthStatus] Failed to disconnect wallet on auth:logout:', err)
+        })
+      }
+    }
+
+    window.addEventListener('auth:logout', handleAuthLogout)
+    return () => window.removeEventListener('auth:logout', handleAuthLogout)
+  }, [isWalletConnected, walletDisconnect])
+
   // ============================================
   // Computed States
   // ============================================
-  
+
   const needsWalletCreation = isGmailConnected && !isWalletConnected && !walletLoading
   const isFullyConnected = isGmailConnected && isWalletConnected
-  
+
   // ============================================
   // Return Value
   // ============================================
-  
+
   return useMemo(() => ({
     // Gmail Auth
     isGmailConnected,
     userEmail,
     gmailLogin,
     gmailLogout,
-    
+
     // Wallet
     isWalletConnected,
     walletAddress,
     walletSource,
     walletLoading,
     walletDisconnect,
-    
+
     // Balance
     balance,
     balanceLoading,
     balanceSymbol,
     formattedBalance,
-    
+
     // Network
     networkName,
     isTestnet: isTestnetNetwork,
-    
+
     // Error States
     gmailAuthError,
     walletConnectionError,
     balanceError,
-    
+
     // Retry Functions
     retryGmailAuth,
     retryWalletConnection,
     retryBalanceFetch,
-    
+
     // Combined States
     connectionTimeout,
     needsWalletCreation,
     isFullyConnected,
-    
+
     // Full Logout
     handleFullLogout,
     isLoggingOut,

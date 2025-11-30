@@ -468,10 +468,10 @@ export function UnifiedAuthIndicator({
         onClick={debouncedGmailLogin}
         variant="outline"
         size="sm"
-        className={cn('h-8 px-3 gap-1.5 text-sm', className)}
+        className={cn('h-9 px-4 sm:px-5 gap-2 text-sm', className)}
         aria-label={getAriaLabel()}
       >
-        <Mail className="w-3.5 h-3.5" aria-hidden="true" />
+        <Mail className="w-4 h-4" aria-hidden="true" />
         Sign in
       </Button>
     )
@@ -486,21 +486,23 @@ export function UnifiedAuthIndicator({
       <button
         onClick={debouncedRetryGmail}
         className={cn(
-          'flex items-center gap-1.5 h-8 px-2.5 rounded-md text-sm',
+          'flex items-center gap-2 h-9 px-4 sm:px-5 rounded-md text-sm',
           'transition-colors duration-200',
           className
         )}
         style={{
           backgroundColor: 'var(--gmail-icon-error-bg)',
           color: 'var(--gmail-icon-error-color)',
+          transform: 'none',
+          translate: 'none',
         }}
         aria-label={getAriaLabel()}
         tabIndex={0}
         onKeyDown={handleKeyDown}
       >
-        <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
+        <AlertTriangle className="w-4 h-4" aria-hidden="true" />
         <span>Auth Error</span>
-        <RefreshCw className="w-3 h-3" aria-hidden="true" />
+        <RefreshCw className="w-4 h-4" aria-hidden="true" />
       </button>
     )
   }
@@ -514,27 +516,29 @@ export function UnifiedAuthIndicator({
       <button
         onClick={debouncedRetryWallet}
         className={cn(
-          'flex items-center gap-1.5 h-8 px-2.5 rounded-md text-sm',
+          'flex items-center gap-2 h-9 px-4 sm:px-5 rounded-md text-sm',
           'transition-colors duration-200',
           className
         )}
         style={{
           backgroundColor: 'var(--wallet-icon-error-bg)',
           color: 'var(--wallet-icon-error-color)',
+          transform: 'none',
+          translate: 'none',
         }}
         aria-label={getAriaLabel()}
         tabIndex={0}
         onKeyDown={handleKeyDown}
       >
         <Mail 
-          className="w-3.5 h-3.5" 
+          className="w-4 h-4" 
           style={{ color: 'var(--gmail-icon-connected-color)' }}
           aria-hidden="true" 
         />
         <span className="text-muted-foreground">{emailName}</span>
-        <div className="w-px h-3.5 bg-border/60 mx-0.5" aria-hidden="true" />
-        <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
-        <RefreshCw className="w-3 h-3" aria-hidden="true" />
+        <div className="w-px h-4 bg-border/60 mx-0.5" aria-hidden="true" />
+        <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+        <RefreshCw className="w-4 h-4" aria-hidden="true" />
       </button>
     )
   }
@@ -550,12 +554,16 @@ export function UnifiedAuthIndicator({
       <button
         onClick={() => !isLoading && onWalletClick?.()}
         className={cn(
-          'flex items-center gap-1.5 h-8 px-2.5 rounded-md text-sm',
+          'flex items-center gap-2 h-9 px-4 sm:px-5 rounded-md text-sm',
           'bg-muted/50 hover:bg-muted border border-border/50',
           'transition-colors duration-200',
           isLoading && 'cursor-wait',
           className
         )}
+        style={{
+          transform: 'none',
+          translate: 'none',
+        }}
         disabled={isLoading}
         aria-label={getAriaLabel()}
         aria-busy={isLoading}
@@ -563,7 +571,7 @@ export function UnifiedAuthIndicator({
         onKeyDown={handleKeyDown}
       >
         <Mail 
-          className="w-3.5 h-3.5"
+          className="w-4 h-4"
           style={{ color: 'var(--gmail-icon-connected-color)' }}
           aria-hidden="true"
         />
@@ -571,7 +579,7 @@ export function UnifiedAuthIndicator({
           {isLoading ? 'Connecting...' : emailName}
         </span>
         <Wallet 
-          className="w-3.5 h-3.5"
+          className="w-4 h-4"
           style={{ color: 'var(--wallet-icon-disconnected-color)' }}
           aria-hidden="true"
         />
@@ -596,14 +604,18 @@ export function UnifiedAuthIndicator({
           onTouchEnd={handleTouchEnd}
           onKeyDown={handleKeyDown}
           className={cn(
-            'flex items-center gap-1 h-8 pl-1.5 pr-2 rounded-md text-sm',
+            'flex items-center gap-2 h-9 pl-1.5 pr-2 rounded-md text-sm',
             'bg-muted/50 hover:bg-muted border border-border/50',
-            'transition-all duration-200',
+            'transition-colors transition-opacity duration-200',
             'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             'min-w-[160px]', // Fixed width to prevent layout shift
             isDropdownOpen && 'bg-muted',
             className
           )}
+          style={{
+            transform: 'none',
+            translate: 'none',
+          }}
           aria-label={getAriaLabel()}
           aria-expanded={isDropdownOpen}
           aria-haspopup="menu"
@@ -616,6 +628,13 @@ export function UnifiedAuthIndicator({
           <div 
             className="relative flex items-center gap-1 w-[70px] shrink-0"
             style={showAddress ? { cursor: 'copy' } : undefined}
+            onClick={showAddress ? (e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              handleCopyAddress()
+            } : undefined}
+            onPointerDown={showAddress ? (e) => e.stopPropagation() : undefined}
+            title={walletAddress ?? undefined}
           >
             {balanceLoading ? (
               <span className="font-medium tabular-nums text-foreground animate-pulse">...</span>
@@ -655,9 +674,9 @@ export function UnifiedAuthIndicator({
                 >
                   <span className="truncate min-w-0">{truncateAddress(walletAddress || '')}</span>
                   {copied ? (
-                    <Check className="w-3 h-3 text-green-500 shrink-0" aria-hidden="true" />
+                    <Check className="w-4 h-4 text-green-500 shrink-0" aria-hidden="true" />
                   ) : (
-                    <Copy className="w-3 h-3 text-muted-foreground shrink-0" aria-hidden="true" />
+                    <Copy className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
                   )}
                 </span>
               </>
@@ -665,7 +684,7 @@ export function UnifiedAuthIndicator({
           </div>
           
           {/* Divider */}
-          <div className="w-px h-3.5 bg-border/60 mx-0.5" aria-hidden="true" />
+          <div className="w-px h-4 bg-border/60 mx-0.5" aria-hidden="true" />
           
           {/* Email */}
           <span className="text-muted-foreground text-xs">{emailName}</span>
@@ -673,7 +692,7 @@ export function UnifiedAuthIndicator({
           {/* Chevron */}
           <ChevronDown 
             className={cn(
-              'w-3.5 h-3.5 text-muted-foreground/60 transition-transform duration-200',
+              'w-4 h-4 text-muted-foreground/60 transition-transform duration-200',
               isDropdownOpen && 'rotate-180'
             )} 
             aria-hidden="true"
@@ -742,9 +761,9 @@ export function UnifiedAuthIndicator({
         {/* Networks */}
         <div className="p-2 border-b border-border/50">
           <div className="flex items-center justify-between px-1 mb-1.5">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
               Networks
-            </span>
+            </div>
             {isMultichain && (
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
                 Multichain
