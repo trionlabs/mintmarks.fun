@@ -30,10 +30,27 @@ export function Layout({ children }: LayoutProps) {
   const [isHovered, setIsHovered] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
-  
+
   // Auth states
   const { isAuthenticated: isGmailConnected, userInfo, login: gmailLogin, logout: gmailLogout } = useAuth()
-  const { isConnected: isWalletConnected } = useWallet()
+  const { isConnected: isWalletConnected, disconnect } = useWallet()
+
+  // Listen for auth logout events (manual logout, token expiry, cross-tab sync)
+  // Gmail is primary auth - when it logs out, wallet must disconnect
+  useEffect(() => {
+    const handleAuthLogout = async () => {
+      if (isWalletConnected) {
+        try {
+          await disconnect()
+        } catch (error) {
+          console.error('[Layout] Failed to disconnect wallet on auth logout:', error)
+        }
+      }
+    }
+
+    window.addEventListener('auth:logout', handleAuthLogout)
+    return () => window.removeEventListener('auth:logout', handleAuthLogout)
+  }, [isWalletConnected, disconnect])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -154,18 +171,23 @@ export function Layout({ children }: LayoutProps) {
               </Button>
             )}
 
-            {/* Wallet Status / Connect */}
-            {isWalletConnected ? (
-              <WalletStatus />
-            ) : (
-              <ConnectWalletModal
-                trigger={
-                  <Button variant="outline" size="sm" className="gap-1.5">
-                    <Wallet className="h-4 w-4" />
-                    <span className="hidden sm:inline">Wallet</span>
-                  </Button>
-                }
-              />
+            {/* Wallet Status / Connect - Only show if Gmail is connected */}
+            {isGmailConnected && (
+              <>
+                <div className="h-4 w-px bg-border/50 hidden sm:block mx-1" />
+                {isWalletConnected ? (
+                  <WalletStatus />
+                ) : (
+                  <ConnectWalletModal
+                    trigger={
+                      <Button variant="outline" size="sm" className="gap-1.5 animate-in fade-in zoom-in-95">
+                        <Wallet className="h-4 w-4" />
+                        <span className="hidden sm:inline">Wallet</span>
+                      </Button>
+                    }
+                  />
+                )}
+              </>
             )}
           </div>
         </nav>
