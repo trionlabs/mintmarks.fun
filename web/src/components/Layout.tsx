@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sparkles, Moon, Sun, Home, Plus, Bookmark, FlaskConical } from 'lucide-react'
+import { Sparkles, Moon, Sun, Plus, Bookmark, FlaskConical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/ThemeContext'
 import { UnifiedAuthIndicator } from '@/components/UnifiedAuthIndicator'
@@ -96,13 +96,14 @@ export function Layout({ children }: LayoutProps) {
               style={{ color: 'var(--page-text-primary)' }}
             />
             <span
-              className="font-bold text-lg sm:text-xl"
+              className="font-black text-xl sm:text-2xl"
               style={{
-                color: 'var(--page-text-primary)',
+                color: 'var(--primary)',
                 textShadow: theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
+                fontFamily: "'Cute Font', ui-sans-serif, system-ui, sans-serif",
               }}
             >
-              mintmarks
+              MINTMARKS.FUN
             </span>
           </Link>
 
@@ -117,7 +118,7 @@ export function Layout({ children }: LayoutProps) {
                   to={item.path}
                   className={cn(
                     'flex items-center gap-1.5 px-3 sm:px-4 py-2',
-                    'text-xs sm:text-sm font-medium rounded-md',
+                    'text-sm sm:text-base font-medium rounded-md',
                     'transition-all',
                     isActive
                       ? 'bg-primary/10 backdrop-blur-md'
