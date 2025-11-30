@@ -1,1 +1,0 @@
-../../circuits/solidity-verifier/UltraHonkVerifier.sol
