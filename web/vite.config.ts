@@ -5,6 +5,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import wasm from 'vite-plugin-wasm'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import path from 'path'
+import svgr from 'vite-plugin-svgr';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -16,6 +17,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       wasm(),
       topLevelAwait(),
+      svgr(),
       nodePolyfills({
         include: [
           'buffer',
