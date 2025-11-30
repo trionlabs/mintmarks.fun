@@ -65,36 +65,27 @@ function NFTCard({ nft }: { nft: MintmarkNFT }) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className="relative rounded-2xl p-6 border transition-all duration-200 overflow-hidden h-full flex flex-col"
+        className="relative rounded-xl p-4 border transition-all duration-200 overflow-hidden h-full flex flex-col"
         style={{
-          background: 'var(--glass-bg-secondary)',
-          borderColor: isHovered ? 'var(--controls-selected-light)' : 'var(--glass-border)',
-          backdropFilter: 'blur(var(--glass-blur)) saturate(var(--glass-saturate))',
-          WebkitBackdropFilter: 'blur(var(--glass-blur)) saturate(var(--glass-saturate))',
-          boxShadow: isHovered ? 'var(--glass-shadow-hover)' : 'var(--glass-shadow)',
+          background: 'var(--card)',
+          borderColor: isHovered ? 'var(--border)' : 'transparent',
+          boxShadow: isHovered ? 'var(--card-shadow-hover)' : 'var(--card-shadow)',
         }}
       >
-        {/* Dark overlay for dark mode */}
-        <div className="absolute inset-0 dark:bg-black/20 pointer-events-none rounded-2xl" />
 
         {/* Content */}
-        <div className="relative z-10 flex-1 flex flex-col items-center">
+        <div className="relative z-10 flex flex-col items-center">
           {/* Circular Image/Icon */}
           <div
-            className="w-28 h-28 rounded-full flex items-center justify-center mb-3 overflow-hidden flex-shrink-0"
-            style={{
-              background: nft.imageUri 
-                ? 'transparent' 
-                : 'linear-gradient(135deg, var(--primary) 0%, var(--ring) 100%)',
-              border: '3px solid var(--glass-border)',
-            }}
+            className="w-28 h-28 rounded-full flex items-center justify-center mb-2 overflow-hidden flex-shrink-0"
+            style={{ background: 'var(--muted)' }}
           >
             {nft.imageUri ? (
               nft.imageUri.startsWith('data:image/svg+xml') ? (
                 <img
                   src={nft.imageUri}
                   alt={nft.eventName}
-                  className="w-full h-full object-contain p-2"
+                  className="w-full h-full object-contain p-1.5"
                   loading="lazy"
                 />
               ) : (
@@ -107,7 +98,7 @@ function NFTCard({ nft }: { nft: MintmarkNFT }) {
               )
             ) : (
               <Bookmark
-                className="h-12 w-12"
+                className="h-10 w-10"
                 style={{ color: 'var(--primary-foreground)' }}
               />
             )}
@@ -115,25 +106,22 @@ function NFTCard({ nft }: { nft: MintmarkNFT }) {
 
           {/* Source Label (small, uppercase) */}
           <p
-            className="text-[10px] font-medium uppercase mb-1"
+            className="text-[9px] font-medium uppercase"
             style={{ color: 'var(--page-text-muted)' }}
           >
             {sourceLabel}
           </p>
 
-          {/* Event Name */}
+          {/* Event Name - compact */}
           <h3
-            className="font-semibold text-center text-sm leading-tight mb-3 line-clamp-2"
+            className="font-semibold text-center text-[13px] leading-tight line-clamp-2"
             style={{ color: 'var(--page-text-primary)' }}
           >
             {nft.eventName}
           </h3>
 
-          {/* Spacer */}
-          <div className="flex-1" />
-
           {/* Bottom Section - Date + Token ID / Share */}
-          <div className="w-full mt-auto relative min-h-[32px] flex items-center justify-center">
+          <div className="w-full mt-2 relative min-h-[28px] flex items-center justify-center">
             {/* Normal State - Date + Token ID side by side */}
             <div
               className="absolute inset-0 flex items-center justify-center gap-2 transition-opacity duration-200"
