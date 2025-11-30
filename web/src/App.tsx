@@ -29,15 +29,14 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      {/* LazyMotion: Reduces framer-motion bundle size by ~50% */}
       <LazyMotion features={domAnimation} strict>
-      <ThemeProvider>
-        <ToastProvider>
-          <AuthProvider>
-            <AppContent />
-          </AuthProvider>
-        </ToastProvider>
-      </ThemeProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <AppContent />
+            </AuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
       </LazyMotion>
     </BrowserRouter>
   )
