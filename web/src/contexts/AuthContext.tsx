@@ -21,6 +21,7 @@ import {
 const TOKEN_STORAGE_KEY = 'mintmarks_gmail_access_token'
 const TOKEN_EXPIRE_KEY = 'mintmarks_gmail_token_expire'
 const USER_INFO_KEY = 'mintmarks_user_info'
+const OAUTH_STATE_KEY = 'mintmarks_oauth_state'
 const TOKEN_EXPIRY_BUFFER = 5 * 60 * 1000 // 5 minutes buffer
 
 // Google OAuth scopes
@@ -47,11 +48,11 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   userInfo: UserInfo | null
-  
+
   // Actions
   login: () => void
   logout: () => void
-  
+
   // Helpers
   isTokenExpired: () => boolean
 }
@@ -116,7 +117,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const loadStoredAuth = async () => {
       setIsLoading(true)
-      
+
       const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY)
       const storedExpireTime = localStorage.getItem(TOKEN_EXPIRE_KEY)
       const storedUserInfo = localStorage.getItem(USER_INFO_KEY)
@@ -128,7 +129,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Check if token is still valid (with buffer)
         if (now < expireTime - TOKEN_EXPIRY_BUFFER) {
           setAccessToken(storedToken)
-          
+
           if (storedUserInfo) {
             try {
               setUserInfo(JSON.parse(storedUserInfo))
@@ -144,20 +145,105 @@ export function AuthProvider({ children }: AuthProviderProps) {
           localStorage.removeItem(TOKEN_STORAGE_KEY)
           localStorage.removeItem(TOKEN_EXPIRE_KEY)
           localStorage.removeItem(USER_INFO_KEY)
+
+          // Dispatch event for wallet disconnect on token expiry
+          window.dispatchEvent(new Event('auth:logout'))
         }
       }
-      
+
       setIsLoading(false)
     }
 
     loadStoredAuth()
   }, [fetchUserInfo])
 
+  // Login function - redirect to Google OAuth
+  const login = useCallback(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+
+    if (!clientId) {
+      console.error('Missing VITE_GOOGLE_CLIENT_ID environment variable')
+      return
+    }
+
+    const redirectUri = window.location.origin
+
+    // Generate CSRF state token for security
+    const state = crypto.randomUUID()
+    sessionStorage.setItem(OAUTH_STATE_KEY, state)
+    
+    if (import.meta.env.DEV) {
+      console.log('[AuthContext] OAuth state generated and stored:', state)
+    }
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'token', // Implicit flow
+      scope: GOOGLE_SCOPES,
+      prompt: 'consent', // Always show consent screen
+      state, // CSRF protection
+    })
+
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+    window.location.href = authUrl
+  }, [])
+
+  // Logout function
+  const logout = useCallback(() => {
+    setAccessToken(null)
+    setUserInfo(null)
+    localStorage.removeItem(TOKEN_STORAGE_KEY)
+    localStorage.removeItem(TOKEN_EXPIRE_KEY)
+    localStorage.removeItem(USER_INFO_KEY)
+
+    // Dispatch global logout event for other components (e.g. Layout to disconnect wallet)
+    window.dispatchEvent(new Event('auth:logout'))
+  }, [])
+
+  // Cross-tab synchronization: Listen for auth changes in other tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      // Token removed in another tab → sync logout state
+      if (e.key === TOKEN_STORAGE_KEY && e.newValue === null && e.oldValue !== null) {
+        setAccessToken(null)
+        setUserInfo(null)
+        // Dispatch event so Layout can disconnect wallet
+        window.dispatchEvent(new Event('auth:logout'))
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
+
+  // Token expiry timer: Auto-logout when token expires during active session
+  useEffect(() => {
+    if (!accessToken) return
+
+    const expireTime = localStorage.getItem(TOKEN_EXPIRE_KEY)
+    if (!expireTime) return
+
+    const msUntilExpiry = parseInt(expireTime, 10) - Date.now() - TOKEN_EXPIRY_BUFFER
+    if (msUntilExpiry <= 0) {
+      // Token already expired, logout immediately
+      logout()
+      return
+    }
+
+    const timer = setTimeout(() => {
+      console.log('[AuthContext] Token expired, logging out')
+      logout()
+    }, msUntilExpiry)
+
+    return () => clearTimeout(timer)
+  }, [accessToken, logout])
+
   // Handle OAuth redirect callback
   useEffect(() => {
     const handleOAuthCallback = async () => {
       const hash = window.location.hash
-      
+
       if (!hash || !hash.includes('access_token')) {
         return
       }
@@ -166,6 +252,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const token = params.get('access_token')
       const expiresIn = params.get('expires_in')
       const error = params.get('error')
+      const returnedState = params.get('state')
 
       // Handle OAuth error
       if (error) {
@@ -173,6 +260,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
         window.history.replaceState(null, '', window.location.pathname)
         return
       }
+
+      // CSRF validation: Verify state parameter
+      const storedState = sessionStorage.getItem(OAUTH_STATE_KEY)
+      
+      // Debug logging in development
+      if (import.meta.env.DEV) {
+        console.log('[AuthContext] OAuth callback state validation:', {
+          returnedState,
+          storedState,
+          match: returnedState === storedState,
+        })
+      }
+
+      // State validation
+      if (!storedState) {
+        // No stored state - could be tab restore, HMR reload, or expired session
+        console.warn('[AuthContext] No stored OAuth state found - session may have expired')
+        // In production, reject for security. In dev, allow for easier testing.
+        if (!import.meta.env.DEV) {
+          window.history.replaceState(null, '', window.location.pathname)
+          return
+        }
+      } else if (returnedState !== storedState) {
+        // State mismatch - possible CSRF attack
+        console.error('[AuthContext] OAuth state mismatch - possible CSRF attack', {
+          expected: storedState,
+          received: returnedState,
+        })
+        sessionStorage.removeItem(OAUTH_STATE_KEY)
+        window.history.replaceState(null, '', window.location.pathname)
+        return
+      }
+      
+      // Clean up state
+      sessionStorage.removeItem(OAUTH_STATE_KEY)
 
       if (token) {
         // Calculate expiration time
@@ -194,38 +316,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     handleOAuthCallback()
   }, [fetchUserInfo])
-
-  // Login function - redirect to Google OAuth
-  const login = useCallback(() => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-
-    if (!clientId) {
-      console.error('Missing VITE_GOOGLE_CLIENT_ID environment variable')
-      return
-    }
-
-    const redirectUri = window.location.origin
-    
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: 'token', // Implicit flow
-      scope: GOOGLE_SCOPES,
-      prompt: 'consent', // Always show consent screen
-    })
-
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-    window.location.href = authUrl
-  }, [])
-
-  // Logout function
-  const logout = useCallback(() => {
-    setAccessToken(null)
-    setUserInfo(null)
-    localStorage.removeItem(TOKEN_STORAGE_KEY)
-    localStorage.removeItem(TOKEN_EXPIRE_KEY)
-    localStorage.removeItem(USER_INFO_KEY)
-  }, [])
 
   // Computed state
   const isAuthenticated = !!accessToken && !isTokenExpired()
@@ -253,11 +343,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  
+
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider')
   }
-  
+
   return context
 }
 
