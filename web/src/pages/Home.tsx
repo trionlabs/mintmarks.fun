@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -24,6 +25,34 @@ export function Home() {
   // Check if user is fully connected (both Gmail and Wallet)
   const isFullyConnected = isGmailConnected && isWalletConnected
 
+  // Text rotation states
+  const commitments = [
+    'That Event You Attended 🎟️',
+    'That Newsletter You Subscribed To 📩',
+    'That Community You Joined 🤝',
+    'That Thing You Purchased 🛍️',
+  ]
+  const [commitmentIndex, setCommitmentIndex] = useState(0)
+
+  const unlockOptions = ['Airdrops', 'Communities', 'Perks', 'Access', 'Opportunities']
+  const [unlockIndex, setUnlockIndex] = useState(0)
+
+  // Rotate commitments every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCommitmentIndex((prev) => (prev + 1) % commitments.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [commitments.length])
+
+  // Rotate unlock options every 2.5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setUnlockIndex((prev) => (prev + 1) % unlockOptions.length)
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [unlockOptions.length])
+
   return (
     <>
       {/* Hero Section - Full Width Split Layout */}
@@ -33,85 +62,128 @@ export function Home() {
           {/* Grid: Left narrower (5/12), Right wider (7/12) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-4rem)]">
             {/* Left Column: Content - narrower (5 columns) */}
-            <div 
+            <div
               className="relative z-20 flex items-center py-12 lg:py-20 lg:col-span-5"
             >
               <div className="max-w-lg">
                 {/* Badge */}
-              <div className="glass-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 sm:mb-7 md:mb-8">
-                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 glass-text-primary" />
-                <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase glass-text-primary" style={{ letterSpacing: '0.05em' }}>
-                  Own Your Commitments
-                </span>
-              </div>
-
-              {/* Main Title */}
-              <h1 className="glass-text-primary text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-5 sm:mb-6 md:mb-7 leading-[1.15] tracking-tight">
-                Marks of Your Commitments.
-                <span className="block mt-2 sm:mt-3 text-4xl sm:text-5xl md:text-6xl lg:text-7xl hero-gradient-text">
-                  Unlocked.
-                </span>
-              </h1>
-
-              {/* Description */}
-              <div className="space-y-4 sm:space-y-5 md:space-y-6">
-                <p className="glass-text-secondary text-sm sm:text-base md:text-lg font-medium leading-relaxed">
-                  Every email in your inbox tells a story. That event you attended. 
-                  That newsletter you subscribed to. That community you joined.
-                </p>
-                <p className="glass-text-secondary text-sm sm:text-base md:text-lg font-medium leading-relaxed">
-                  Transform these digital commitments into permanent, on-chain Marks using{' '}
-                  <span className="font-semibold glass-text-primary">
-                    zero-knowledge proofs
-                  </span>
-                  .
-                </p>
-
-                {/* CTA Text */}
-                <p className="glass-text-primary text-lg sm:text-xl md:text-2xl font-bold leading-tight tracking-tight pt-1 sm:pt-2">
-                  Transform. Build. Connect.
-                </p>
-              </div>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row items-start gap-4 mt-8 sm:mt-9 md:mt-10">
-                {isFullyConnected ? (
-                  <Button
-                    size="lg"
-                    onClick={() => navigate('/create')}
-                    className="gap-2"
-                  >
-                    Create Your First Mark
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                ) : (
-                  <>
-                    {!isGmailConnected ? (
-                      <Button size="lg" onClick={gmailLogin} className="gap-2">
-                        <Mail className="h-5 w-5" />
-                        Connect Gmail
-                      </Button>
-                    ) : (
-                      <ConnectWalletModal
-                        trigger={
-                          <Button size="lg" className="gap-2">
-                            <Wallet className="h-5 w-5" />
-                            Connect Wallet
-                          </Button>
-                        }
-                      />
-                    )}
-                  </>
-                )}
-
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+                <div
+                  className="glass-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 sm:mb-7 md:mb-8 transition-all duration-300 hover:scale-105 hero-animate-slide-up"
                 >
-                  How It Works
-                </Button>
-              </div>
+                  <Sparkles
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4 glass-text-primary transition-all duration-300 hero-sparkle-icon"
+                  />
+                  <span className="text-xs sm:text-sm font-semibold tracking-wider glass-text-primary">
+                    Own Your Commitments
+                  </span>
+                </div>
+
+                {/* Hero Content - New Hierarchy */}
+                <div className="space-y-4 sm:space-y-5 md:space-y-6">
+                  {/* h2: Story */}
+                  <div className="space-y-1 sm:space-y-1.5 md:space-y-2">
+                    <h2
+                      className="glass-text-secondary text-base sm:text-lg md:text-xl font-medium leading-relaxed hero-animate-slide-up hero-delay-100"
+                    >
+                      Every Email In Your Inbox Tells A Story.
+                    </h2>
+
+                    {/* Rotating commitments */}
+                    <div
+                      className="glass-text-secondary text-base sm:text-lg md:text-xl font-medium leading-relaxed hero-animate-slide-up hero-delay-150 min-h-[1.5em] relative"
+                    >
+                    <div className="hero-rotate-wrapper">
+                      {commitments.map((commitment, index) => (
+                        <span
+                          key={index}
+                          className={`hero-rotate-item font-medium ${index === commitmentIndex ? 'active' : 'inactive'
+                            }`}
+                        >
+                          {commitment}
+                        </span>
+                      ))}
+                    </div>
+                    </div>
+                  </div>
+
+                  {/* Main Value Proposition - Improved Hierarchy */}
+                  <div className="space-y-5">
+                    {/* h2: Turn Emails */}
+                    <h2
+                      className="glass-text-primary text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.1] tracking-tight hero-animate-slide-up hero-delay-400"
+                    >
+                      Turn Emails
+                    </h2>
+
+                    {/* h1: Into Private Onchain Marks - Largest, Most Important */}
+                    <h1
+                      className="glass-text-primary text-4xl sm:text-5xl md:text-6xl font-extrabold leading-[1.1] tracking-tight hero-animate-slide-up hero-delay-450"
+                    >
+                      Into Private Onchain Marks
+                    </h1>
+
+                    {/* Secondary Line - Unified Typography */}
+                    <div
+                      className="flex items-baseline gap-3 text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight hero-animate-slide-up hero-delay-500"
+                    >
+                      <span className="glass-text-secondary opacity-80">to Unlock</span>
+
+                      <div className="relative min-w-[180px]">
+                        <div className="hero-rotate-wrapper">
+                          {unlockOptions.map((option, index) => (
+                            <span
+                              key={index}
+                              className={`hero-rotate-item hero-gradient-text text-xl sm:text-2xl md:text-3xl font-extrabold ${index === unlockIndex ? 'active' : 'inactive'
+                                }`}
+                            >
+                              {option}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row items-start gap-4 mt-8 sm:mt-9 md:mt-10">
+                  {isFullyConnected ? (
+                    <Button
+                      size="lg"
+                      onClick={() => navigate('/create')}
+                      className="gap-2"
+                    >
+                      Create Your First Mark
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <>
+                      {!isGmailConnected ? (
+                        <Button size="lg" onClick={gmailLogin} className="gap-2">
+                          <Mail className="h-5 w-5" />
+                          Connect Gmail
+                        </Button>
+                      ) : (
+                        <ConnectWalletModal
+                          trigger={
+                            <Button size="lg" className="gap-2">
+                              <Wallet className="h-5 w-5" />
+                              Connect Wallet
+                            </Button>
+                          }
+                        />
+                      )}
+                    </>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+                  >
+                    How It Works
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -147,14 +219,8 @@ export function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card variant="glass">
             <CardContent className="pt-6">
-              <div 
-                className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 border backdrop-blur-sm"
-                style={{ 
-                  background: 'var(--glass-bg-secondary)',
-                  borderColor: 'var(--glass-border)'
-                }}
-              >
-                <Shield className="h-6 w-6" style={{ color: 'var(--page-text-secondary)' }} />
+              <div className="glass-icon-box">
+                <Shield className="h-6 w-6 glass-text-secondary" />
               </div>
               <h3 className="glass-text-primary font-semibold mb-2">
                 Privacy First
@@ -168,14 +234,8 @@ export function Home() {
 
           <Card variant="glass">
             <CardContent className="pt-6">
-              <div 
-                className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 border backdrop-blur-sm"
-                style={{ 
-                  background: 'var(--glass-bg-secondary)',
-                  borderColor: 'var(--glass-border)'
-                }}
-              >
-                <Zap className="h-6 w-6" style={{ color: 'var(--page-text-secondary)' }} />
+              <div className="glass-icon-box">
+                <Zap className="h-6 w-6 glass-text-secondary" />
               </div>
               <h3 className="glass-text-primary font-semibold mb-2">
                 Fast & Cheap
@@ -188,14 +248,8 @@ export function Home() {
 
           <Card variant="glass">
             <CardContent className="pt-6">
-              <div 
-                className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 border backdrop-blur-sm"
-                style={{ 
-                  background: 'var(--glass-bg-secondary)',
-                  borderColor: 'var(--glass-border)'
-                }}
-              >
-                <Sparkles className="h-6 w-6" style={{ color: 'var(--page-text-secondary)' }} />
+              <div className="glass-icon-box">
+                <Sparkles className="h-6 w-6 glass-text-secondary" />
               </div>
               <h3 className="glass-text-primary font-semibold mb-2">
                 Unique Collectibles

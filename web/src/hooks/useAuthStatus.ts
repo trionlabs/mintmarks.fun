@@ -244,21 +244,38 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
       // Initial fetch
       fetchBalance(walletAddress)
 
-      // Set up interval
+      // OPTIMIZED: Only refresh balance when tab is visible
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          fetchBalance(walletAddress)
+        }
+      }
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+
+      // Set up interval (only when tab is visible)
       balanceIntervalRef.current = setInterval(() => {
-        fetchBalance(walletAddress)
+        if (document.visibilityState === 'visible') {
+          fetchBalance(walletAddress)
+        }
       }, BALANCE_REFRESH_INTERVAL_MS)
+
+      return () => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+        if (balanceIntervalRef.current) {
+          clearInterval(balanceIntervalRef.current)
+          balanceIntervalRef.current = null
+        }
+        abortControllerRef.current?.abort()
+      }
     } else {
       // Reset balance when disconnected
       setBalance(0)
       setBalanceError(null)
-    }
-
-    return () => {
+      // Clean up any existing interval
       if (balanceIntervalRef.current) {
         clearInterval(balanceIntervalRef.current)
+        balanceIntervalRef.current = null
       }
-      abortControllerRef.current?.abort()
     }
   }, [isWalletConnected, walletAddress, fetchBalance, chainId]) // Re-fetch when chain changes
 

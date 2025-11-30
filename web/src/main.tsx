@@ -28,14 +28,19 @@ function clearStaleCdpTokens() {
 }
 
 // Global fetch interceptor to detect CDP 401 errors
+// Only intercept CDP API calls to avoid TrustedScript/CSP issues
 const originalFetch = window.fetch
 window.fetch = async (...args) => {
-  const response = await originalFetch(...args)
   const input = args[0]
   const url = typeof input === 'string' ? input : input instanceof Request ? input.url : ''
   
-  // If CDP API returns 401, clear stale tokens and reload
-  if (response.status === 401 && url.includes('api.cdp.coinbase.com')) {
+  // Only intercept CDP API calls
+  const isCdpApiCall = url.includes('api.cdp.coinbase.com')
+  
+  const response = await originalFetch(...args)
+  
+  // If CDP API returns 401, clear stale tokens
+  if (isCdpApiCall && response.status === 401) {
     console.warn('[Auth] CDP auth failed with 401, clearing stale tokens')
     clearStaleCdpTokens()
     // Don't reload automatically - let user manually reconnect

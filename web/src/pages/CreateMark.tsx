@@ -344,7 +344,7 @@ export function CreateMark() {
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 sm:mb-8 md:mb-10 leading-[1.1] tracking-tight"
             style={{ color: 'var(--page-text-primary)' }}
           >
-            Marks of Your Life.
+            Marks of Your Commitments.
             <span className="block mt-3 sm:mt-4 hero-gradient-text">
               Unlocked.
             </span>

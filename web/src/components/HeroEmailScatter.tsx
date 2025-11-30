@@ -293,13 +293,15 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
         pointerEvents: 'auto',
         zIndex: isHovered ? 50 : 10,
         // GLASSMORPHIC STYLES ON WRAPPER - backdrop-filter must be on same element as transform
+        // OPTIMIZED: Reduced blur for better performance
         background: email.isMinted 
           ? 'rgba(34, 197, 94, 0.08)'
           : isHovered
             ? 'rgba(99, 150, 244, 0.15)'
             : 'rgba(255, 255, 255, 0.08)',
-        backdropFilter: 'blur(64px) saturate(200%)',
-        WebkitBackdropFilter: 'blur(64px) saturate(200%)',
+        backdropFilter: isHovered ? 'blur(32px) saturate(180%)' : 'blur(24px) saturate(160%)',
+        WebkitBackdropFilter: isHovered ? 'blur(32px) saturate(180%)' : 'blur(24px) saturate(160%)',
+        willChange: isHovered ? 'transform, backdrop-filter' : 'transform',
         border: `1px solid var(${
           email.isMinted 
             ? '--mint-success-border' 
@@ -537,9 +539,10 @@ export const HeroEmailScatter: React.FC = () => {
     scheduleNextSpawn()
     
     // Cleanup old emails
+    // OPTIMIZED: Less frequent cleanup to reduce CPU usage
     intervalsRef.current.cleanup = setInterval(() => {
       setEmails(prev => prev.filter(e => Date.now() - e.createdAt < EMAIL_LIFETIME))
-    }, 2000) // Less frequent cleanup
+    }, 3000) // OPTIMIZED: Increased from 2000ms to 3000ms
     
     return () => {
       timers.forEach(clearTimeout)
@@ -549,6 +552,7 @@ export const HeroEmailScatter: React.FC = () => {
   }, [isVisible, screenSize, spawnEmail])
 
   // Throttled mouse tracking - only when visible and desktop
+  // OPTIMIZED: Increased throttle to reduce CPU usage
   useEffect(() => {
     if (!isVisible || screenSize !== 'desktop') return
 
@@ -557,9 +561,9 @@ export const HeroEmailScatter: React.FC = () => {
         x: 30 + (e.clientX / window.innerWidth) * 40,
         y: 30 + (e.clientY / window.innerHeight) * 40,
       })
-    }, 50) // Throttle to 20fps
+    }, 100) // OPTIMIZED: Throttle to 10fps (was 20fps) for better performance
 
-    window.addEventListener("mousemove", handleMouseMove)
+    window.addEventListener("mousemove", handleMouseMove, { passive: true })
     return () => window.removeEventListener("mousemove", handleMouseMove)
   }, [isVisible, screenSize])
 

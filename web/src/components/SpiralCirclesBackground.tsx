@@ -136,6 +136,8 @@ function SpiralCirclesBackgroundInner({
         style={{
           animation: shouldAnimate ? `spiral-rotate ${animationDuration}s linear infinite` : 'none',
           transformOrigin: '50% 50%',
+          willChange: shouldAnimate ? 'transform' : 'auto',
+          transform: 'translateZ(0)', // GPU acceleration
         }}
       >
         {icons.map(({ id, x, y, size, opacity, Icon, delay }) => (
@@ -146,8 +148,9 @@ function SpiralCirclesBackgroundInner({
               left: `${x}%`,
               top: `${y}%`,
               opacity,
-              transform: 'translate(-50%, -50%)',
+              transform: 'translate(-50%, -50%) translateZ(0)', // GPU acceleration
               animationDelay: `${delay}s`,
+              willChange: shouldAnimate ? 'transform' : 'auto',
             }}
           >
             <Icon style={{ width: size, height: size }} strokeWidth={1.5} />
