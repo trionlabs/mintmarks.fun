@@ -11,7 +11,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { EmailFilter, FilterPills } from '@/components/EmailFilter'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
-import { useWallet, ConnectWalletModal } from '@/wallet'
+import { useWallet } from '@/wallet'
 import { useFilterParams } from '@/hooks/useFilterParams'
 import { searchEventEmails } from '@/services/gmail'
 import {
@@ -25,11 +25,10 @@ import {
   MarkItFlowModal,
   useMarkItFlow,
 } from '@/features/mark-it'
-import type { EmailMetadata } from '@/types/gmail'
+import type { EmailMetadata, UploadedEmailMetadata } from '@/types/gmail'
 import type { RegistrationStatus } from '@/types/filters'
 import {
   Mail,
-  Wallet,
   RefreshCw,
   Sparkles,
   Calendar,
@@ -97,7 +96,6 @@ export function CreateMark() {
     login: gmailLogin,
   } = useAuth()
   const {
-    isConnected: isWalletConnected,
     error: walletError,
   } = useWallet()
   const { showToast } = useToast()
@@ -289,17 +287,19 @@ export function CreateMark() {
 
     // Create a synthetic EmailMetadata from the file
     // The actual parsing happens in the Mark It flow
-    const syntheticEmail: EmailMetadata = {
+    const syntheticEmail: UploadedEmailMetadata = {
       id: `upload-${Date.now()}`,
+      threadId: `upload-thread-${Date.now()}`,
       subject: file.name.replace('.eml', ''),
       from: 'Uploaded file',
+      to: null,
       date: new Date().toISOString(),
       snippet: 'Manually uploaded .eml file',
       source: 'luma', // Default, will be detected from email content
       registrationStatus: 'unknown',
       // Store the file for later use
       _uploadedFile: file,
-    } as EmailMetadata & { _uploadedFile: File }
+    }
 
     setEmailToMark(syntheticEmail)
     setFlowModalOpen(true)
@@ -315,7 +315,7 @@ export function CreateMark() {
 
   // Not connected state
   return (
-    <div className="max-w-5xl mx-auto px-4 pt-8 sm:px-6 sm:pt-12 md:pt-16 lg:pt-20">
+    <div className="relative max-w-5xl mx-auto px-4 pt-8 sm:px-6 sm:pt-12 md:pt-16 lg:pt-20" style={{ zIndex: 1 }}>
       {/* Hero Section */}
       <header className="mb-16 sm:mb-20 md:mb-24 lg:mb-28 text-left">
         <div className="max-w-3xl">
@@ -345,7 +345,7 @@ export function CreateMark() {
             style={{ color: 'var(--page-text-primary)' }}
           >
             Marks of Your Life.
-            <span className="block mt-3 sm:mt-4" style={{ color: 'var(--Controls-Selected)' }}>
+            <span className="block mt-3 sm:mt-4 hero-gradient-text">
               Unlocked.
             </span>
           </h1>
@@ -391,15 +391,14 @@ export function CreateMark() {
       {!isGmailConnected ? (
         <Card>
           <CardHeader className="text-center">
-            <CardTitle>Connect Gmail to Continue</CardTitle>
+            <CardTitle>Verify Your E-mail</CardTitle>
             <CardDescription>
-              We need access to your Gmail to find event confirmation emails
+              Gmail access to find your tickets is needed
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             <div
-              className="w-20 h-20 rounded-full flex items-center justify-center"
-              style={{ background: 'var(--Controls-Idle)' }}
+              className="w-20 h-20 rounded-full flex items-center justify-center bg-[var(--Controls-Idle)] border border-[var(--glass-border)] backdrop-blur-sm transition-all"
             >
               <Mail className="h-10 w-10 text-[var(--Controls-Selected)]" />
             </div>
@@ -411,8 +410,7 @@ export function CreateMark() {
               className="text-sm text-center max-w-md"
               style={{ color: 'var(--page-text-muted)' }}
             >
-              We only read event confirmation emails from Luma, Substack, and
-              Eventbrite. Everything happens client-side using ZK technology. We never see your data.
+              Don't worry—we can't read your emails, it's all visible on only your side. Zero Knowledge technology proves you own the ticket without revealing any privacy and no need for trust.
             </p>
           </CardContent>
         </Card>
@@ -450,25 +448,6 @@ export function CreateMark() {
               <AlertTitle>Wrong Network</AlertTitle>
               <AlertDescription>
                 Please switch to the correct network to mint NFTs.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Wallet Warning */}
-          {!isWalletConnected && !isWrongNetwork && (
-            <Alert variant="warning">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Wallet Not Connected</AlertTitle>
-              <AlertDescription className="flex items-center justify-between">
-                <span>Connect your wallet to mint NFTs</span>
-                <ConnectWalletModal
-                  trigger={
-                    <Button variant="outline" size="sm" className="gap-1.5">
-                      <Wallet className="h-4 w-4" />
-                      Connect
-                    </Button>
-                  }
-                />
               </AlertDescription>
             </Alert>
           )}
@@ -520,8 +499,7 @@ export function CreateMark() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
                 <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center"
-                  style={{ background: 'var(--Controls-Idle)' }}
+                  className="w-16 h-16 rounded-full flex items-center justify-center bg-[var(--Controls-Idle)] border border-[var(--glass-border)] backdrop-blur-sm transition-all"
                 >
                   {hasActiveFilters ? (
                     <FilterX className="h-8 w-8 text-[var(--Controls-Selected)]" />
@@ -582,11 +560,10 @@ export function CreateMark() {
                 <Card
                   key={email.id}
                   variant="figma-hover"
-                  className={`cursor-pointer ${
-                    selectedEmail === email.id 
-                      ? 'ring-2 ring-[var(--Controls-Selected)] ring-offset-2 ring-offset-transparent' 
+                  className={`cursor-pointer glass-email-card email-card group ${selectedEmail === email.id
+                      ? 'ring-2 ring-[var(--Controls-Selected)] ring-offset-2 ring-offset-transparent'
                       : ''
-                  }`}
+                    }`}
                   onClick={() => handleMarkIt(email)}
                 >
                   <CardContent className="p-4 sm:p-6">

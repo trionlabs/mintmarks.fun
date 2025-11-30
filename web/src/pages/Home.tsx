@@ -48,7 +48,7 @@ export function Home() {
               {/* Main Title */}
               <h1 className="glass-text-primary text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-5 sm:mb-6 md:mb-7 leading-[1.15] tracking-tight">
                 Marks of Your Commitments.
-                <span className="block mt-2 sm:mt-3 text-4xl sm:text-5xl md:text-6xl lg:text-7xl glass-text-secondary">
+                <span className="block mt-2 sm:mt-3 text-4xl sm:text-5xl md:text-6xl lg:text-7xl hero-gradient-text">
                   Unlocked.
                 </span>
               </h1>

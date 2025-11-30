@@ -6,32 +6,31 @@
  */
 
 import { useState } from 'react'
-import { 
-  ArrowRight, 
-  Mail, 
-  Sparkles, 
-  Check, 
+import {
+  ArrowRight,
+  Mail,
+  Sparkles,
+  Check,
   Loader2,
   Shield,
   Zap,
   Wallet,
   Calendar,
-  ExternalLink,
   Bookmark,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { HeroSection } from '@/components/ui/hero-section'
+import { Card, CardContent } from '@/components/ui/card'
+
 
 // ============================================
 // Section Component
 // ============================================
-function Section({ 
-  title, 
-  description, 
+function Section({
+  title,
+  description,
   children,
   dark = false,
-}: { 
+}: {
   title: string
   description: string
   children: React.ReactNode
@@ -62,21 +61,21 @@ function DemoEmailCard({ variant }: { variant: 'default' | 'figma' | 'figma-hove
     <Card variant={variant} className="max-w-sm">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <div 
+          <div
             className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{ background: 'var(--Controls-Idle)' }}
           >
-            <Mail className="h-5 w-5" style={{ color: 'var(--Controls-Selected)' }} />
+            <Bookmark className="h-5 w-5" style={{ color: 'var(--Controls-Selected)' }} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span 
+              <span
                 className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium"
                 style={{ background: 'var(--source-luma-bg)', color: 'var(--source-luma)' }}
               >
                 Luma
               </span>
-              <span 
+              <span
                 className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium"
                 style={{ background: 'var(--status-attended-bg)', color: 'var(--status-attended)' }}
               >
@@ -86,9 +85,12 @@ function DemoEmailCard({ variant }: { variant: 'default' | 'figma' | 'figma-hove
             <h3 className="font-semibold text-sm truncate" style={{ color: 'var(--page-text-primary)' }}>
               Thanks for joining The Zama World's Fair
             </h3>
-            <p className="text-xs mt-1" style={{ color: 'var(--page-text-muted)' }}>
-              Tue, Nov 18, 2025
-            </p>
+            <div className="flex items-center gap-1.5 mt-1">
+              <Calendar className="h-3 w-3" style={{ color: 'var(--page-text-muted)' }} />
+              <p className="text-xs" style={{ color: 'var(--page-text-muted)' }}>
+                Tue, Nov 18, 2025
+              </p>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -111,7 +113,7 @@ export function ComponentShowcase() {
             Component Showcase
           </h1>
           <p className="text-lg glass-text-secondary max-w-2xl">
-            Visual comparison of all UI components with their variants. 
+            Visual comparison of all UI components with their variants.
             Use this page to verify theme consistency.
           </p>
         </div>
@@ -120,8 +122,8 @@ export function ComponentShowcase() {
       {/* ============================================
           BUTTONS - Light Background
           ============================================ */}
-      <Section 
-        title="Default Buttons" 
+      <Section
+        title="Default Buttons"
         description="Background, border, blur ve blend mode ile"
       >
         <div className="space-y-6">
@@ -139,8 +141,8 @@ export function ComponentShowcase() {
         </div>
       </Section>
 
-      <Section 
-        title="Outline Buttons" 
+      <Section
+        title="Outline Buttons"
         description="Transparent background, border ve blur ile"
       >
         <div className="flex flex-wrap items-center gap-4">
@@ -151,8 +153,8 @@ export function ComponentShowcase() {
         </div>
       </Section>
 
-      <Section 
-        title="Secondary Buttons" 
+      <Section
+        title="Secondary Buttons"
         description="Background, border ve blur ile"
       >
         <div className="flex flex-wrap items-center gap-4">
@@ -163,8 +165,8 @@ export function ComponentShowcase() {
         </div>
       </Section>
 
-      <Section 
-        title="Ghost Buttons" 
+      <Section
+        title="Ghost Buttons"
         description="Transparent background, nav colors ile"
       >
         <div className="flex flex-wrap items-center gap-4">
@@ -175,8 +177,8 @@ export function ComponentShowcase() {
         </div>
       </Section>
 
-      <Section 
-        title="Destructive & Link Buttons" 
+      <Section
+        title="Destructive & Link Buttons"
         description="Özel durumlar için"
       >
         <div className="flex flex-wrap items-center gap-4">
@@ -189,8 +191,8 @@ export function ComponentShowcase() {
       {/* ============================================
           BUTTONS - Dark/Hero Background
           ============================================ */}
-      <Section 
-        title="Hero Buttons" 
+      <Section
+        title="Hero Buttons"
         description="Dark blue arka plan üzerinde kullanım için"
         dark
       >
@@ -206,13 +208,13 @@ export function ComponentShowcase() {
               </div>
             </Button>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-4">
             <Button variant="hero-outline">Hero Outline</Button>
             <Button variant="hero-outline" size="sm">Small</Button>
             <Button variant="hero-outline" size="lg">Large</Button>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-4">
             <Button variant="hero-glass">Hero Glass</Button>
             <Button variant="hero-glass" size="sm">Small</Button>
@@ -227,8 +229,8 @@ export function ComponentShowcase() {
       {/* ============================================
           CARDS - Light Background
           ============================================ */}
-      <Section 
-        title="Card Variants (Light)" 
+      <Section
+        title="Card Variants (Light)"
         description="Glassmorphic kart stilleri"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -236,17 +238,17 @@ export function ComponentShowcase() {
             <DemoEmailCard variant="default" />
             <p className="text-xs text-center glass-text-muted">variant="default"</p>
           </div>
-          
+
           <div className="space-y-2">
             <DemoEmailCard variant="figma" />
             <p className="text-xs text-center glass-text-muted">variant="figma"</p>
           </div>
-          
+
           <div className="space-y-2">
             <DemoEmailCard variant="figma-hover" />
             <p className="text-xs text-center glass-text-muted">variant="figma-hover"</p>
           </div>
-          
+
           <div className="space-y-2">
             <DemoEmailCard variant="glass" />
             <p className="text-xs text-center glass-text-muted">variant="glass"</p>
@@ -257,8 +259,8 @@ export function ComponentShowcase() {
       {/* ============================================
           CARDS - Dark Background
           ============================================ */}
-      <Section 
-        title="Hero Card Variants" 
+      <Section
+        title="Hero Card Variants"
         description="Dark blue arka plan üzerinde glassmorphic kartlar"
         dark
       >
@@ -274,7 +276,7 @@ export function ComponentShowcase() {
             </Card>
             <p className="text-xs text-center text-blue-200">variant="hero"</p>
           </div>
-          
+
           <div className="space-y-2">
             <Card variant="hero-glow" className="p-6">
               <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--hero-text-primary)' }}>
@@ -286,7 +288,7 @@ export function ComponentShowcase() {
             </Card>
             <p className="text-xs text-center text-blue-200">variant="hero-glow"</p>
           </div>
-          
+
           <div className="space-y-2">
             <Card variant="hero-outline" className="p-6">
               <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--hero-text-primary)' }}>
@@ -304,8 +306,8 @@ export function ComponentShowcase() {
       {/* ============================================
           GLASS UTILITIES
           ============================================ */}
-      <Section 
-        title="Glass Utility Classes" 
+      <Section
+        title="Glass Utility Classes"
         description="Doğrudan kullanılabilir CSS utility class'ları"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -314,19 +316,19 @@ export function ComponentShowcase() {
               <p className="font-medium glass-text-primary">glass-primary</p>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <div className="glass-secondary rounded-xl p-6 text-center">
               <p className="font-medium glass-text-primary">glass-secondary</p>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <div className="glass-tertiary rounded-xl p-6 text-center">
               <p className="font-medium glass-text-primary">glass-tertiary</p>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <div className="glass-card glass-card-hover rounded-xl p-6 text-center cursor-pointer">
               <p className="font-medium glass-text-primary">glass-card + hover</p>
@@ -338,8 +340,8 @@ export function ComponentShowcase() {
       {/* ============================================
           BADGES & PILLS
           ============================================ */}
-      <Section 
-        title="Badges & Status" 
+      <Section
+        title="Badges & Status"
         description="Source ve status badge'leri"
       >
         <div className="space-y-6">
@@ -347,57 +349,57 @@ export function ComponentShowcase() {
           <div>
             <p className="text-sm font-medium mb-3 glass-text-secondary">Source Badges</p>
             <div className="flex flex-wrap gap-3">
-              <span 
-                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm" 
+              <span
+                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm"
                 style={{ background: 'var(--source-luma-bg)', color: 'var(--source-luma)', borderColor: 'var(--source-luma-border)' }}
               >
                 Luma
               </span>
-              <span 
-                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm" 
+              <span
+                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm"
                 style={{ background: 'var(--source-substack-bg)', color: 'var(--source-substack)', borderColor: 'var(--source-substack-border)' }}
               >
                 Substack
               </span>
-              <span 
-                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm" 
+              <span
+                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm"
                 style={{ background: 'var(--source-eventbrite-bg)', color: 'var(--source-eventbrite)', borderColor: 'var(--source-eventbrite-border)' }}
               >
                 Eventbrite
               </span>
-              <span 
-                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm" 
+              <span
+                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm"
                 style={{ background: 'var(--source-amazon-bg)', color: 'var(--source-amazon)', borderColor: 'var(--source-amazon-border)' }}
               >
                 Amazon
               </span>
             </div>
           </div>
-          
+
           {/* Status Badges - Minimal with subtle color */}
           <div>
             <p className="text-sm font-medium mb-3 glass-text-secondary">Status Badges</p>
             <div className="flex flex-wrap gap-3">
-              <span 
-                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm" 
+              <span
+                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm"
                 style={{ background: 'var(--status-confirmed-bg)', color: 'var(--status-confirmed)', borderColor: 'var(--status-confirmed-border)' }}
               >
                 Confirmed
               </span>
-              <span 
-                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm" 
+              <span
+                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm"
                 style={{ background: 'var(--status-pending-bg)', color: 'var(--status-pending)', borderColor: 'var(--status-pending-border)' }}
               >
                 Pending
               </span>
-              <span 
-                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm" 
+              <span
+                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm"
                 style={{ background: 'var(--status-attended-bg)', color: 'var(--status-attended)', borderColor: 'var(--status-attended-border)' }}
               >
                 Attended
               </span>
-              <span 
-                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm" 
+              <span
+                className="px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-sm"
                 style={{ background: 'var(--status-minted-bg)', color: 'var(--status-minted)', borderColor: 'var(--status-minted-border)' }}
               >
                 <span className="flex items-center gap-1">
@@ -413,8 +415,8 @@ export function ComponentShowcase() {
       {/* ============================================
           FEATURE CARDS
           ============================================ */}
-      <Section 
-        title="Feature Cards" 
+      <Section
+        title="Feature Cards"
         description="Icon + text kombinasyonu ile özellik kartları"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -465,8 +467,8 @@ export function ComponentShowcase() {
       {/* ============================================
           BUTTON STATES
           ============================================ */}
-      <Section 
-        title="Button States" 
+      <Section
+        title="Button States"
         description="Loading, disabled ve interactive states"
       >
         <div className="flex flex-wrap items-center gap-4">
@@ -474,7 +476,7 @@ export function ComponentShowcase() {
             <Loader2 className="h-4 w-4 animate-spin" />
             Loading...
           </Button>
-          
+
           <Button onClick={() => setLoading(!loading)}>
             {loading ? (
               <>
@@ -485,12 +487,12 @@ export function ComponentShowcase() {
               'Click to Toggle Loading'
             )}
           </Button>
-          
+
           <Button variant="outline" className="gap-2">
             <Wallet className="h-4 w-4" />
             Connect Wallet
           </Button>
-          
+
           <Button variant="secondary" className="gap-2">
             <Mail className="h-4 w-4" />
             Connect Gmail
@@ -501,8 +503,8 @@ export function ComponentShowcase() {
       {/* ============================================
           COLOR PALETTE
           ============================================ */}
-      <Section 
-        title="Color Palette" 
+      <Section
+        title="Color Palette"
         description="Tema renkleri ve CSS variable'ları"
       >
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -511,31 +513,31 @@ export function ComponentShowcase() {
             <div className="h-16 rounded-lg" style={{ background: 'var(--primary)' }} />
             <p className="text-xs text-center glass-text-muted">--primary</p>
           </div>
-          
+
           {/* Controls */}
           <div className="space-y-2">
             <div className="h-16 rounded-lg" style={{ background: 'var(--Controls-Selected)' }} />
             <p className="text-xs text-center glass-text-muted">--Controls-Selected</p>
           </div>
-          
+
           {/* Success */}
           <div className="space-y-2">
             <div className="h-16 rounded-lg" style={{ background: 'var(--mint-success)' }} />
             <p className="text-xs text-center glass-text-muted">--mint-success</p>
           </div>
-          
+
           {/* Destructive */}
           <div className="space-y-2">
             <div className="h-16 rounded-lg" style={{ background: 'var(--destructive)' }} />
             <p className="text-xs text-center glass-text-muted">--destructive</p>
           </div>
-          
+
           {/* Glass BG */}
           <div className="space-y-2">
             <div className="h-16 rounded-lg border" style={{ background: 'var(--glass-bg-primary)', borderColor: 'var(--glass-border)' }} />
             <p className="text-xs text-center glass-text-muted">--glass-bg-primary</p>
           </div>
-          
+
           {/* Glass Border */}
           <div className="space-y-2">
             <div className="h-16 rounded-lg border-4" style={{ borderColor: 'var(--glass-border)' }} />
@@ -547,8 +549,8 @@ export function ComponentShowcase() {
       {/* ============================================
           TYPOGRAPHY
           ============================================ */}
-      <Section 
-        title="Typography" 
+      <Section
+        title="Typography"
         description="Text stilleri ve renkler"
       >
         <div className="space-y-4">

@@ -48,8 +48,8 @@ function NFTCard({ nft }: { nft: MintmarkNFT }) {
   }
 
   // Truncate token ID
-  const shortTokenId = nft.tokenId.length > 8 
-    ? `${nft.tokenId.slice(0, 4)}…${nft.tokenId.slice(-4)}` 
+  const shortTokenId = nft.tokenId.length > 8
+    ? `${nft.tokenId.slice(0, 4)}…${nft.tokenId.slice(-4)}`
     : nft.tokenId
 
   // Get source label (uppercase)
@@ -294,7 +294,7 @@ function ShareButton({ count }: { count: number }) {
     const text = `I've collected ${count} mark${count !== 1 ? 's' : ''} on @mintmarks_fun! 🎉\n\nVerified digital commitments, powered by ZK proofs.\n\n#mintmarks #web3 #NFT`
     const url = 'https://mintmarks.fun/marks'
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
-    
+
     window.open(twitterUrl, '_blank', 'width=550,height=420')
   }
 
@@ -321,11 +321,11 @@ function ShareNFTButton({ nft }: { nft: MintmarkNFT }) {
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     const text = `Check out my mark: "${nft.eventName}" 🎉\n\nVerified on @mintmarks_fun with ZK proofs.\n\n#mintmarks #web3 #NFT`
     const url = getTransactionUrl(nft.network, nft.txHash)
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
-    
+
     window.open(twitterUrl, '_blank', 'width=550,height=420')
   }
 
@@ -334,7 +334,7 @@ function ShareNFTButton({ nft }: { nft: MintmarkNFT }) {
       type="button"
       onClick={handleShare}
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
-      style={{ 
+      style={{
         background: 'var(--primary)',
         color: 'var(--primary-foreground)',
       }}
@@ -350,14 +350,14 @@ function ShareNFTButton({ nft }: { nft: MintmarkNFT }) {
 // Stats Cards (like in the HTML)
 // ============================================
 
-function StatsCards({ stats }: { stats: { total: number; thisMonth: number; mostActiveMonth: string | null; mostActiveCount?: number } }) {
+function StatsCards({ stats, showAll = true }: { stats: { total: number; thisMonth: number; mostActiveMonth: string | null; mostActiveCount?: number }, showAll?: boolean }) {
   return (
     <div className="flex flex-row gap-2.5 sm:gap-3">
       {/* TOTAL MARKS */}
       <div className="glass-card rounded-xl p-4 sm:p-5 md:p-6 min-w-[110px] sm:min-w-[120px]">
         <div className="text-center">
           <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wider glass-text-muted">
-            Total Marks
+            {showAll ? 'Total Marks' : 'Total Marks Created'}
           </p>
           <p className="text-2xl sm:text-3xl font-bold glass-text-primary">
             {stats.total}
@@ -365,34 +365,38 @@ function StatsCards({ stats }: { stats: { total: number; thisMonth: number; most
         </div>
       </div>
 
-      {/* THIS MONTH */}
-      <div className="glass-card rounded-xl p-4 sm:p-5 md:p-6 min-w-[110px] sm:min-w-[120px]">
-        <div className="text-center">
-          <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wider glass-text-muted">
-            This Month
-          </p>
-          <p className="text-2xl sm:text-3xl font-bold glass-text-primary">
-            {stats.thisMonth}
-          </p>
-        </div>
-      </div>
-
-      {/* MOST ACTIVE */}
-      <div className="glass-card rounded-xl p-4 sm:p-5 md:p-6 min-w-[130px] sm:min-w-[140px]">
-        <div className="text-center">
-          <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wider glass-text-muted">
-            Most Active
-          </p>
-          <p className="text-base sm:text-lg font-bold leading-tight glass-text-primary">
-            {stats.mostActiveMonth || '—'}
-          </p>
-          {stats.mostActiveCount !== undefined && stats.mostActiveCount > 0 && (
-            <p className="text-[10px] sm:text-xs mt-1 glass-text-muted">
-              {stats.mostActiveCount} mark{stats.mostActiveCount !== 1 ? 's' : ''}
+      {/* THIS MONTH - Only show if showAll is true */}
+      {showAll && (
+        <div className="glass-card rounded-xl p-4 sm:p-5 md:p-6 min-w-[110px] sm:min-w-[120px]">
+          <div className="text-center">
+            <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wider glass-text-muted">
+              This Month
             </p>
-          )}
+            <p className="text-2xl sm:text-3xl font-bold glass-text-primary">
+              {stats.thisMonth}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* MOST ACTIVE - Only show if showAll is true */}
+      {showAll && (
+        <div className="glass-card rounded-xl p-4 sm:p-5 md:p-6 min-w-[130px] sm:min-w-[140px]">
+          <div className="text-center">
+            <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wider glass-text-muted">
+              Most Active
+            </p>
+            <p className="text-base sm:text-lg font-bold leading-tight glass-text-primary">
+              {stats.mostActiveMonth || '—'}
+            </p>
+            {stats.mostActiveCount !== undefined && stats.mostActiveCount > 0 && (
+              <p className="text-[10px] sm:text-xs mt-1 glass-text-muted">
+                {stats.mostActiveCount} mark{stats.mostActiveCount !== 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -410,7 +414,7 @@ function NetworkDropdown({
 }) {
   const [open, setOpen] = useState(false)
   const networks = getEnabledNetworks()
-  
+
   // If only one network, don't show filter
   if (networks.length <= 1) return null
 
@@ -428,8 +432,8 @@ function NetworkDropdown({
     selected.length === networks.length
       ? 'All networks'
       : selected.length === 1
-      ? networks.find((n) => n.id === selected[0])?.shortName || 'Networks'
-      : `${selected.length} networks`
+        ? networks.find((n) => n.id === selected[0])?.shortName || 'Networks'
+        : `${selected.length} networks`
 
   return (
     <div className="relative">
@@ -526,7 +530,7 @@ export function MyMarks() {
         >
           <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: 'var(--page-text-primary)' }} aria-hidden="true" />
           <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase" style={{ color: 'var(--page-text-primary)', letterSpacing: '0.05em' }}>
-            Your Collection
+            {isConnected || isDemo ? 'Your Collection' : 'Community Collection'}
           </span>
         </div>
 
@@ -563,9 +567,10 @@ export function MyMarks() {
 
           {/* Stats Cards - Next to text */}
           <div className="flex-shrink-0 w-full lg:w-auto pt-4 lg:pt-0">
-            <StatsCards 
+            <StatsCards
+              showAll={Boolean(isConnected || isDemo)}
               stats={{
-                total: stats.userNfts,
+                total: isConnected || isDemo ? stats.userNfts : stats.totalMinted,
                 thisMonth: stats.thisMonth,
                 mostActiveMonth: stats.mostActiveMonth?.month || null,
                 mostActiveCount: stats.mostActiveMonth?.count,
@@ -583,7 +588,7 @@ export function MyMarks() {
             onClick={refresh}
             disabled={loading}
             className="p-1.5 rounded transition-opacity hover:opacity-70 disabled:opacity-30"
-            style={{ 
+            style={{
               color: 'var(--page-text-muted)',
             }}
             aria-label="Refresh"
@@ -657,19 +662,7 @@ export function MyMarks() {
         </div>
       )}
 
-      {/* Demo Hint */}
-      {!isDemo && !isConnected && (
-        <p
-          className="text-center text-xs mt-8"
-          style={{ color: 'var(--page-text-muted)' }}
-        >
-          Tip: Add{' '}
-          <code className="bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded">
-            ?demo=true
-          </code>{' '}
-          to preview with sample data
-        </p>
-      )}
+
     </div>
   )
 }
