@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, useMotionTemplate, useMotionValue } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -104,7 +104,7 @@ export function DashedGrid({
         </defs>
         <rect width="100%" height="100%" fill="url(#dashedGrid)" />
       </svg>
-      
+
       {interactive && (
         <motion.div
           className="absolute inset-0 mix-blend-overlay"
