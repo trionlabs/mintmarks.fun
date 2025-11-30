@@ -1,6 +1,11 @@
 /**
  * @fileoverview CDP wallet adapter.
  * Wraps CDP SDK hooks to provide consistent WalletAdapter interface.
+ * 
+ * IMPORTANT: CDP embedded wallets are MULTICHAIN NATIVE.
+ * - Same EOA address works on all EVM chains
+ * - No "chain switching" needed - specify network per transaction
+ * - isMultichain: true indicates this behavior
  */
 
 import { useCallback, useMemo } from 'react'
@@ -11,17 +16,9 @@ import {
   useSignOut,
 } from '@coinbase/cdp-hooks'
 import { isAddress, createPublicClient, http } from 'viem'
-import {
-  baseSepolia,
-  base,
-  sepolia,
-  mainnet,
-  arbitrum,
-  optimism,
-  polygon,
-} from 'viem/chains'
 import type { WalletAdapter, TransactionRequest, TransactionResult } from '../../types'
 import { ACTIVE_NETWORK, NETWORKS } from '@/config/contracts'
+import { getViemChain } from '@/config/chains'
 import { normalizeError } from '../../utils/errorUtils'
 
 /**
@@ -31,35 +28,7 @@ function getNetworkByChainId(chainId: number) {
   return Object.values(NETWORKS).find((n) => n.chainId === chainId)
 }
 
-/**
- * Get viem chain by chainId
- * Supports all CDP-compatible EVM chains
- * @throws Error if chainId is not supported
- */
-function getViemChain(chainId: number) {
-  switch (chainId) {
-    // Testnets
-    case 84532:
-      return baseSepolia
-    case 11155111:
-      return sepolia
-    // Mainnets
-    case 8453:
-      return base
-    case 1:
-      return mainnet
-    case 42161:
-      return arbitrum
-    case 10:
-      return optimism
-    case 137:
-      return polygon
-    default:
-      throw new Error(
-        `Unsupported chain ID: ${chainId}. Supported: Base (84532, 8453), Ethereum (11155111, 1), Arbitrum (42161), Optimism (10), Polygon (137)`
-      )
-  }
-}
+// Note: getViemChain imported from @/config/chains
 
 /**
  * CDP wallet adapter hook.
@@ -173,9 +142,14 @@ export function useCdpWallet(): WalletAdapter {
       address: (evmAddress as `0x${string}`) ?? null,
       isConnected: isSignedIn,
       source: isSignedIn ? ('cdp' as const) : null,
+      // CDP wallets are multichain - this is the "default" network for display purposes
+      // Actual transactions can target any supported chain via the network param
       chainId: isSignedIn ? ACTIVE_NETWORK.chainId : null,
       isLoading,
       error: null,
+      // CDP embedded wallets are multichain native - same address on all EVM chains
+      // No chain switching needed - specify network per transaction
+      isMultichain: true,
     }),
     [evmAddress, isSignedIn, isLoading]
   )
@@ -184,5 +158,8 @@ export function useCdpWallet(): WalletAdapter {
     state,
     sendTransaction: isSignedIn ? sendTransaction : undefined,
     disconnect,
+    // CDP wallets don't need switchChain - they're multichain native
+    // Transactions specify the target network directly
+    switchChain: undefined,
   }
 }
