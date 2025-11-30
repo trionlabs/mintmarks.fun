@@ -1,11 +1,22 @@
+/**
+ * @fileoverview Main Layout Component
+ * 
+ * Provides the main layout structure with navigation header and footer.
+ * Uses UnifiedAuthIndicator for combined Gmail + Wallet auth display.
+ */
+
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sparkles, Moon, Sun, Mail, LogOut, Home, Plus, Bookmark, Wallet, FlaskConical } from 'lucide-react'
+import { Sparkles, Moon, Sun, Home, Plus, Bookmark, FlaskConical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useAuth } from '@/contexts/AuthContext'
-import { useWallet, ConnectWalletModal, WalletStatus } from '@/wallet'
+import { UnifiedAuthIndicator } from '@/components/UnifiedAuthIndicator'
+import { WalletOperationsModal } from '@/components/WalletOperationsModal'
 import { cn } from '@/lib/utils'
+
+// ============================================
+// Types
+// ============================================
 
 interface LayoutProps {
   children: React.ReactNode
@@ -17,6 +28,10 @@ interface NavItem {
   icon: React.ReactNode
 }
 
+// ============================================
+// Navigation Items
+// ============================================
+
 const navItems: NavItem[] = [
   { path: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
   { path: '/create', label: 'Create', icon: <Plus className="h-4 w-4" /> },
@@ -25,33 +40,18 @@ const navItems: NavItem[] = [
   ...(import.meta.env.DEV ? [{ path: '/marks/test', label: 'Test', icon: <FlaskConical className="h-4 w-4" /> }] : []),
 ]
 
+// ============================================
+// Component
+// ============================================
+
 export function Layout({ children }: LayoutProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
 
-  // Auth states
-  const { isAuthenticated: isGmailConnected, userInfo, login: gmailLogin, logout: gmailLogout } = useAuth()
-  const { isConnected: isWalletConnected, disconnect } = useWallet()
-
-  // Listen for auth logout events (manual logout, token expiry, cross-tab sync)
-  // Gmail is primary auth - when it logs out, wallet must disconnect
-  useEffect(() => {
-    const handleAuthLogout = async () => {
-      if (isWalletConnected) {
-        try {
-          await disconnect()
-        } catch (error) {
-          console.error('[Layout] Failed to disconnect wallet on auth logout:', error)
-        }
-      }
-    }
-
-    window.addEventListener('auth:logout', handleAuthLogout)
-    return () => window.removeEventListener('auth:logout', handleAuthLogout)
-  }, [isWalletConnected, disconnect])
-
+  // Scroll detection for header gradient
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
@@ -106,8 +106,9 @@ export function Layout({ children }: LayoutProps) {
             </span>
           </Link>
 
-          {/* Navigation Items */}
+          {/* Navigation Items + Auth */}
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* Nav Links */}
             {navItems.map((item) => {
               const isActive = location.pathname === item.path
               return (
@@ -136,6 +137,7 @@ export function Layout({ children }: LayoutProps) {
               size="sm"
               onClick={toggleTheme}
               className="ml-2"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {theme === 'dark' ? (
                 <Sun className="h-4 w-4" />
@@ -144,51 +146,10 @@ export function Layout({ children }: LayoutProps) {
               )}
             </Button>
 
-            {/* Gmail Auth Button */}
-            {isGmailConnected ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={gmailLogout}
-                className="gap-1.5"
-                title={userInfo?.email ?? 'Gmail Connected'}
-              >
-                <Mail className="h-4 w-4 text-green-500" />
-                <span className="hidden sm:inline text-xs">
-                  {userInfo?.email?.split('@')[0] ?? 'Gmail'}
-                </span>
-                <LogOut className="h-3 w-3 opacity-50" />
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={gmailLogin}
-                className="gap-1.5"
-              >
-                <Mail className="h-4 w-4" />
-                <span className="hidden sm:inline">Gmail</span>
-              </Button>
-            )}
-
-            {/* Wallet Status / Connect - Only show if Gmail is connected */}
-            {isGmailConnected && (
-              <>
-                <div className="h-4 w-px bg-border/50 hidden sm:block mx-1" />
-                {isWalletConnected ? (
-                  <WalletStatus />
-                ) : (
-                  <ConnectWalletModal
-                    trigger={
-                      <Button variant="outline" size="sm" className="gap-1.5 animate-in fade-in zoom-in-95">
-                        <Wallet className="h-4 w-4" />
-                        <span className="hidden sm:inline">Wallet</span>
-                      </Button>
-                    }
-                  />
-                )}
-              </>
-            )}
+            {/* Unified Auth Indicator */}
+            <UnifiedAuthIndicator 
+              onWalletClick={() => setIsWalletModalOpen(true)}
+            />
           </div>
         </nav>
       </header>
@@ -209,7 +170,12 @@ export function Layout({ children }: LayoutProps) {
           </p>
         </div>
       </footer>
+
+      {/* Wallet Operations Modal */}
+      <WalletOperationsModal
+        open={isWalletModalOpen}
+        onOpenChange={setIsWalletModalOpen}
+      />
     </div>
   )
 }
-
