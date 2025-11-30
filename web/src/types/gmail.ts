@@ -92,6 +92,15 @@ export interface EmailMetadata {
 }
 
 /**
+ * Extended email metadata for manually uploaded .eml files
+ * Contains the original file for later processing
+ */
+export interface UploadedEmailMetadata extends EmailMetadata {
+  /** The original .eml file uploaded by the user */
+  _uploadedFile?: File
+}
+
+/**
  * Email source type (Luma, Substack, Eventbrite, Amazon)
  */
 export type EmailSource = 'luma' | 'substack' | 'eventbrite' | 'amazon' | 'unknown'
