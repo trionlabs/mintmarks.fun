@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { LazyMotion, domAnimation } from 'framer-motion'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { ToastProvider } from '@/contexts/ToastContext'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -7,6 +8,8 @@ import { Home } from '@/pages/Home'
 import { CreateMark } from '@/pages/CreateMark'
 import { MyMarks } from '@/pages/MyMarks'
 import { TestMint } from '@/pages/TestMint'
+import { ComponentShowcase } from '@/pages/ComponentShowcase'
+import { HeroDemo } from '@/pages/HeroDemo'
 
 function AppContent() {
   return (
@@ -16,6 +19,8 @@ function AppContent() {
         <Route path="/create" element={<CreateMark />} />
         <Route path="/marks" element={<MyMarks />} />
         <Route path="/marks/test" element={<TestMint />} />
+        <Route path="/showcase" element={<ComponentShowcase />} />
+        <Route path="/hero" element={<HeroDemo />} />
       </Routes>
     </Layout>
   )
@@ -24,6 +29,8 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
+      {/* LazyMotion: Reduces framer-motion bundle size by ~50% */}
+      <LazyMotion features={domAnimation} strict>
       <ThemeProvider>
         <ToastProvider>
           <AuthProvider>
@@ -31,6 +38,7 @@ function App() {
           </AuthProvider>
         </ToastProvider>
       </ThemeProvider>
+      </LazyMotion>
     </BrowserRouter>
   )
 }
