@@ -62,7 +62,7 @@ export function Layout({ children }: LayoutProps) {
   // Home page uses wider layout, other pages use narrower
   const isHomePage = location.pathname === '/'
   const containerClass = isHomePage 
-    ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' 
+    ? 'max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8' 
     : 'max-w-5xl mx-auto px-4 sm:px-6'
 
   return (
@@ -77,7 +77,8 @@ export function Layout({ children }: LayoutProps) {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Gradient overlay */}
+        {/* Minimal gradient overlay - no colors, just blur */}
+        {/* Gradient: 0% → 20% dikey geçiş, sonra transparent */}
         <div
           className={cn(
             'absolute inset-0 transition-opacity duration-300',
@@ -85,23 +86,24 @@ export function Layout({ children }: LayoutProps) {
           )}
           style={{
             background: theme === 'dark'
-              ? 'linear-gradient(to bottom, rgba(9, 66, 223, 0.2), rgba(4, 54, 224, 0.15))'
-              : 'linear-gradient(to bottom, rgba(240, 244, 249, 0.4), rgba(247, 249, 252, 0.3))',
-            backdropFilter: 'blur(12px)',
+              ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.03) 20%, transparent 100%)'
+              : 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.04) 20%, transparent 100%)',
+            backdropFilter: 'blur(32px)',
+            WebkitBackdropFilter: 'blur(32px)',
           }}
         />
 
         <nav className={cn("relative h-full flex items-center justify-between", containerClass)}>
-          {/* Logo */}
+          {/* Logo - Neutral colors only */}
           <Link to="/" className="flex items-center gap-2 group">
             <Sparkles
               className="h-5 w-5 sm:h-6 sm:w-6 transition-colors"
-              style={{ color: 'var(--primary)' }}
+              style={{ color: 'var(--page-text-primary)' }}
             />
             <span
               className="text-2xl sm:text-3xl"
               style={{
-                color: 'var(--primary)',
+                color: 'var(--page-text-primary)',
                 textShadow: theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
                 fontFamily: "'Cute Font', ui-sans-serif, system-ui, sans-serif",
               }}
@@ -112,7 +114,7 @@ export function Layout({ children }: LayoutProps) {
 
           {/* Navigation Items + Auth */}
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* Nav Links */}
+            {/* Nav Links - Neutral colors */}
             {navItems.map((item) => {
               const isActive = location.pathname === item.path
               return (
@@ -122,10 +124,10 @@ export function Layout({ children }: LayoutProps) {
                   className={cn(
                     'flex items-center gap-1.5 px-3 sm:px-4 py-2',
                     'text-sm sm:text-base font-medium rounded-md',
-                    'transition-all',
+                    'transition-all backdrop-blur-sm',
                     isActive
-                      ? 'bg-primary/10 backdrop-blur-md'
-                      : 'opacity-70 hover:opacity-100 hover:bg-primary/5'
+                      ? 'bg-[var(--glass-bg-hover)]'
+                      : 'opacity-70 hover:opacity-100 hover:bg-[var(--glass-bg-secondary)]'
                   )}
                   style={{ color: 'var(--page-text-primary)' }}
                 >
@@ -188,15 +190,17 @@ export function Layout({ children }: LayoutProps) {
           className={cn(
             'fixed bottom-6 right-6 z-50',
             'flex items-center gap-2 px-4 py-3',
-            'rounded-full shadow-lg',
-            'bg-primary/90 hover:bg-primary',
-            'backdrop-blur-md',
+            'rounded-full shadow-lg border',
+            'backdrop-blur-[32px]',
             'transition-all duration-200',
-            'hover:scale-105 active:scale-95',
-            location.pathname === '/marks/test' && 'ring-2 ring-primary ring-offset-2'
+            'hover:scale-105 active:scale-95'
           )}
           style={{
-            color: 'var(--primary-foreground)',
+            background: 'var(--glass-bg-primary)',
+            borderColor: location.pathname === '/marks/test' 
+              ? 'var(--glass-border-hover)' 
+              : 'var(--glass-border)',
+            color: 'var(--page-text-primary)',
           }}
           aria-label="Test Page"
         >

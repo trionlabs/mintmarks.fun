@@ -16,20 +16,24 @@ interface ToastProps {
 
 const toastStyles: Record<ToastType, string> = {
   success: `
-    bg-green-500/10 border-green-500/20 text-green-700
-    dark:text-green-400
+    bg-green-500/12 border-green-500/25 text-green-800
+    dark:bg-green-500/15 dark:border-green-500/30 dark:text-green-300
+    shadow-[0_4px_20px_rgba(34,197,94,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]
   `,
   error: `
-    bg-red-500/10 border-red-500/20 text-red-700
-    dark:text-red-400
+    bg-red-500/12 border-red-500/25 text-red-800
+    dark:bg-red-500/15 dark:border-red-500/30 dark:text-red-300
+    shadow-[0_4px_20px_rgba(239,68,68,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]
   `,
   info: `
-    bg-blue-500/10 border-blue-500/20 text-blue-700
-    dark:text-blue-400
+    bg-blue-500/12 border-blue-500/25 text-blue-800
+    dark:bg-blue-500/15 dark:border-blue-500/30 dark:text-blue-300
+    shadow-[0_4px_20px_rgba(59,130,246,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]
   `,
   warning: `
-    bg-yellow-500/10 border-yellow-500/20 text-yellow-700
-    dark:text-yellow-400
+    bg-amber-500/12 border-amber-500/25 text-amber-800
+    dark:bg-amber-500/15 dark:border-amber-500/30 dark:text-amber-300
+    shadow-[0_4px_20px_rgba(245,158,11,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]
   `,
 }
 
@@ -49,7 +53,8 @@ export function Toast({ toasts, onDismiss }: ToastProps) {
         <div
           key={toast.id}
           className={cn(
-            'flex items-start gap-3 p-4 rounded-lg border backdrop-blur-sm shadow-lg',
+            'flex items-start gap-3 p-4 rounded-xl border',
+            'backdrop-blur-xl backdrop-saturate-[180%]',
             'animate-in slide-in-from-right duration-300',
             toastStyles[toast.type]
           )}
