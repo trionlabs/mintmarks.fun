@@ -5,6 +5,7 @@ import { WagmiProvider } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import { CDPReactProvider } from '@coinbase/cdp-react'
+import { CDPHooksProvider } from '@coinbase/cdp-hooks'
 import { WalletProvider } from './wallet'
 import { wagmiConfig } from './config/wagmi'
 import App from './App.tsx'
@@ -77,8 +78,9 @@ const isCDPConfigured = !!import.meta.env.VITE_CDP_PROJECT_ID
  * 1. QueryClientProvider - TanStack Query (shared by wagmi)
  * 2. WagmiProvider - External wallet state
  * 3. RainbowKitProvider - Wallet connection UI
- * 4. CDPReactProvider - CDP embedded wallet (optional)
- * 5. WalletProvider - Unified wallet abstraction
+ * 4. CDPReactProvider - CDP embedded wallet UI components (optional)
+ * 5. CDPHooksProvider - CDP hooks context (required for @coinbase/cdp-hooks)
+ * 6. WalletProvider - Unified wallet abstraction
  */
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -87,9 +89,11 @@ createRoot(document.getElementById('root')!).render(
         <RainbowKitProvider initialChain={baseSepolia}>
           {isCDPConfigured ? (
             <CDPReactProvider config={cdpConfig}>
-              <WalletProvider>
-                <App />
-              </WalletProvider>
+              <CDPHooksProvider config={cdpConfig}>
+                <WalletProvider>
+                  <App />
+                </WalletProvider>
+              </CDPHooksProvider>
             </CDPReactProvider>
           ) : (
             <WalletProvider>
