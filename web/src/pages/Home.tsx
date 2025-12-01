@@ -68,13 +68,29 @@ export function Home() {
               <div className="max-w-lg">
                 {/* Badge */}
                 <div
-                  className="glass-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 sm:mb-7 md:mb-8 transition-all duration-300 hover:scale-105 hero-animate-slide-up"
+                  className="glass-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 sm:mb-7 md:mb-8 transition-all duration-300 hero-animate-slide-up"
                 >
                   <Sparkles
                     className="h-3.5 w-3.5 sm:h-4 sm:w-4 glass-text-primary transition-all duration-300 hero-sparkle-icon"
                   />
                   <span className="text-xs sm:text-sm font-semibold tracking-wider glass-text-primary">
-                    Own Your Commitments
+                    Powered by{' '}
+                    <a
+                      href="https://zk.email/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:opacity-80 transition-opacity"
+                    >
+                      ZK-Email
+                    </a>{' '}
+                    <a
+                      href="https://zkpassport.id/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:opacity-80 transition-opacity"
+                    >
+                      ZK-Passport
+                    </a>
                   </span>
                 </div>
 
@@ -83,65 +99,42 @@ export function Home() {
                   {/* h2: Story */}
                   <div className="space-y-1 sm:space-y-1.5 md:space-y-2">
                     <h2
-                      className="glass-text-secondary text-base sm:text-lg md:text-xl font-medium leading-relaxed hero-animate-slide-up hero-delay-100"
+                      className="glass-text-primary opacity-90 text-base sm:text-lg md:text-xl font-normal leading-relaxed hero-animate-slide-up hero-delay-100"
                     >
                       Every Email In Your Inbox Tells A Story.
                     </h2>
 
                     {/* Rotating commitments */}
                     <div
-                      className="glass-text-secondary text-base sm:text-lg md:text-xl font-medium leading-relaxed hero-animate-slide-up hero-delay-150 min-h-[1.5em] relative"
+                      className="glass-text-primary opacity-90 text-base sm:text-lg md:text-xl font-normal leading-relaxed hero-animate-slide-up hero-delay-150 min-h-[1.5em] relative"
                     >
-                    <div className="hero-rotate-wrapper">
-                      {commitments.map((commitment, index) => (
-                        <span
-                          key={index}
-                          className={`hero-rotate-item font-medium ${index === commitmentIndex ? 'active' : 'inactive'
-                            }`}
-                        >
-                          {commitment}
-                        </span>
-                      ))}
-                    </div>
+                      <div className="hero-rotate-wrapper">
+                        {commitments.map((commitment, index) => (
+                          <span
+                            key={index}
+                            className={`hero-rotate-item font-normal ${index === commitmentIndex ? 'active' : 'inactive'
+                              }`}
+                          >
+                            {commitment}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
                   {/* Main Value Proposition - Improved Hierarchy */}
                   <div className="space-y-5">
-                    {/* h2: Turn Emails */}
-                    <h2
-                      className="glass-text-primary text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.1] tracking-tight hero-animate-slide-up hero-delay-400"
-                    >
-                      Turn Emails
-                    </h2>
+                    {/* h3: Combined Title */}
+                    <h3 className="glass-text-primary text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-[1.15] tracking-tight hero-animate-slide-up hero-delay-400 flex flex-col gap-1">
+                      <span>Turn E-mails into</span>
+                      <span>Private Onchain</span>
+                      <span>Marks</span>
+                    </h3>
 
-                    {/* h1: Into Private Onchain Marks - Largest, Most Important */}
-                    <h1
-                      className="glass-text-primary text-4xl sm:text-5xl md:text-6xl font-extrabold leading-[1.1] tracking-tight hero-animate-slide-up hero-delay-450"
-                    >
-                      Into Private Onchain Marks
-                    </h1>
-
-                    {/* Secondary Line - Unified Typography */}
-                    <div
-                      className="flex items-baseline gap-3 text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight hero-animate-slide-up hero-delay-500"
-                    >
-                      <span className="glass-text-secondary opacity-80">to Unlock</span>
-
-                      <div className="relative min-w-[180px]">
-                        <div className="hero-rotate-wrapper">
-                          {unlockOptions.map((option, index) => (
-                            <span
-                              key={index}
-                              className={`hero-rotate-item hero-gradient-text text-xl sm:text-2xl md:text-3xl font-extrabold ${index === unlockIndex ? 'active' : 'inactive'
-                                }`}
-                            >
-                              {option}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                    {/* Secondary Line */}
+                    <p className="glass-text-secondary text-base sm:text-lg md:text-xl font-light hero-animate-slide-up hero-delay-500">
+                      to Unlock{' '}<span className="hero-gradient-text font-semibold ml-1">{unlockOptions[unlockIndex]}</span>
+                    </p>
                   </div>
                 </div>
 

@@ -285,7 +285,9 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
       exit="exit"
       layout
       layoutDependency={email.isMinted}
-      className="w-[200px] sm:w-[230px] md:w-[260px] lg:w-[250px] rounded-2xl"
+      className={`w-[200px] sm:w-[230px] md:w-[260px] lg:w-[250px] rounded-2xl transition-all duration-200 ${
+        !email.isMinted ? 'cursor-pointer' : 'cursor-default'
+      }`}
       style={{ 
         position: 'absolute', 
         left: `${email.x}%`, 
@@ -315,6 +317,16 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
             ? 'var(--glass-shadow-hover)'
             : 'var(--glass-shadow)',
       }}
+      whileHover={!email.isMinted ? { 
+        scale: 1.02,
+        y: -2,
+        transition: { duration: 0.2 }
+      } : undefined}
+      whileTap={!email.isMinted ? { 
+        scale: 0.98,
+        y: 0,
+        transition: { duration: 0.1 }
+      } : undefined}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -428,17 +440,32 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
             </div>
           </div>
 
-          {/* Mark It hint - Absolute positioned to prevent card expansion */}
+          {/* Mark It Button - Absolute positioned to prevent card expansion */}
           {isHovered && !email.isMinted && (
-            <div className="absolute top-2 right-2 flex items-center gap-1 sm:gap-1 animate-fade-in z-20">
-              <Sparkles className="w-3 h-3 sm:w-3 sm:h-3 md:w-3 md:h-3 lg:w-3 lg:h-3" style={{ color: 'var(--page-text-secondary)' }} />
+            <m.div 
+              className="absolute top-2 right-2 flex items-center gap-1.5 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full animate-fade-in z-20 cursor-pointer transition-all duration-200 hover:bg-[var(--button-outline-hover-bg)] hover:border-[var(--button-outline-hover-border)]"
+              style={{ 
+                background: 'var(--button-outline-bg)',
+                border: '1px solid var(--button-outline-border)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+              }}
+              whileHover={{ 
+                scale: 1.05,
+                y: -1,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+              }}
+              whileTap={{ scale: 0.95, y: 0 }}
+            >
+              <Sparkles className="w-3 h-3 sm:w-3 sm:h-3 md:w-3 md:h-3 lg:w-3 lg:h-3" style={{ color: 'var(--button-outline-text)' }} />
               <span 
                 className="text-[9px] sm:text-[9px] md:text-[9px] lg:text-[9px] font-semibold uppercase tracking-wide whitespace-nowrap"
-                style={{ color: 'var(--page-text-secondary)' }}
+                style={{ color: 'var(--button-outline-text)' }}
               >
                 Mark It
               </span>
-            </div>
+            </m.div>
           )}
         </div>
       </div>
