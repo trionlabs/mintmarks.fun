@@ -31,11 +31,41 @@ function getNetworkByChainId(chainId: number) {
 // Note: getViemChain imported from @/config/chains
 
 /**
+ * Check if CDP is configured
+ */
+const isCDPConfigured = !!import.meta.env.VITE_CDP_PROJECT_ID
+
+/**
  * CDP wallet adapter hook.
  * Provides EOA wallet functionality via CDP embedded wallet.
+ * 
+ * IMPORTANT: Returns disabled adapter when CDP is not configured
+ * to avoid calling hooks that require CDPHooksProvider.
  */
 export function useCdpWallet(): WalletAdapter {
+  // If CDP is not configured, return disabled adapter without calling hooks
+  if (!isCDPConfigured) {
+    return useMemo(
+      () => ({
+        state: {
+          address: null,
+          isConnected: false,
+          source: null,
+          chainId: null,
+          isLoading: false,
+          error: null,
+          isMultichain: false,
+        },
+        sendTransaction: undefined,
+        disconnect: async () => {},
+        switchChain: undefined,
+      }),
+      []
+    )
+  }
+
   // CDP hooks return objects, not primitive values
+  // Only call these when CDP is configured (CDPHooksProvider is available)
   const { isSignedIn } = useIsSignedIn()
   const { evmAddress } = useEvmAddress()
   const { sendEvmTransaction, data: txData } = useSendEvmTransaction()

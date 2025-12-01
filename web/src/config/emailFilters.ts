@@ -84,7 +84,7 @@ const LUMA_SUBCATEGORIES: FilterSubcategory[] = [
   {
     id: 'attended',
     label: 'Attended',
-    keywords: ['thanks for joining', 'thank for joining', 'thank you for joining', 'thanks for attending', 'hope you enjoyed'],
+    keywords: ['thanks for joining', 'thank for joining'],
     gmailKeywords: ['thanks for joining', 'thank for joining'],
   },
 ]
@@ -126,8 +126,8 @@ const EVENTBRITE_SUBCATEGORIES: FilterSubcategory[] = [
   {
     id: 'attended',
     label: 'Attended',
-    keywords: ['thanks for attending', 'thank you for attending', 'hope you enjoyed'],
-    gmailKeywords: ['thanks for attending'],
+    keywords: ['thanks for joining', 'thank for joining'],
+    gmailKeywords: ['thanks for joining', 'thank for joining'],
   },
 ]
 
