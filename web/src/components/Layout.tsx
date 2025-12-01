@@ -138,10 +138,11 @@ export function Layout({ children }: LayoutProps) {
                   className={cn(
                     'flex items-center gap-2 px-3 sm:px-4 py-2',
                     'text-sm font-medium rounded-md',
-                    'transition-colors transition-opacity backdrop-blur-sm',
+                    'transition-all duration-300 backdrop-blur-sm',
+                    'border border-transparent',
                     isActive
-                      ? 'bg-[var(--glass-bg-hover)]'
-                      : 'opacity-70 hover:opacity-100 hover:bg-[var(--glass-bg-secondary)]'
+                      ? 'bg-[var(--glass-bg-hover)] opacity-100 border-[var(--glass-border)]/70'
+                      : 'opacity-70 hover:opacity-100 hover:bg-[var(--glass-bg-primary)] hover:border-[var(--glass-border-hover)]/60 hover:shadow-sm'
                   )}
                   style={{ 
                     color: 'var(--page-text-primary)',

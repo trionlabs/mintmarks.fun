@@ -540,7 +540,7 @@ export function MyMarks() {
           style={{ color: 'var(--page-text-primary)' }}
         >
           Marks of Your Life.
-          <span className="block mt-3 sm:mt-4" style={{ color: 'var(--Controls-Selected)' }}>
+          <span className="block mt-3 sm:mt-4 hero-gradient-text">
             Collected.
           </span>
         </h1>
