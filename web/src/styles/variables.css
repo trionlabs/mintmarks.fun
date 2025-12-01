@@ -15,7 +15,7 @@
   --card-foreground: oklch(0.2126 0.0231 246.3010);
   --popover: oklch(1.0000 0 0);
   --popover-foreground: oklch(0.2126 0.0231 246.3010);
-  --primary: oklch(0.6396 0.1928 262.1643);
+  --primary: oklch(0.68 0.22 262);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0.01 246);
   --secondary-foreground: oklch(0.205 0.02 246);
@@ -27,7 +27,7 @@
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.9324 0.0168 230.9139);
   --input: oklch(0.9324 0.0168 230.9139);
-  --ring: oklch(0.6396 0.1928 262.1643);
+  --ring: oklch(0.68 0.22 262);
   --radius: 0.625rem;
 
   /* Page Content Colors */
@@ -98,9 +98,9 @@
   --bg-animation-line-color: rgba(230, 244, 249, 0.15);
 
   /* Controls */
-  --Controls-Selected: #6396F4;
-  --Controls-Idle: rgba(99, 150, 244, 0.1);
-  --controls-selected-light: rgba(99, 150, 244, 0.4);
+  --Controls-Selected: #5B8AFF;
+  --Controls-Idle: rgba(91, 138, 255, 0.1);
+  --controls-selected-light: rgba(91, 138, 255, 0.4);
 
   /* ===== AUTH INDICATOR ===== */
   /* Container */
@@ -307,7 +307,7 @@
   --card-foreground: oklch(0.95 0.005 236);
   --popover: oklch(0.12 0.015 246);
   --popover-foreground: oklch(0.95 0.005 236);
-  --primary: oklch(0.7 0.15 262);
+  --primary: oklch(0.72 0.20 262);
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.22 0.015 246);
   --secondary-foreground: oklch(0.95 0 0);
@@ -319,7 +319,7 @@
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.28 0.015 248);
   --input: oklch(0.28 0.015 248);
-  --ring: oklch(0.65 0.18 262);
+  --ring: oklch(0.72 0.20 262);
 
   /* Page Content Colors - Minimal */
   --page-text-primary: rgba(255, 255, 255, 0.95);
@@ -390,9 +390,9 @@
   --bg-animation-line-color: rgba(99, 150, 244, 0.08);
 
   /* Controls */
-  --Controls-Selected: #6396F4;
-  --Controls-Idle: rgba(99, 150, 244, 0.2);
-  --controls-selected-light: rgba(99, 150, 244, 0.5);
+  --Controls-Selected: #6B9AFF;
+  --Controls-Idle: rgba(107, 154, 255, 0.2);
+  --controls-selected-light: rgba(107, 154, 255, 0.5);
 
   /* ===== AUTH INDICATOR (Dark Mode) ===== */
   /* Container - inherits from glass vars, no override needed */
