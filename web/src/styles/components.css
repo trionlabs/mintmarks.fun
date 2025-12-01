@@ -275,3 +275,44 @@ body:has(.glass-email-card:hover) [aria-hidden="true"] svg {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ============================================
+   DEFAULT BUTTON HOVER EFFECT
+   Minimal hover with subtle glow and light
+   ============================================ */
+
+/* Default button hover - minimal effect (higher specificity to avoid !important) */
+button.btn-default-hover:hover {
+  position: relative;
+  background: #151515;
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.12);
+}
+
+.dark button.btn-default-hover:hover {
+  background: var(--figma-cta1-hover-bg);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Subtle bottom-up light gradient */
+button.btn-default-hover:hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.06) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+button.btn-default-hover:hover > * {
+  position: relative;
+  z-index: 1;
+}
+
