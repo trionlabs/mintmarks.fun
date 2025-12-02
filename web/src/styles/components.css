@@ -316,3 +316,19 @@ button.btn-default-hover:hover > * {
   z-index: 1;
 }
 
+/* ============================================
+   CDP SIGNIN MODAL - ONLY Z-INDEX
+   No styling overrides - use original SDK styles
+   Just ensure modal appears above our content
+   ============================================ */
+
+[class*="SignIn-module"],
+[class*="SignInModal"],
+div[role="dialog"] {
+  z-index: 99999 !important;
+}
+
+[class*="SignIn-module__overlay"],
+[class*="Modal__overlay"] {
+  z-index: 99998 !important;
+}
