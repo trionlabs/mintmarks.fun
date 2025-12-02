@@ -175,9 +175,8 @@ export function CreateMark() {
         }
 
         setNextPageToken(result.nextPageToken)
-        setHasMore(
-          !!result.nextPageToken && result.emails.length === EMAILS_PER_PAGE
-        )
+        // If Gmail returns a nextPageToken, there are more emails to fetch
+        setHasMore(!!result.nextPageToken)
 
         if (isInitialLoad && result.emails.length === 0) {
           showToast('No event emails found matching your filters.', 'info')
@@ -398,9 +397,10 @@ export function CreateMark() {
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             <div
-              className="w-20 h-20 rounded-full flex items-center justify-center bg-[var(--Controls-Idle)] border border-[var(--glass-border)] backdrop-blur-sm transition-all"
+              className="w-20 h-20 rounded-full flex items-center justify-center glass-inset transition-all"
+              style={{ color: 'var(--Controls-Selected)' }}
             >
-              <Mail className="h-10 w-10 text-[var(--Controls-Selected)]" />
+              <Mail className="h-10 w-10" />
             </div>
             <Button size="lg" onClick={gmailLogin} className="gap-2">
               <Mail className="h-5 w-5" />
@@ -499,12 +499,13 @@ export function CreateMark() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
                 <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center bg-[var(--Controls-Idle)] border border-[var(--glass-border)] backdrop-blur-sm transition-all"
+                  className="w-16 h-16 rounded-full flex items-center justify-center glass-inset transition-all"
+                  style={{ color: 'var(--Controls-Selected)' }}
                 >
                   {hasActiveFilters ? (
-                    <FilterX className="h-8 w-8 text-[var(--Controls-Selected)]" />
+                    <FilterX className="h-8 w-8" />
                   ) : (
-                    <Mail className="h-8 w-8 text-[var(--Controls-Selected)]" />
+                    <Mail className="h-8 w-8" />
                   )}
                 </div>
                 <h3

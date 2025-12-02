@@ -99,20 +99,20 @@ export function Home() {
                   {/* h2: Story */}
                   <div className="space-y-1 sm:space-y-1.5 md:space-y-2">
                     <h2
-                      className="glass-text-primary opacity-90 text-base sm:text-lg md:text-xl font-normal leading-relaxed hero-animate-slide-up hero-delay-100"
+                      className="glass-text-secondary text-sm sm:text-base md:text-lg font-medium leading-relaxed hero-animate-slide-up hero-delay-100"
                     >
                       Every Email In Your Inbox Tells A Story.
                     </h2>
 
                     {/* Rotating commitments */}
                     <div
-                      className="glass-text-primary opacity-90 text-base sm:text-lg md:text-xl font-normal leading-relaxed hero-animate-slide-up hero-delay-150 min-h-[1.5em] relative"
+                      className="glass-text-secondary text-sm sm:text-base md:text-lg font-medium leading-relaxed hero-animate-slide-up hero-delay-150 min-h-[1.5em] relative"
                     >
                       <div className="hero-rotate-wrapper">
                         {commitments.map((commitment, index) => (
                           <span
                             key={index}
-                            className={`hero-rotate-item font-normal ${index === commitmentIndex ? 'active' : 'inactive'
+                            className={`hero-rotate-item ${index === commitmentIndex ? 'active' : 'inactive'
                               }`}
                           >
                             {commitment}
@@ -132,7 +132,7 @@ export function Home() {
                     </h3>
 
                     {/* Secondary Line */}
-                    <p className="glass-text-secondary text-base sm:text-lg md:text-xl font-light hero-animate-slide-up hero-delay-500">
+                    <p className="glass-text-secondary text-sm sm:text-base md:text-lg font-medium hero-animate-slide-up hero-delay-500">
                       to Unlock{' '}<span className="hero-gradient-text font-semibold ml-1">{unlockOptions[unlockIndex]}</span>
                     </p>
                   </div>

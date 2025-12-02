@@ -105,17 +105,18 @@ const GRID_SLOTS_DESKTOP = [
 ] as const
 
 // Tablet (iPad) grid positions - 2x3 grid
-// Cards are ~200px wide (iPad için daha geniş), container is ~600px
+// Cards are ~200px wide, container is ~100% with padding
+// Adjusted to prevent overflow - keeping cards within safe bounds
 const GRID_SLOTS_TABLET = [
-  // Top row - daha geniş spacing
-  { x: 3, y: 8 },
-  { x: 52, y: 10 },
+  // Top row - more padding from edges
+  { x: 5, y: 5 },
+  { x: 50, y: 8 },
   // Middle row
-  { x: 1, y: 45 },
-  { x: 50, y: 47 },
+  { x: 3, y: 38 },
+  { x: 52, y: 40 },
   // Bottom row
-  { x: 3, y: 82 },
-  { x: 52, y: 84 },
+  { x: 5, y: 70 },
+  { x: 50, y: 73 },
 ] as const
 
 // Mobile grid positions - 2x2 grid with larger cards
@@ -285,7 +286,7 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
       exit="exit"
       layout
       layoutDependency={email.isMinted}
-      className={`w-[200px] sm:w-[230px] md:w-[260px] lg:w-[250px] rounded-2xl transition-all duration-200 ${
+      className={`w-[180px] sm:w-[200px] md:w-[220px] lg:w-[250px] rounded-2xl transition-all duration-200 ${
         !email.isMinted ? 'cursor-pointer' : 'cursor-default'
       }`}
       style={{ 
@@ -443,25 +444,25 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
           {/* Mark It Button - Absolute positioned to prevent card expansion */}
           {isHovered && !email.isMinted && (
             <m.div 
-              className="absolute top-2 right-2 flex items-center gap-1.5 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full animate-fade-in z-20 cursor-pointer transition-all duration-200 hover:bg-[var(--button-outline-hover-bg)] hover:border-[var(--button-outline-hover-border)]"
+              className="absolute top-2 right-2 flex items-center gap-1.5 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full animate-fade-in z-20 cursor-pointer transition-all duration-200"
               style={{ 
-                background: 'var(--button-outline-bg)',
-                border: '1px solid var(--button-outline-border)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                background: 'var(--figma-cta1-bg)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(32px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
               }}
               whileHover={{ 
                 scale: 1.05,
                 y: -1,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
               }}
               whileTap={{ scale: 0.95, y: 0 }}
             >
-              <Sparkles className="w-3 h-3 sm:w-3 sm:h-3 md:w-3 md:h-3 lg:w-3 lg:h-3" style={{ color: 'var(--button-outline-text)' }} />
+              <Sparkles className="w-3 h-3 sm:w-3 sm:h-3 md:w-3 md:h-3 lg:w-3 lg:h-3" style={{ color: 'var(--figma-cta1-text)' }} />
               <span 
                 className="text-[9px] sm:text-[9px] md:text-[9px] lg:text-[9px] font-semibold uppercase tracking-wide whitespace-nowrap"
-                style={{ color: 'var(--button-outline-text)' }}
+                style={{ color: 'var(--figma-cta1-text)' }}
               >
                 Mark It
               </span>
@@ -601,12 +602,12 @@ export const HeroEmailScatter: React.FC = () => {
   return (
     <div 
       ref={containerRef}
-      className={`relative h-full ${
+      className={`relative h-full overflow-hidden ${
         isMobile 
-          ? 'min-h-[360px] overflow-hidden' 
+          ? 'min-h-[360px]' 
           : isTablet
-            ? 'min-h-[500px] overflow-hidden'
-            : 'min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-[700px] overflow-visible'
+            ? 'min-h-[480px]'
+            : 'min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-[700px]'
       }`}
       style={{ background: 'transparent' }}
     >
@@ -648,7 +649,7 @@ export const HeroEmailScatter: React.FC = () => {
       />
 
       {/* Email Cards */}
-      <div className="absolute inset-0 z-10">
+      <div className="absolute inset-0 z-10 px-2 sm:px-4 md:px-6 lg:px-0">
         <AnimatePresence mode="popLayout">
           {emails.map(email => (
             <EmailCard 

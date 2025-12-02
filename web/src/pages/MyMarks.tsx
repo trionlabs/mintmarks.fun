@@ -330,19 +330,16 @@ function ShareNFTButton({ nft }: { nft: MintmarkNFT }) {
   }
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="outline"
+      size="sm"
       onClick={handleShare}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
-      style={{
-        background: 'var(--primary)',
-        color: 'var(--primary-foreground)',
-      }}
       title="Share on X (Twitter)"
+      className="gap-1.5 py-1.5 px-3 text-xs"
     >
       <Share2 className="h-3.5 w-3.5" />
       Share
-    </button>
+    </Button>
   )
 }
 
