@@ -68,16 +68,22 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Global Noise Texture Overlay - ZK Email Style */}
+      {/* Linear Gradient Overlay - Brightens bottom */}
       <div 
-        className="fixed inset-0 pointer-events-none z-[1] noise-overlay"
+        className="gradient-overlay"
+        aria-hidden="true"
+      />
+      
+      {/* Global Noise Texture Overlay - Modern High-Grain */}
+      <div 
+        className="noise-overlay"
         aria-hidden="true"
       />
       
       {/* Animated Background - Global */}
       <SpiralCirclesBackground 
-        count={14} 
-        speed={0.8}
+        count={75} 
+        speed={0.4}
       />
       
       {/* Navigation */}

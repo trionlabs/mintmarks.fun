@@ -6,75 +6,14 @@
 /* ============================================
    EMAIL CARD - Glass with Background Visibility
    Email cards have translateY hover effect
+   NOTE: Base styles moved to @utility glass-email-card in glassmorphism.css
+   This file only contains component-specific overrides (buttons, etc.)
    ============================================ */
 
-.glass-email-card {
-  background: rgba(255, 255, 255, 0.5) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.06) !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.glass-email-card:hover {
-  background: rgba(255, 255, 255, 0.65) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transform: translateY(-2px);
-}
-
-/* Dark mode glass email card - transparent glass */
+/* Dark mode email card overlay - moved to glassmorphism.css */
+/* Note: Gradient overlay is now handled in glassmorphism.css via ::after */
 .dark .glass-email-card {
-  background: rgba(255, 255, 255, 0.04) !important;
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 
-    0 4px 24px rgba(0, 0, 0, 0.4),
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
   position: relative;
-}
-
-/* Dark mode overlay - subtle white gradient (no blue) */
-.dark .glass-email-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.02) 0%,
-    rgba(255, 255, 255, 0.005) 50%,
-    rgba(255, 255, 255, 0.015) 100%
-  );
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.9;
-}
-
-.dark .glass-email-card:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  box-shadow: 
-    0 8px 40px rgba(0, 0, 0, 0.5),
-    0 4px 12px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.dark .glass-email-card:hover::before {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.05) 0%,
-    rgba(255, 255, 255, 0.02) 50%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
 }
 
 /* ============================================
@@ -167,8 +106,8 @@
 .glass-email-card button:hover {
   /* Glass morphic background effect */
   background: rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
   
   /* Whitish border on button hover */
   border: 1px solid rgba(255, 255, 255, 0.4) !important;
@@ -234,8 +173,8 @@
 .dark .glass-email-card button:hover {
   /* Glass morphic background effect for dark mode */
   background: rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(20px) saturate(200%);
-  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
   
   /* Whitish border on button hover (dark mode) */
   border: 1px solid rgba(255, 255, 255, 0.5) !important;
@@ -332,111 +271,91 @@ button.btn-default-hover:hover > * {
 }
 
 /* ============================================
-   GLOBAL NOISE OVERLAY - ZK Email Style
-   Subtle grain texture across entire page
-   Uses SVG filter for authentic noise texture
+   BACKGROUND LAYER SYSTEM
+   
+   Z-index hierarchy (bottom to top):
+   - z-0:  SpiralCirclesBackground (animated icons)
+   - z-2:  Noise overlay (high-grain texture)
+   - z-10: Gradient overlay (linear brightness gradient)
+   - z-50+: Content (header, main content, modals)
+   
+   All overlays are fixed, full viewport, pointer-events-none
    ============================================ */
 
-.noise-overlay {
-  /* Premium film grain - refined and elegant */
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' seed='15' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
-  background-size: 250px 250px;
-  opacity: 0.04;
+/* ============================================
+   LINEAR GRADIENT OVERLAY
+   
+   Simple linear gradient - brightens bottom areas
+   Top: transparent, Bottom: lighter
+   ============================================ */
+
+.gradient-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
   pointer-events: none;
-}
-
-/* Dark mode - subtle but visible grain */
-.dark .noise-overlay {
-  opacity: 0.065;
-}
-
-/* Alternative: CSS-only noise simulation (fallback for better performance) */
-.noise-overlay-css {
-  background-image: 
-    repeating-linear-gradient(
-      0deg,
-      rgba(255,255,255,0.03) 0px,
-      transparent 0.5px,
-      transparent 2px,
-      rgba(255,255,255,0.02) 2.5px,
-      transparent 3px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      rgba(255,255,255,0.025) 0px,
-      transparent 0.5px,
-      transparent 2px,
-      rgba(255,255,255,0.015) 2.5px,
-      transparent 3px
-    ),
-    repeating-linear-gradient(
-      45deg,
-      rgba(255,255,255,0.02) 0px,
-      transparent 1px,
-      transparent 3px,
-      rgba(255,255,255,0.01) 3.5px,
-      transparent 4px
-    );
-  background-size: 4px 4px, 4px 4px, 8px 8px;
+  
+  /* Linear gradient: top transparent, bottom lighter */
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.08) 70%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  
   opacity: 1;
+  display: block;
+  visibility: visible;
 }
 
-.dark .noise-overlay-css {
-  background-image: 
-    repeating-linear-gradient(
-      0deg,
-      rgba(255,255,255,0.04) 0px,
-      transparent 0.5px,
-      transparent 2px,
-      rgba(255,255,255,0.03) 2.5px,
-      transparent 3px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      rgba(255,255,255,0.035) 0px,
-      transparent 0.5px,
-      transparent 2px,
-      rgba(255,255,255,0.025) 2.5px,
-      transparent 3px
-    ),
-    repeating-linear-gradient(
-      45deg,
-      rgba(255,255,255,0.03) 0px,
-      transparent 1px,
-      transparent 3px,
-      rgba(255,255,255,0.02) 3.5px,
-      transparent 4px
-    );
+/* Dark mode: Subtle brightness lift */
+.dark .gradient-overlay {
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.03) 70%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
 }
 
 /* ============================================
-   NOISE CONTAINER - 
+   GLOBAL NOISE OVERLAY
+   
+   Modern, minimal, high-grain texture
+   Neutral tones with subtle green tint
+   
+   Z-index: 2 (above spiral z-0, below content z-50+)
+   Position: Fixed, full viewport coverage
    ============================================ */
 
-.noise-container {
-  position: relative;
-}
-
-.noise-container::before {
-  content: '';
-  position: absolute;
+.noise-overlay {
+  position: fixed;
   inset: 0;
+  z-index: 2;
   pointer-events: none;
-  z-index: 0;
-  /* SVG noise texture */
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseContainer'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseContainer)' opacity='0.35'/%3E%3C/svg%3E");
-  background-size: 200px 200px;
-  opacity: 0.12;
-  mix-blend-mode: overlay;
+  
+  /* 
+   * High-grain texture - modern film grain aesthetic:
+   * - baseFrequency: 1.2 (finer grain, more detail)
+   * - numOctaves: 6 (more texture layers for richness)
+   * - Neutral with subtle green tint
+   */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='6' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0.35 0.45 0.2 0 0 0.25 0.55 0.2 0 0 0.15 0.45 0.25 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.6'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  background-repeat: repeat;
+  
+  /* Light mode: Visible grain with subtle green tint */
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  /* Very subtle neutral-green overlay */
+  background-color: rgba(240, 253, 244, 0.03);
 }
 
-.dark .noise-container::before {
-  opacity: 0.2;
+/* Dark mode: More visible grain */
+.dark .noise-overlay {
+  opacity: 0.4;
   mix-blend-mode: screen;
-}
-
-/* Ensure content is above noise */
-.noise-container > * {
-  position: relative;
-  z-index: 1;
+  background-color: rgba(34, 197, 94, 0.02);
 }
