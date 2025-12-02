@@ -571,7 +571,7 @@ export function CreateMark() {
                     <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                       {/* Email Icon */}
                       <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105"
+                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105 glass-icon-container"
                         style={{ background: SOURCE_COLORS[email.source].bg }}
                       >
                         <Mail

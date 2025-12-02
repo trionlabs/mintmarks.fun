@@ -393,7 +393,7 @@ export function MyMarks() {
         >
           <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: 'var(--page-text-primary)' }} aria-hidden="true" />
           <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase" style={{ color: 'var(--page-text-primary)', letterSpacing: '0.05em' }}>
-            {isConnected || isDemo ? 'Your Collection' : 'Community Collection'}
+            {isConnected || isDemo ? 'unlimited possibilities' : 'Community Collection'}
           </span>
         </div>
 

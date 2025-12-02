@@ -18,9 +18,9 @@ const DropdownMenuContent = React.forwardRef<
         // Layout
         'z-50 min-w-[8rem] rounded-2xl p-1.5',
         // Minimal glass - soft bg, subtle blur
-        'bg-white/[0.5] dark:bg-white/[0.04]',
-        '[backdrop-filter:blur(12px)]',
-        '[-webkit-backdrop-filter:blur(12px)]',
+        'bg-[var(--glass-bg-primary)] dark:bg-[var(--glass-bg-primary)]',
+        '[backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]',
+        '[-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]',
         // Soft border - visible but not harsh
         'border border-black/[0.06] dark:border-white/[0.08]',
         // Minimal shadow - no blue tint
