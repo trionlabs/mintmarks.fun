@@ -334,7 +334,7 @@ export function CreateMark() {
               className="text-xs sm:text-sm font-semibold tracking-wide uppercase"
               style={{ color: 'var(--page-text-primary)', letterSpacing: '0.05em' }}
             >
-              Own Your Commitments
+              Private. On-chain
             </span>
           </div>
 
@@ -396,11 +396,11 @@ export function CreateMark() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
-            <div
+<div
               className="w-20 h-20 rounded-full flex items-center justify-center glass-inset transition-all"
               style={{ color: 'var(--Controls-Selected)' }}
             >
-              <Mail className="h-10 w-10" />
+               <Mail className="h-10 w-10" />
             </div>
             <Button size="lg" onClick={gmailLogin} className="gap-2">
               <Mail className="h-5 w-5" />
@@ -498,11 +498,11 @@ export function CreateMark() {
           {!isLoading && emails.length === 0 && !error && (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
-                <div
+<div
                   className="w-16 h-16 rounded-full flex items-center justify-center glass-inset transition-all"
                   style={{ color: 'var(--Controls-Selected)' }}
                 >
-                  {hasActiveFilters ? (
+                   {hasActiveFilters ? (
                     <FilterX className="h-8 w-8" />
                   ) : (
                     <Mail className="h-8 w-8" />

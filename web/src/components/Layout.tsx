@@ -68,6 +68,12 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Global Noise Texture Overlay - ZK Email Style */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-[1] noise-overlay"
+        aria-hidden="true"
+      />
+      
       {/* Animated Background - Global */}
       <SpiralCirclesBackground 
         count={14} 
@@ -93,7 +99,7 @@ export function Layout({ children }: LayoutProps) {
           )}
           style={{
             background: theme === 'dark'
-              ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.03) 20%, transparent 100%)'
+              ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.03) 20%, transparent 100%)'
               : 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.04) 20%, transparent 100%)',
             backdropFilter: 'blur(32px)',
             WebkitBackdropFilter: 'blur(32px)',

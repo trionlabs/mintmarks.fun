@@ -57,7 +57,7 @@ export function ConnectWalletModal({ trigger }: ConnectWalletModalProps) {
       setShowCdpModal(false)
     }
   }, [open])
-  
+
   // ============================================
   // Modal Dismiss Detection
   // ============================================

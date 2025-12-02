@@ -291,7 +291,14 @@ export function MarkItFlowModal({
 
             {/* Proof Blocking Alert */}
             {isProofBlocking && (
-              <div className="mb-6 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center gap-3 text-sm text-yellow-500 animate-pulse">
+              <div 
+                className="mb-6 p-3 rounded-lg flex items-center gap-3 text-sm animate-pulse"
+                style={{
+                  background: 'var(--status-pending-bg)',
+                  border: '1px solid var(--status-pending-border)',
+                  color: 'var(--status-pending)',
+                }}
+              >
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="font-medium">Generating proof... please wait</span>
               </div>
