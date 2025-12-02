@@ -3,15 +3,17 @@
  * 
  * Provides the main layout structure with navigation header and footer.
  * Uses UnifiedAuthIndicator for combined Gmail + Wallet auth display.
+ * 
+ * NOTE: WalletOperationsModal has been removed.
+ * All wallet operations are now handled via the dropdown in UnifiedAuthIndicator.
  */
 
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sparkles, Moon, Sun, Plus, Bookmark, FlaskConical } from 'lucide-react'
+import { Moon, Sun, Plus, Bookmark, FlaskConical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/ThemeContext'
 import { UnifiedAuthIndicator } from '@/components/UnifiedAuthIndicator'
-import { WalletOperationsModal } from '@/components/WalletOperationsModal'
 import { SpiralCirclesBackground } from '@/components/SpiralCirclesBackground'
 import { cn } from '@/lib/utils'
 
@@ -45,7 +47,6 @@ const navItems: NavItem[] = [
 export function Layout({ children }: LayoutProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
 
@@ -72,7 +73,6 @@ export function Layout({ children }: LayoutProps) {
       <SpiralCirclesBackground 
         count={14} 
         speed={0.8}
-        paused={isWalletModalOpen}
       />
       
       {/* Navigation */}
@@ -171,10 +171,8 @@ export function Layout({ children }: LayoutProps) {
               )}
             </Button>
 
-            {/* Unified Auth Indicator */}
-            <UnifiedAuthIndicator 
-              onWalletClick={() => setIsWalletModalOpen(true)}
-            />
+            {/* Unified Auth Indicator - All wallet operations via dropdown */}
+            <UnifiedAuthIndicator />
           </div>
         </nav>
       </header>
@@ -195,12 +193,6 @@ export function Layout({ children }: LayoutProps) {
           </p>
         </div>
       </footer>
-
-      {/* Wallet Operations Modal */}
-      <WalletOperationsModal
-        open={isWalletModalOpen}
-        onOpenChange={setIsWalletModalOpen}
-      />
 
       {/* Floating Test Button - Development Only */}
       {import.meta.env.DEV && (
