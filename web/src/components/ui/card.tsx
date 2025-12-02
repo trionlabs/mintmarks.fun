@@ -8,10 +8,11 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        // Default - Dark idle, bright hover
+        // Default - Ultra transparent glass
         default: `
           bg-[var(--glass-bg-primary)] 
-          backdrop-blur-[32px]
+          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
+          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
           border border-[var(--glass-border)]
           rounded-xl
           shadow-[var(--glass-shadow)]
@@ -22,7 +23,8 @@ const cardVariants = cva(
         // Figma style - subtle
         figma: `
           bg-[var(--glass-bg-secondary)]
-          backdrop-blur-[32px]
+          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
+          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
           border border-[var(--glass-border)]
           rounded-xl
           hover:bg-[var(--glass-bg-hover)]
@@ -31,17 +33,19 @@ const cardVariants = cva(
         // Figma with subtle shadow
         'figma-blur': `
           bg-[var(--glass-bg-secondary)]
-          backdrop-blur-[32px]
+          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
+          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
           border border-[var(--glass-border)]
           rounded-xl
           shadow-[var(--glass-shadow)]
           hover:bg-[var(--glass-bg-hover)]
           hover:shadow-[var(--glass-shadow-hover)]
         `,
-        // Figma with hover lift
+        // Figma with hover lift (only for email cards)
         'figma-hover': `
           bg-[var(--glass-bg-primary)]
-          backdrop-blur-[32px]
+          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
+          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
           border border-[var(--glass-border)]
           rounded-xl
           shadow-[var(--glass-shadow)]
@@ -50,10 +54,11 @@ const cardVariants = cva(
           hover:border-[var(--glass-border-hover)]
           hover:-translate-y-0.5
         `,
-        // Full glass effect
+        // Full glass effect - ultra transparent
         glass: `
           bg-[var(--glass-bg-primary)]
-          backdrop-blur-[32px]
+          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
+          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
           border border-[var(--glass-border)]
           rounded-xl
           shadow-[var(--glass-shadow)]
@@ -63,7 +68,8 @@ const cardVariants = cva(
         // Minimal - most transparent
         minimal: `
           bg-[var(--glass-bg-tertiary)]
-          backdrop-blur-[32px]
+          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
+          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
           border border-[var(--glass-border)]
           rounded-lg
           hover:bg-[var(--glass-bg-hover)]
@@ -71,7 +77,8 @@ const cardVariants = cva(
         // Hero Glass - White/transparent on dark blue backgrounds
         hero: `
           bg-[var(--hero-glass-bg)]
-          backdrop-blur-[32px]
+          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
+          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
           border border-[var(--hero-glass-border)]
           rounded-2xl
           shadow-[var(--hero-glass-shadow)]
@@ -84,14 +91,15 @@ const cardVariants = cva(
         // Hero Glass with glow effect
         'hero-glow': `
           bg-[var(--hero-glass-bg)]
-          backdrop-blur-[32px]
+          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
+          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
           border border-[var(--hero-glass-border)]
           rounded-2xl
           shadow-[var(--hero-glass-shadow)]
           text-[var(--hero-text-primary)]
           relative
           before:absolute before:inset-[-2px] before:rounded-2xl
-          before:bg-gradient-to-br before:from-blue-400/30 before:via-purple-500/20 before:to-pink-500/20
+          before:bg-gradient-to-br before:from-white/10 before:via-white/5 before:to-white/10
           before:blur-xl before:opacity-0 before:-z-10
           before:transition-opacity before:duration-300
           hover:before:opacity-100
@@ -100,7 +108,8 @@ const cardVariants = cva(
         // Hero Glass - Outline only
         'hero-outline': `
           bg-transparent
-          backdrop-blur-[24px]
+          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
+          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
           border border-[var(--hero-glass-border)]
           rounded-2xl
           text-[var(--hero-text-primary)]
@@ -190,4 +199,3 @@ const CardFooter = React.forwardRef<
 CardFooter.displayName = 'CardFooter'
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, cardVariants }
-

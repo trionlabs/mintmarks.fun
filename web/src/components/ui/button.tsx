@@ -16,15 +16,15 @@ const buttonVariants = cva(
         // Default - Solid with subtle glass effect
         default: `
           bg-[var(--figma-cta1-bg)] text-[var(--figma-cta1-text)]
-          border border-gray-300 dark:border-gray-600
+          border border-[var(--button-default-border)]
           backdrop-blur-sm
-          shadow-[0_4px_14px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]
+          shadow-[var(--button-default-shadow)]
           relative
-          hover:bg-[#151515] dark:hover:bg-[var(--figma-cta1-hover-bg)]
-          hover:border-gray-400 dark:hover:border-gray-500
+          hover:bg-[var(--figma-cta1-hover-bg)]
+          hover:border-[var(--button-default-border-hover)]
           hover:-translate-y-0.5
-          hover:shadow-[0_6px_20px_rgba(0,0,0,0.25),inset_0_1px_2px_rgba(255,255,255,0.12)] dark:hover:shadow-[0_6px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)]
-          active:bg-[var(--figma-cta1-active-bg)] active:translate-y-0 active:shadow-[0_2px_8px_rgba(0,0,0,0.15)]
+          hover:shadow-[var(--button-default-shadow-hover)]
+          active:bg-[var(--figma-cta1-active-bg)] active:translate-y-0 active:shadow-[var(--button-default-shadow-active)]
         `,
         // Outline - Pure blur, transparent background
         outline: `
