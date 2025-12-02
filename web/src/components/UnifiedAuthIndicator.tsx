@@ -196,6 +196,20 @@ export function UnifiedAuthIndicator({
   const [isConnectingWallet, setIsConnectingWallet] = useState(false)
   const cdpButtonRef = useRef<HTMLButtonElement>(null)
   
+  // Scroll position ref for iOS-compatible scroll lock
+  const scrollPositionRef = useRef(0)
+  
+  /**
+   * Unlocks body scroll and restores scroll position (iOS compatible)
+   */
+  const unlockBodyScroll = useCallback(() => {
+    document.body.style.overflow = ''
+    document.body.style.position = ''
+    document.body.style.top = ''
+    document.body.style.width = ''
+    window.scrollTo(0, scrollPositionRef.current)
+  }, [])
+  
   // Auto-click CDP button when showCdpModal becomes true
   useEffect(() => {
     if (showCdpModal && cdpButtonRef.current) {
@@ -244,6 +258,8 @@ export function UnifiedAuthIndicator({
           if (!isCdpConnected) {
             setShowCdpModal(false)
             setIsConnectingWallet(false)
+            // Ensure body scroll is re-enabled (iOS compatible)
+            unlockBodyScroll()
           }
         }, 100)
       }
@@ -260,6 +276,34 @@ export function UnifiedAuthIndicator({
     }
   }, [showCdpModal, isCdpConnected])
   
+  // Listen for Escape key to dismiss CDP modal (desktop)
+  useEffect(() => {
+    if (!showCdpModal) return
+    
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isCdpConnected) {
+        setShowCdpModal(false)
+        setIsConnectingWallet(false)
+        // Ensure body scroll is re-enabled (iOS compatible)
+        unlockBodyScroll()
+      }
+    }
+    
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [showCdpModal, isCdpConnected])
+  
+  // Cleanup: ensure body scroll is re-enabled when showCdpModal becomes false
+  useEffect(() => {
+    if (!showCdpModal) {
+      // Small delay to ensure modal animation completes
+      const timer = setTimeout(() => {
+        unlockBodyScroll()
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [showCdpModal])
+  
   // Fallback: Reset state after timeout if modal was dismissed without action
   useEffect(() => {
     if (!showCdpModal || !isConnectingWallet) return
@@ -269,6 +313,8 @@ export function UnifiedAuthIndicator({
       if (!isCdpConnected && !isExternalConnected) {
         setShowCdpModal(false)
         setIsConnectingWallet(false)
+        // Ensure body scroll is re-enabled (iOS compatible)
+        unlockBodyScroll()
         if (import.meta.env.DEV) {
           console.log('[UnifiedAuthIndicator] Connection timeout, resetting state')
         }
@@ -445,6 +491,8 @@ export function UnifiedAuthIndicator({
    */
   const handleEmailWalletConnect = useCallback(() => {
     if (isConnectingWallet) return
+    // Save scroll position before modal opens (for iOS scroll lock restore)
+    scrollPositionRef.current = window.scrollY
     setIsConnectingWallet(true)
     setIsDropdownOpen(false)
     setShowCdpModal(true)
@@ -705,17 +753,25 @@ export function UnifiedAuthIndicator({
           <button
             type="button"
             className={cn(
-              'flex items-center justify-start gap-2 h-9 px-4 sm:px-5 rounded-md text-sm',
-              'bg-muted/50 hover:bg-muted border border-border/50',
-              'transition-colors duration-200',
-              'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              'flex items-center justify-start gap-2 h-9 px-4 sm:px-5 rounded-xl text-sm',
+              'backdrop-blur-md',
+              'transition-all duration-200 ease-out',
+              'outline-none focus-visible:ring-1 focus-visible:ring-primary/30',
+              'hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_2px_12px_rgba(0,0,0,0.25)]',
+              'hover:border-black/[0.12] dark:hover:border-white/[0.15]',
               isLoading && 'cursor-wait',
-              isDropdownOpen && 'bg-muted',
               className
             )}
             style={{
               transform: 'none',
               translate: 'none',
+              background: isDropdownOpen 
+                ? 'var(--glass-bg-secondary)' 
+                : 'var(--page-content-bg)',
+              border: '1px solid var(--page-border-color)',
+              boxShadow: isDropdownOpen 
+                ? '0 2px 8px rgba(0, 0, 0, 0.06)' 
+                : '0 1px 2px rgba(0, 0, 0, 0.02)',
             }}
             aria-label={getAriaLabel()}
             aria-busy={isLoading}
@@ -729,14 +785,18 @@ export function UnifiedAuthIndicator({
               style={{ color: 'var(--wallet-icon-warning-color)' }}
               aria-hidden="true"
             />
-            <span className="text-muted-foreground">
+            <span 
+              className="text-sm"
+              style={{ color: 'var(--page-text-muted)' }}
+            >
               {isLoading ? 'Connecting...' : emailName}
             </span>
             <ChevronDown 
               className={cn(
-                'w-4 h-4 text-muted-foreground/60 transition-transform duration-200',
+                'w-3.5 h-3.5 transition-transform duration-300 ease-out opacity-50',
                 isDropdownOpen && 'rotate-180'
-              )} 
+              )}
+              style={{ color: 'var(--page-text-muted)' }}
               aria-hidden="true"
             />
           </button>
@@ -751,14 +811,8 @@ export function UnifiedAuthIndicator({
           <div className="p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ 
-                    background: 'var(--glass-bg-secondary)',
-                    border: '1px solid var(--glass-border)',
-                  }}
-                >
-                  <Mail className="w-4 h-4 text-muted-foreground" />
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.04] dark:border-white/[0.06]">
+                  <Mail className="w-4 h-4 text-[var(--page-text-muted)]" />
                 </div>
                 <span 
                   className="text-sm text-foreground truncate cursor-default"
@@ -770,7 +824,7 @@ export function UnifiedAuthIndicator({
               <button
                 onClick={handleSignOut}
                 disabled={isLoggingOut}
-                className="p-2 rounded-lg text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/10 transition-all duration-200 disabled:opacity-50 flex-shrink-0"
+                className="p-2 rounded-lg text-[var(--page-text-muted)] hover:text-[var(--page-text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200 disabled:opacity-50 flex-shrink-0"
                 aria-label="Sign out"
                 title="Sign out"
               >
@@ -780,7 +834,7 @@ export function UnifiedAuthIndicator({
           </div>
           
           {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
+          <div className="h-px mx-3 bg-black/[0.04] dark:bg-white/[0.06]" />
           
           {/* Section 2: Wallet Connection Options */}
           <div className="p-3 space-y-2">
@@ -795,36 +849,22 @@ export function UnifiedAuthIndicator({
                 disabled={isCdpConnected || isLoading || isConnectingWallet}
                 className={cn(
                   'flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-left',
-                  'hover:bg-white/5 dark:hover:bg-white/[0.03]',
+                  'hover:bg-black/[0.03] dark:hover:bg-white/[0.04]',
                   'transition-all duration-200',
                   'disabled:opacity-50 disabled:cursor-not-allowed',
+                  'border border-black/[0.04] dark:border-white/[0.06]',
                   'group'
                 )}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid var(--glass-border)',
-                }}
               >
                 <div 
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200 group-hover:scale-105"
-                  style={{ 
-                    background: 'var(--glass-bg-secondary)',
-                    border: '1px solid var(--glass-border)',
-                  }}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200 group-hover:scale-105 bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]"
                 >
                   <Sparkles className="w-4 h-4" style={{ color: 'var(--Controls-Selected)' }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium block" style={{ color: 'var(--page-text-primary)' }}>Email Wallet</span>
-                    <span 
-                      className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
-                      style={{ 
-                        background: 'var(--glass-bg-secondary)',
-                        color: 'var(--page-text-secondary)',
-                        border: '1px solid var(--glass-border)',
-                      }}
-                    >
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium bg-black/[0.03] dark:bg-white/[0.06] text-[var(--page-text-secondary)]">
                       Easy
                     </span>
                   </div>
@@ -839,22 +879,14 @@ export function UnifiedAuthIndicator({
               disabled={isExternalConnected || isLoading || isConnectingWallet}
               className={cn(
                 'flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-left',
+                'hover:bg-black/[0.03] dark:hover:bg-white/[0.04]',
                 'transition-all duration-200',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
+                'border border-black/[0.04] dark:border-white/[0.06]',
                 'group'
               )}
-              style={{
-                background: 'transparent',
-                border: '1px solid var(--glass-border)',
-              }}
             >
-              <div 
-                className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
-                style={{ 
-                  background: 'var(--glass-bg-secondary)',
-                  border: '1px solid var(--glass-border)',
-                }}
-              >
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105 bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
                 <Wallet className="w-4 h-4" style={{ color: 'var(--page-text-secondary)' }} />
               </div>
               <div className="flex-1 min-w-0">
@@ -897,17 +929,25 @@ export function UnifiedAuthIndicator({
           onTouchEnd={handleTouchEnd}
           onKeyDown={handleKeyDown}
           className={cn(
-            'flex items-center gap-2 h-9 pl-1.5 pr-2 rounded-md text-sm',
-            'bg-muted/50 hover:bg-muted border border-border/50',
-            'transition-colors transition-opacity duration-200',
-            'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            'flex items-center gap-2 h-9 pl-1.5 pr-2.5 rounded-xl text-sm',
+            'backdrop-blur-md',
+            'transition-all duration-200 ease-out',
+            'outline-none focus-visible:ring-1 focus-visible:ring-primary/30',
             'min-w-[160px]', // Fixed width to prevent layout shift
-            isDropdownOpen && 'bg-muted',
+            'hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_2px_12px_rgba(0,0,0,0.25)]',
+            'hover:border-black/[0.12] dark:hover:border-white/[0.15]',
             className
           )}
           style={{
             transform: 'none',
             translate: 'none',
+            background: isDropdownOpen 
+              ? 'var(--glass-bg-secondary)' 
+              : 'var(--page-content-bg)',
+            border: '1px solid var(--page-border-color)',
+            boxShadow: isDropdownOpen 
+              ? '0 2px 8px rgba(0, 0, 0, 0.06)' 
+              : '0 1px 2px rgba(0, 0, 0, 0.02)',
           }}
           aria-label={getAriaLabel()}
           aria-expanded={isDropdownOpen}
@@ -930,7 +970,12 @@ export function UnifiedAuthIndicator({
             title={walletAddress ?? undefined}
           >
             {balanceLoading ? (
-              <span className="font-medium tabular-nums text-foreground animate-pulse">...</span>
+              <span 
+                className="font-medium tabular-nums animate-pulse"
+                style={{ color: 'var(--page-text-secondary)' }}
+              >
+                ...
+              </span>
             ) : hasBalanceError ? (
               <span 
                 className="text-xs font-medium"
@@ -949,9 +994,10 @@ export function UnifiedAuthIndicator({
                 {/* Balance - visible when not showing address */}
                 <span 
                   className={cn(
-                    "font-medium tabular-nums text-foreground truncate transition-opacity duration-150",
+                    "font-medium tabular-nums truncate transition-opacity duration-200",
                     showAddress ? "opacity-0 absolute" : "opacity-100"
                   )}
+                  style={{ color: 'var(--page-text-secondary)' }}
                   title={formattedBalance}
                 >
                   {formattedBalance}
@@ -960,16 +1006,17 @@ export function UnifiedAuthIndicator({
                 {/* Address + Copy Icon - visible on hover */}
                 <span
                   className={cn(
-                    "font-mono text-xs text-foreground flex items-center gap-0.5 transition-opacity duration-150 min-w-0",
+                    "font-mono text-xs flex items-center gap-0.5 transition-opacity duration-200 min-w-0",
                     showAddress ? "opacity-100" : "opacity-0 absolute pointer-events-none"
                   )}
+                  style={{ color: 'var(--page-text-secondary)' }}
                   title={walletAddress ?? undefined}
                 >
                   <span className="truncate min-w-0">{truncateAddress(walletAddress || '')}</span>
                   {copied ? (
-                    <Check className="w-4 h-4 text-green-500 shrink-0" aria-hidden="true" />
+                    <Check className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--mint-success)' }} aria-hidden="true" />
                   ) : (
-                    <Copy className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
+                    <Copy className="w-3.5 h-3.5 shrink-0 opacity-50" style={{ color: 'var(--page-text-muted)' }} aria-hidden="true" />
                   )}
                 </span>
               </>
@@ -977,17 +1024,27 @@ export function UnifiedAuthIndicator({
           </div>
           
           {/* Divider */}
-          <div className="w-px h-4 bg-border/60 mx-0.5" aria-hidden="true" />
+          <div 
+            className="w-px h-3.5 mx-1 opacity-40" 
+            style={{ background: 'var(--page-text-muted)' }}
+            aria-hidden="true" 
+          />
           
           {/* Email */}
-          <span className="text-muted-foreground text-xs">{emailName}</span>
+          <span 
+            className="text-xs"
+            style={{ color: 'var(--page-text-muted)' }}
+          >
+            {emailName}
+          </span>
           
           {/* Chevron */}
           <ChevronDown 
             className={cn(
-              'w-4 h-4 text-muted-foreground/60 transition-transform duration-200',
+              'w-3.5 h-3.5 transition-transform duration-300 ease-out opacity-50',
               isDropdownOpen && 'rotate-180'
-            )} 
+            )}
+            style={{ color: 'var(--page-text-muted)' }}
             aria-hidden="true"
           />
         </button>
@@ -1045,7 +1102,7 @@ export function UnifiedAuthIndicator({
               {hasBalanceError && (
                 <button
                   onClick={retryBalanceFetch}
-                  className="p-1 hover:bg-white/10 rounded-full transition-colors"
+                  className="p-1 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-full transition-colors"
                   aria-label="Retry balance fetch"
                 >
                   <RefreshCw className="w-3 h-3 text-muted-foreground" />
@@ -1064,9 +1121,9 @@ export function UnifiedAuthIndicator({
               <button
                 onClick={handleCopyAddress}
                 className={cn(
-                  'p-1.5 rounded-md transition-all duration-200',
-                  'hover:bg-white/10',
-                  copied ? 'text-green-400' : 'text-muted-foreground/50 hover:text-muted-foreground'
+                  'p-1.5 rounded-lg transition-all duration-200',
+                  'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]',
+                  copied ? 'text-[var(--mint-success)]' : 'text-[var(--page-text-muted)] hover:text-[var(--page-text-secondary)]'
                 )}
                 aria-label={copied ? 'Address copied' : 'Copy address'}
               >
@@ -1074,14 +1131,14 @@ export function UnifiedAuthIndicator({
               </button>
               <button
                 onClick={handleViewExplorer}
-                className="p-1.5 rounded-md text-muted-foreground/50 hover:text-muted-foreground hover:bg-white/10 transition-all duration-200"
+                className="p-1.5 rounded-lg text-[var(--page-text-muted)] hover:text-[var(--page-text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200"
                 aria-label="View on explorer"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={handleDisconnect}
-                className="p-1.5 rounded-md text-muted-foreground/50 hover:text-muted-foreground hover:bg-white/10 transition-all duration-200"
+                className="p-1.5 rounded-lg text-[var(--page-text-muted)] hover:text-[var(--page-text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200"
                 aria-label="Disconnect wallet"
                 title="Disconnect wallet"
               >
@@ -1092,7 +1149,7 @@ export function UnifiedAuthIndicator({
         </div>
         
         {/* Divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
+        <div className="h-px mx-3 bg-black/[0.04] dark:bg-white/[0.06]" />
         
         {/* Section 3: Networks */}
         <div className="p-3">
@@ -1101,7 +1158,7 @@ export function UnifiedAuthIndicator({
               Networks
             </span>
             {isMultichain && (
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium">
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.08] text-[var(--page-text-secondary)] font-medium">
                 Multichain
               </span>
             )}
@@ -1119,13 +1176,15 @@ export function UnifiedAuthIndicator({
                   onClick={() => canClick && handleNetworkSwitch(network.chainId)}
                   disabled={!isActive || isCurrent || isSwitchingNetwork}
                   className={cn(
-                    'flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs w-full text-left',
+                    'flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs w-full text-left',
                     'transition-all duration-200',
-                    isCurrent && 'bg-primary/10',
-                    !isActive && 'opacity-35',
-                    canClick && 'hover:bg-white/8 cursor-pointer',
+                    // Selected: subtle gray background
+                    isCurrent && 'bg-black/[0.04] dark:bg-white/[0.06]',
+                    !isActive && 'opacity-30',
+                    // Hover: very subtle gray
+                    canClick && 'hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer',
                     (!isActive || isCurrent) && 'cursor-default',
-                    isSwitchingNetwork && !isSwitchingToThis && 'opacity-50'
+                    isSwitchingNetwork && !isSwitchingToThis && 'opacity-40'
                   )}
                   aria-label={
                     isCurrent 
