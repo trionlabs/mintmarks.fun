@@ -703,58 +703,49 @@ export const HeroEmailScatter: React.FC = () => {
           100% { transform: scale(1); }
         }
         
-        /* Share on X - dark/sleek */
+        /* Share on X - Theme neutral glassmorphic */
         .hero-action-share {
-          background: oklch(0.12 0.01 240);
-          border-color: oklch(0.22 0.02 240);
-          color: oklch(0.95 0 0);
+          background: var(--glass-bg-primary);
+          border-color: var(--glass-border);
+          color: var(--page-text-primary);
         }
         .hero-action-share:hover:not(:disabled) {
-          background: oklch(0.18 0.02 240);
+          background: var(--glass-bg-hover);
+          border-color: var(--glass-border-hover);
         }
         
-        /* Telegram - brand blue */
+        /* Telegram - Primary theme color */
         .hero-action-telegram {
-          background: oklch(0.58 0.16 210);
-          border-color: oklch(0.52 0.18 210);
-          color: oklch(0.98 0 0);
+          background: var(--primary);
+          border-color: var(--primary);
+          color: var(--primary-foreground);
         }
         .hero-action-telegram:hover:not(:disabled) {
-          background: oklch(0.52 0.18 210);
+          background: var(--ring);
+          border-color: var(--ring);
         }
         
-        /* Discord - brand purple */
+        /* Discord - Secondary theme color */
         .hero-action-discord {
-          background: oklch(0.55 0.16 275);
-          border-color: oklch(0.50 0.18 275);
-          color: oklch(0.98 0 0);
+          background: var(--secondary);
+          border-color: var(--border);
+          color: var(--secondary-foreground);
         }
         .hero-action-discord:hover:not(:disabled) {
-          background: oklch(0.50 0.18 275);
+          background: var(--accent);
+          border-color: var(--border);
         }
         
-        /* Claim - gold/reward */
+        /* Claim/POAP - Accent/warm tone */
         .hero-action-claim {
-          background: oklch(0.70 0.15 75);
-          border-color: oklch(0.62 0.17 75);
-          color: oklch(0.15 0 0);
+          background: var(--status-pending-bg);
+          border-color: var(--status-pending-border);
+          color: var(--status-pending);
         }
         .hero-action-claim:hover:not(:disabled) {
-          background: oklch(0.65 0.17 75);
-        }
-        
-        /* Dark mode overrides */
-        .dark .hero-action-share {
-          background: oklch(0.95 0 0);
-          border-color: oklch(0.88 0 0);
-          color: oklch(0.12 0 0);
-        }
-        .dark .hero-action-share:hover:not(:disabled) {
-          background: oklch(1 0 0);
-        }
-        
-        .dark .hero-action-claim {
-          color: oklch(0.12 0 0);
+          background: var(--status-pending);
+          border-color: var(--status-pending);
+          color: var(--primary-foreground);
         }
         
         /* Dark mode success - keep green */
