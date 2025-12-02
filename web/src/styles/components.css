@@ -317,18 +317,21 @@ button.btn-default-hover:hover > * {
 }
 
 /* ============================================
-   CDP SIGNIN MODAL - ONLY Z-INDEX
-   No styling overrides - use original SDK styles
-   Just ensure modal appears above our content
+   CDP SIGNIN MODAL - MINIMAL FIXES
+   Only fix z-index and overlay background
    ============================================ */
 
-[class*="SignIn-module"],
-[class*="SignInModal"],
-div[role="dialog"] {
+/* Fix overlay z-index (SDK uses z-index: auto which doesn't stack properly) */
+[class*="Modal-module__overlay"] {
   z-index: 99999 !important;
 }
 
-[class*="SignIn-module__overlay"],
-[class*="Modal__overlay"] {
-  z-index: 99998 !important;
+/* Ensure overlay background is visible if CSS var is missing */
+[class*="Modal-module__overlay"]:not([style*="--cdp-web-colors-bg-overlay"]) {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Dark mode overlay */
+.dark [class*="Modal-module__overlay"]:not([style*="--cdp-web-colors-bg-overlay"]) {
+  background: rgba(0, 0, 0, 0.7) !important;
 }
