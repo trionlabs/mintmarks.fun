@@ -3,7 +3,7 @@
    Enhanced with hover states, transitions, and dark mode support
    ============================================ */
 
-/* Base Glass Backgrounds */
+/* Base Glass Backgrounds - Ultra Transparent with Blend Mode */
 @utility glass-primary {
   background: var(--glass-bg-primary);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -26,6 +26,28 @@
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glass with Soft Light Blend - Enhanced depth for light mode */
+@utility glass-blend-soft {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  mix-blend-mode: soft-light;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glass with Screen Blend - Enhanced depth for dark mode */
+@utility glass-blend-screen {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  mix-blend-mode: screen;
   transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -78,6 +100,124 @@
     filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.1));
     transform: translateY(-2px);
     border-color: var(--glass-border-hover);
+  }
+}
+
+/* Email Card - Ultra transparent glass with hover lift effect */
+/* Alternative: Using CSS filters + gradient overlay instead of blend mode */
+@utility glass-email-card {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: all 0.2s ease;
+  position: relative;
+  will-change: backdrop-filter;
+  
+  /* Gradient overlay for depth (alternative to blend mode) */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+  }
+  
+  &:hover {
+    background: var(--glass-bg-hover);
+    backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+    -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-hover);
+    transform: translateY(-2px);
+    
+    &::after {
+      opacity: 0.5;
+    }
+  }
+}
+
+/* Light mode - subtle gradient overlay for depth with minimal border */
+:not(.dark) .glass-email-card::after {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  opacity: 0.3;
+}
+
+:not(.dark) .glass-email-card:hover::after {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* Dark mode - luminous gradient overlay with bright border */
+.dark .glass-email-card::after {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  opacity: 0.4;
+}
+
+.dark .glass-email-card:hover::after {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Email Icon Container - Glass border style */
+.glass-icon-container {
+  border: 1px solid var(--glass-border);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.glass-icon-container:hover,
+.glass-email-card:hover .glass-icon-container {
+  border-color: var(--glass-border-hover);
+}
+
+/* Dark mode icon container - brighter border */
+.dark .glass-icon-container {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass-icon-container:hover,
+.dark .glass-email-card:hover .glass-icon-container {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Dark mode email card overlay */
+@utility glass-email-card-dark {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.01) 0%,
+      rgba(255, 255, 255, 0.003) 50%,
+      rgba(255, 255, 255, 0.008) 100%
+    );
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+  
+  &:hover::before {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(255, 255, 255, 0.01) 50%,
+      rgba(255, 255, 255, 0.015) 100%
+    );
   }
 }
 
@@ -460,10 +600,10 @@
   color: var(--page-text-primary);
 }
 
-/* Light mode specific card shadows */
+/* Light mode specific card shadows - minimal */
 :root .card-figma,
 :root .card-figma-with-blur {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01), 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 /* ============================================
@@ -621,37 +761,36 @@
    ============================================ */
 
 .stats-card {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
   border-radius: 0.75rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--glass-shadow);
   transition: all 0.2s ease;
 }
 
 .stats-card:hover {
-  background: rgba(255, 255, 255, 0.65);
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-hover);
 }
 
+
 .dark .stats-card {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 
-    0 4px 24px rgba(0, 0, 0, 0.4),
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 .dark .stats-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow-hover);
 }
 
 /* ============================================
@@ -661,67 +800,53 @@
    ============================================ */
 
 .nft-card {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
   border-radius: 1rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--glass-shadow);
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
 }
 
 .nft-card:hover {
-  background: rgba(255, 255, 255, 0.65);
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-hover);
 }
+
 
 /* Dark mode NFT card - Glass */
 .dark .nft-card {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 
-    0 4px 24px rgba(0, 0, 0, 0.4),
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 .dark .nft-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow-hover);
 }
 
 /* NFT Card Icon Circle - Minimal Glass */
 .nft-card-icon-circle {
-  background: rgba(0, 0, 0, 0.04);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--glass-bg-secondary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
   transition: all 0.2s ease;
 }
 
-.dark .nft-card-icon-circle {
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
 .nft-card:hover .nft-card-icon-circle {
-  background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.08);
-}
-
-.dark .nft-card:hover .nft-card-icon-circle {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--glass-bg-primary);
+  border-color: var(--glass-border-hover);
 }
 
 /* ============================================
@@ -731,39 +856,38 @@
    ============================================ */
 
 .feature-card {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
   border-radius: 1rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--glass-shadow);
   transition: all 0.2s ease;
   position: relative;
 }
 
 .feature-card:hover {
-  background: rgba(255, 255, 255, 0.65);
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-hover);
 }
+
 
 /* Dark mode feature card - Glass */
 .dark .feature-card {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 
-    0 4px 24px rgba(0, 0, 0, 0.4),
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 .dark .feature-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow-hover);
 }
 
 /* ============================================
@@ -824,15 +948,8 @@
    ============================================ */
 
 .glass-icon-circle {
-  background: rgba(0, 0, 0, 0.04);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.dark .glass-icon-circle {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--glass-bg-secondary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
 }

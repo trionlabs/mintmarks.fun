@@ -8,69 +8,46 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        // Default - Ultra transparent glass
+        // Default - Ultra transparent glass with blend mode
         default: `
-          bg-[var(--glass-bg-primary)] 
-          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          border border-[var(--glass-border)]
+          glass-primary
           rounded-xl
-          shadow-[var(--glass-shadow)]
+          mix-blend-normal
           hover:bg-[var(--glass-bg-hover)]
           hover:shadow-[var(--glass-shadow-hover)]
           hover:border-[var(--glass-border-hover)]
         `,
         // Figma style - subtle
         figma: `
-          bg-[var(--glass-bg-secondary)]
-          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          border border-[var(--glass-border)]
+          glass-secondary
           rounded-xl
           hover:bg-[var(--glass-bg-hover)]
           hover:border-[var(--glass-border-hover)]
         `,
         // Figma with subtle shadow
         'figma-blur': `
-          bg-[var(--glass-bg-secondary)]
-          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          border border-[var(--glass-border)]
+          glass-secondary
           rounded-xl
           shadow-[var(--glass-shadow)]
           hover:bg-[var(--glass-bg-hover)]
           hover:shadow-[var(--glass-shadow-hover)]
         `,
         // Figma with hover lift (only for email cards)
+        // Note: glass-email-card utility will override backdrop-filter
         'figma-hover': `
-          bg-[var(--glass-bg-primary)]
-          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          border border-[var(--glass-border)]
           rounded-xl
-          shadow-[var(--glass-shadow)]
-          hover:bg-[var(--glass-bg-hover)]
-          hover:shadow-[var(--glass-shadow-hover)]
-          hover:border-[var(--glass-border-hover)]
           hover:-translate-y-0.5
         `,
         // Full glass effect - ultra transparent
         glass: `
-          bg-[var(--glass-bg-primary)]
-          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          border border-[var(--glass-border)]
+          glass-primary
           rounded-xl
-          shadow-[var(--glass-shadow)]
           hover:bg-[var(--glass-bg-hover)]
           hover:shadow-[var(--glass-shadow-hover)]
         `,
         // Minimal - most transparent
         minimal: `
-          bg-[var(--glass-bg-tertiary)]
-          [backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          [-webkit-backdrop-filter:blur(var(--glass-blur))_saturate(var(--glass-saturate))]
-          border border-[var(--glass-border)]
+          glass-tertiary
           rounded-lg
           hover:bg-[var(--glass-bg-hover)]
         `,
