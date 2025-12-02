@@ -192,14 +192,65 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-transparent py-4 sm:py-6">
-        <div className={cn("text-center", containerClass)}>
-          <p
-            className="text-xs sm:text-sm opacity-70"
-            style={{ color: 'var(--page-text-secondary)' }}
-          >
-            © {new Date().getFullYear()} mintmarks. Own Your Commitments.
-          </p>
+      <footer className="mt-auto border-t border-[var(--glass-border)] py-6 sm:py-8">
+        <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4", containerClass)}>
+          {/* Left: Main Message */}
+          <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+            <span
+              className="text-xs sm:text-sm font-medium"
+              style={{ color: 'var(--page-text-primary)' }}
+            >
+              mint emails as marks.
+            </span>
+            <span
+              className="text-xs opacity-60"
+              style={{ color: 'var(--page-text-muted)' }}
+            >
+              private. composable. verifiable.
+            </span>
+          </div>
+          
+          {/* Right: Built With & Copyright */}
+          <div className="flex items-center gap-3 text-xs flex-wrap justify-center sm:justify-end">
+            <div className="flex items-center gap-1.5">
+              <span
+                className="opacity-50"
+                style={{ color: 'var(--page-text-muted)' }}
+              >
+                built with
+              </span>
+              <a
+                href="https://zk.email/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium transition-opacity hover:opacity-80 underline underline-offset-2"
+                style={{ color: 'var(--page-text-secondary)' }}
+              >
+                zk-email
+              </a>
+              <span
+                className="opacity-40"
+                style={{ color: 'var(--page-text-muted)' }}
+              >
+                &
+              </span>
+              <a
+                href="https://zkpassport.id/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium transition-opacity hover:opacity-80 underline underline-offset-2"
+                style={{ color: 'var(--page-text-secondary)' }}
+              >
+                zk-passport
+              </a>
+            </div>
+            <span
+              className="opacity-40"
+              style={{ color: 'var(--page-text-muted)' }}
+            >
+              © {new Date().getFullYear()}
+            </span>
+          </div>
         </div>
       </footer>
 
