@@ -30,25 +30,44 @@
   --ring: oklch(0.68 0.22 262);
   --radius: 0.625rem;
 
-  /* Page Content Colors */
-  --page-text-primary: oklch(0.15 0.02 246);
-  --page-text-secondary: oklch(0.4 0.02 246);
-  --page-text-muted: oklch(0.55 0.02 246);
+  /* Page Content Colors - Smooth light mode palette */
+  --page-text-primary: oklch(0.28 0.04 246);
+  --page-text-secondary: oklch(0.48 0.03 246);
+  --page-text-muted: oklch(0.58 0.02 246);
+  --page-icon-primary: oklch(0.45 0.05 262); /* Softer icon color - reduced chroma, increased lightness */
+  --page-headline-accent: oklch(0.55 0.12 280); /* Soft lavender purple for light mode */
+  --page-badge-accent: oklch(0.62 0.15 262); /* Soft blue-purple for badges */
   --page-badge-bg: rgba(255, 255, 255, 0.1);
   --page-badge-border: rgba(0, 0, 0, 0.05);
+  
+  /* Card-specific badge colors (Light Mode) - Ultra soft, subtle colors with transparency */
+  --card-badge-verify: oklch(0.62 0.06 155 / 0.85); /* Very soft mint green - minimal chroma, slight transparency */
+  --card-badge-verify-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-generate: oklch(0.60 0.06 280 / 0.85); /* Very soft lavender purple - minimal chroma, slight transparency */
+  --card-badge-generate-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-mint: oklch(0.58 0.06 250 / 0.85); /* Very soft sky blue - minimal chroma, slight transparency */
+  --card-badge-mint-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-dkim: oklch(0.62 0.06 155 / 0.85); /* Very soft mint green - minimal chroma, slight transparency */
+  --card-badge-dkim-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-zk-proof: oklch(0.60 0.06 280 / 0.85); /* Very soft lavender - minimal chroma, slight transparency */
+  --card-badge-zk-proof-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-nullifier: oklch(0.64 0.06 60 / 0.85); /* Very soft peach/amber - minimal chroma, slight transparency */
+  --card-badge-nullifier-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-blockchain: oklch(0.58 0.06 250 / 0.85); /* Very soft sky blue - minimal chroma, slight transparency */
+  --card-badge-blockchain-border: oklch(1 0 0 / 0.3); /* Softer white border */
   --page-border-color: rgba(0, 0, 0, 0.05);
   --page-content-bg: rgba(255, 255, 255, 0.08);
   --page-content-border: rgba(0, 0, 0, 0.04);
 
-  /* Glassmorphic System - Light Mode: Ultra Glass-like Effect */
+  /* Glassmorphic System - Light Mode: Smooth glass-like effect */
   /* Background: Very transparent, crystal clear glass - idle state */
   --glass-bg-primary: rgba(255, 255, 255, 0.05);
   --glass-bg-secondary: rgba(255, 255, 255, 0.03);
   --glass-bg-tertiary: rgba(255, 255, 255, 0.02);
   --glass-bg-hover: rgba(255, 255, 255, 0.1);
-  /* Border: More visible and prominent for controls */
-  --glass-border: rgba(0, 0, 0, 0.15);
-  --glass-border-hover: rgba(0, 0, 0, 0.2);
+  /* Border: Soft blue-gray instead of black */
+  --glass-border: rgba(99, 150, 244, 0.12);
+  --glass-border-hover: rgba(99, 150, 244, 0.18);
   /* Blur: Reduced for less blur effect */
   --glass-blur: 6px;
   --glass-blur-heavy: 10px;
@@ -101,10 +120,10 @@
   --bg-animation-bar-color-dark: rgba(240, 244, 249, 0.5);
   --bg-animation-line-color: rgba(230, 244, 249, 0.15);
 
-  /* Controls - Neutral gray, visible but not blue */
-  --Controls-Selected: oklch(0.45 0 0);
-  --Controls-Idle: oklch(0.45 0 0 / 0.15);
-  --controls-selected-light: oklch(0.45 0.02 250 / 0.4);
+  /* Controls - Soft blue-gray */
+  --Controls-Selected: oklch(0.48 0.05 250);
+  --Controls-Idle: oklch(0.48 0.05 250 / 0.15);
+  --controls-selected-light: oklch(0.48 0.05 250 / 0.4);
 
   /* Status Colors - Consistent across app */
   --status-success: oklch(0.72 0.20 155);
@@ -135,6 +154,11 @@
   --status-minted: oklch(0.72 0.20 155);
   --status-minted-bg: oklch(0.72 0.20 155 / 0.12);
   --status-minted-border: oklch(0.72 0.20 155 / 0.3);
+  
+  /* Noir Badge - Light Mode */
+  --badge-noir: oklch(0.68 0.15 280);
+  --badge-noir-bg: oklch(0.68 0.15 280 / 0.12);
+  --badge-noir-border: oklch(0.68 0.15 280 / 0.3);
 
   /* ===== AUTH INDICATOR ===== */
   /* Container */
@@ -367,12 +391,31 @@
   --input: oklch(0.28 0.015 248);
   --ring: oklch(0.72 0.20 262);
 
-  /* Page Content Colors - Minimal */
+  /* Page Content Colors - Minimal, white-only */
   --page-text-primary: rgba(255, 255, 255, 0.95);
   --page-text-secondary: rgba(255, 255, 255, 0.7);
   --page-text-muted: rgba(255, 255, 255, 0.5);
+  --page-icon-primary: rgba(255, 255, 255, 0.6); /* Soft white icons in dark mode - reduced opacity */
+  --page-headline-accent: rgba(255, 255, 255, 0.98); /* Pure white, no color */
+  --page-badge-accent: rgba(255, 255, 255, 0.92); /* Soft white for badges */
   --page-badge-bg: rgba(255, 255, 255, 0.05);
   --page-badge-border: rgba(255, 255, 255, 0.1);
+  
+  /* Card-specific badge colors (Dark Mode) - Soft, transparent white tones */
+  --card-badge-verify: oklch(0.75 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-verify-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-generate: oklch(0.73 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-generate-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-mint: oklch(0.75 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-mint-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-dkim: oklch(0.75 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-dkim-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-zk-proof: oklch(0.73 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-zk-proof-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-nullifier: oklch(0.74 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-nullifier-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-blockchain: oklch(0.75 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-blockchain-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
   --page-border-color: rgba(255, 255, 255, 0.12);
   --page-content-bg: rgba(255, 255, 255, 0.03);
   --page-content-border: rgba(255, 255, 255, 0.08);
@@ -443,35 +486,40 @@
   --Controls-Idle: oklch(0.75 0.06 250 / 0.25);
   --controls-selected-light: oklch(0.75 0.06 250 / 0.55);
 
-  /* Status Colors - Dark Mode (slightly brighter) */
-  --status-success: oklch(0.75 0.22 155);
-  --status-success-bg: oklch(0.75 0.22 155 / 0.15);
-  --status-success-border: oklch(0.75 0.22 155 / 0.35);
+  /* Status Colors - Dark Mode (white-only, minimal) */
+  --status-success: rgba(255, 255, 255, 0.85);
+  --status-success-bg: rgba(255, 255, 255, 0.08);
+  --status-success-border: rgba(255, 255, 255, 0.15);
   
-  --status-pending: oklch(0.75 0.14 85);
-  --status-pending-bg: oklch(0.75 0.14 85 / 0.15);
-  --status-pending-border: oklch(0.75 0.14 85 / 0.35);
+  --status-pending: rgba(255, 255, 255, 0.85);
+  --status-pending-bg: rgba(255, 255, 255, 0.08);
+  --status-pending-border: rgba(255, 255, 255, 0.15);
   
-  --status-info: oklch(0.70 0.10 250);
-  --status-info-bg: oklch(0.70 0.10 250 / 0.15);
-  --status-info-border: oklch(0.70 0.10 250 / 0.35);
+  --status-info: rgba(255, 255, 255, 0.85);
+  --status-info-bg: rgba(255, 255, 255, 0.08);
+  --status-info-border: rgba(255, 255, 255, 0.15);
   
-  --status-error: oklch(0.65 0.24 25);
-  --status-error-bg: oklch(0.65 0.24 25 / 0.15);
-  --status-error-border: oklch(0.65 0.24 25 / 0.35);
+  --status-error: rgba(255, 255, 255, 0.85);
+  --status-error-bg: rgba(255, 255, 255, 0.08);
+  --status-error-border: rgba(255, 255, 255, 0.15);
 
-  /* Badge Status Colors - Dark Mode */
-  --status-confirmed: oklch(0.70 0.10 250);
-  --status-confirmed-bg: oklch(0.70 0.10 250 / 0.15);
-  --status-confirmed-border: oklch(0.70 0.10 250 / 0.35);
+  /* Badge Status Colors - Dark Mode (white-only) */
+  --status-confirmed: rgba(255, 255, 255, 0.85);
+  --status-confirmed-bg: rgba(255, 255, 255, 0.08);
+  --status-confirmed-border: rgba(255, 255, 255, 0.15);
   
-  --status-attended: oklch(0.72 0.15 280);
-  --status-attended-bg: oklch(0.72 0.15 280 / 0.15);
-  --status-attended-border: oklch(0.72 0.15 280 / 0.35);
+  --status-attended: rgba(255, 255, 255, 0.85);
+  --status-attended-bg: rgba(255, 255, 255, 0.08);
+  --status-attended-border: rgba(255, 255, 255, 0.15);
   
-  --status-minted: oklch(0.75 0.22 155);
-  --status-minted-bg: oklch(0.75 0.22 155 / 0.15);
-  --status-minted-border: oklch(0.75 0.22 155 / 0.35);
+  --status-minted: rgba(255, 255, 255, 0.85);
+  --status-minted-bg: rgba(255, 255, 255, 0.08);
+  --status-minted-border: rgba(255, 255, 255, 0.15);
+  
+  /* Noir Badge - Dark Mode (white-only) */
+  --badge-noir: rgba(255, 255, 255, 0.85);
+  --badge-noir-bg: rgba(255, 255, 255, 0.08);
+  --badge-noir-border: rgba(255, 255, 255, 0.15);
 
   /* ===== AUTH INDICATOR (Dark Mode) ===== */
   /* Container - inherits from glass vars, no override needed */
