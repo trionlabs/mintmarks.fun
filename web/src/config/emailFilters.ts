@@ -280,14 +280,15 @@ export function getDefaultGmailQuery(): string {
 // ============================================
 
 /**
- * Detect registration status from email subject and snippet
+ * Detect registration status from email subject only
  */
 export function detectRegistrationStatus(
   subject: string | null,
-  snippet: string,
+  _snippet: string,
   source: EmailSource
 ): RegistrationStatus {
-  const text = `${subject ?? ''} ${snippet}`.toLowerCase()
+  // Only check subject, ignore snippet to avoid false positives from email body
+  const text = (subject ?? '').toLowerCase()
 
   const category = getCategoryBySource(source)
   if (!category) return 'unknown'
