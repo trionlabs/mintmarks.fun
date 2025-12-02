@@ -11,7 +11,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Moon, Sun, Plus, Bookmark, FlaskConical } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/ThemeContext'
 import { UnifiedAuthIndicator } from '@/components/UnifiedAuthIndicator'
 import { SpiralCirclesBackground } from '@/components/SpiralCirclesBackground'
@@ -156,20 +155,18 @@ export function Layout({ children }: LayoutProps) {
               )
             })}
 
-            {/* Theme Toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
+            {/* Theme Toggle - Minimal */}
+            <button
               onClick={toggleTheme}
-              className="ml-2"
+              className="p-2 opacity-50 hover:opacity-100 transition-opacity duration-200"
               aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {theme === 'dark' ? (
-                <Sun className="h-4 w-4" />
+                <Sun className="h-4 w-4" style={{ color: 'var(--page-text-primary)' }} />
               ) : (
-                <Moon className="h-4 w-4" />
+                <Moon className="h-4 w-4" style={{ color: 'var(--page-text-primary)' }} />
               )}
-            </Button>
+            </button>
 
             {/* Unified Auth Indicator - All wallet operations via dropdown */}
             <UnifiedAuthIndicator />

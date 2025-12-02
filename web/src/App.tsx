@@ -10,8 +10,7 @@ import { MyMarks } from '@/pages/MyMarks'
 import { TestMint } from '@/pages/TestMint'
 import { ComponentShowcase } from '@/pages/ComponentShowcase'
 import { HeroDemo } from '@/pages/HeroDemo'
-import WalletDebug from '@/pages/WalletDebug'
-import TestCenter from '@/pages/TestCenter'
+import { TestCenter } from '@/pages/TestCenter'
 
 function AppContent() {
   return (
@@ -23,8 +22,7 @@ function AppContent() {
         <Route path="/marks/test" element={<TestMint />} />
         <Route path="/showcase" element={<ComponentShowcase />} />
         <Route path="/hero" element={<HeroDemo />} />
-        {/* Dev-only debug pages */}
-        <Route path="/wallet-debug" element={<WalletDebug />} />
+        {/* Dev-only debug page */}
         <Route path="/test-center" element={<TestCenter />} />
       </Routes>
     </Layout>
