@@ -37,19 +37,21 @@ export function useExternalWallet(): WalletAdapter {
   // Get connected chain ID
   const connectedChainId = chain?.id
 
-  // For backwards compatibility, still report wrong network if not on ACTIVE_NETWORK
-  const isWrongNetwork =
+  // Check if connected chain is a supported network
+  const isSupportedNetwork =
     isConnected &&
     typeof connectedChainId === 'number' &&
-    connectedChainId !== ACTIVE_NETWORK.chainId
+    Object.values(NETWORKS).some((n) => n.chainId === connectedChainId)
 
-  // Create wrong network error if applicable
-  const wrongNetworkError: WalletError | null = isWrongNetwork
-    ? {
-        type: 'WRONG_NETWORK',
-        message: `Please switch to ${ACTIVE_NETWORK.name}`,
-      }
-    : null
+  // Only show error if on an unsupported network (not just different from ACTIVE_NETWORK)
+  // External wallets can switch chains, so being on a different supported network is OK
+  const unsupportedNetworkError: WalletError | null = 
+    isConnected && !isSupportedNetwork
+      ? {
+          type: 'WRONG_NETWORK',
+          message: `Unsupported network. Please switch to a supported network.`,
+        }
+      : null
 
   const sendTransaction = useCallback(
     async (tx: TransactionRequest): Promise<TransactionResult> => {
@@ -127,8 +129,8 @@ export function useExternalWallet(): WalletAdapter {
       source: isConnected ? ('external' as const) : null,
       chainId: isConnected && typeof connectedChainId === 'number' ? connectedChainId : null,
       isLoading: isPending,
-      // Surface wrong network error for UI display (informational)
-      error: wrongNetworkError,
+      // Only surface error if on an unsupported network
+      error: unsupportedNetworkError,
       // External wallets are NOT multichain - they have a "connected chain"
       isMultichain: false,
     }),
@@ -137,7 +139,7 @@ export function useExternalWallet(): WalletAdapter {
       isConnected,
       connectedChainId,
       isPending,
-      wrongNetworkError,
+      unsupportedNetworkError,
     ]
   )
 
