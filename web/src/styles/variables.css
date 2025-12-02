@@ -34,33 +34,34 @@
   --page-text-primary: oklch(0.15 0.02 246);
   --page-text-secondary: oklch(0.4 0.02 246);
   --page-text-muted: oklch(0.55 0.02 246);
-  --page-badge-bg: rgba(255, 255, 255, 0.85);
-  --page-badge-border: rgba(0, 0, 0, 0.08);
-  --page-border-color: rgba(0, 0, 0, 0.08);
-  --page-content-bg: rgba(255, 255, 255, 0.6);
-  --page-content-border: rgba(0, 0, 0, 0.06);
+  --page-badge-bg: rgba(255, 255, 255, 0.1);
+  --page-badge-border: rgba(0, 0, 0, 0.05);
+  --page-border-color: rgba(0, 0, 0, 0.05);
+  --page-content-bg: rgba(255, 255, 255, 0.08);
+  --page-content-border: rgba(0, 0, 0, 0.04);
 
-  /* Glassmorphic System - Light Mode: Minimal, Smooth, Elegant */
-  /* Background: subtle white with very low opacity for depth */
-  --glass-bg-primary: rgba(255, 255, 255, 0.6);
-  --glass-bg-secondary: rgba(0, 0, 0, 0.03);
-  --glass-bg-tertiary: rgba(0, 0, 0, 0.02);
-  --glass-bg-hover: rgba(255, 255, 255, 0.75);
-  /* Border: subtle but visible */
-  --glass-border: rgba(0, 0, 0, 0.06);
-  --glass-border-hover: rgba(0, 0, 0, 0.10);
-  --glass-blur: 12px;
-  --glass-blur-heavy: 20px;
+  /* Glassmorphic System - Light Mode: Ultra Glass-like Effect */
+  /* Background: Very transparent, crystal clear glass - idle state */
+  --glass-bg-primary: rgba(255, 255, 255, 0.05);
+  --glass-bg-secondary: rgba(255, 255, 255, 0.03);
+  --glass-bg-tertiary: rgba(255, 255, 255, 0.02);
+  --glass-bg-hover: rgba(255, 255, 255, 0.1);
+  /* Border: More visible and prominent for controls */
+  --glass-border: rgba(0, 0, 0, 0.15);
+  --glass-border-hover: rgba(0, 0, 0, 0.2);
+  /* Blur: Reduced for less blur effect */
+  --glass-blur: 6px;
+  --glass-blur-heavy: 10px;
   --glass-saturate: 120%;
-  /* Shadow: ultra smooth, minimal, no harsh edges */
-  --glass-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 16px rgba(0, 0, 0, 0.03);
-  --glass-shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+  /* Shadow: Minimal, glass-like reflection */
+  --glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.01);
+  --glass-shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.04), 0 8px 16px rgba(0, 0, 0, 0.02);
 
   /* Figma Card System */
-  --figma-card-stroke: rgba(255, 255, 255, 0.3);
-  --figma-card-blur: 16px;
+  --figma-card-stroke: rgba(255, 255, 255, 0.08);
+  --figma-card-blur: 12px;
   --figma-card-radius: 12px;
-  --figma-ultra-dark: rgba(255, 255, 255, 0.85);
+  --figma-ultra-dark: rgba(255, 255, 255, 0.12);
 
   /* Simple Card Shadows - Ultra smooth, minimal */
   --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 2px 8px rgba(0, 0, 0, 0.02);
@@ -86,9 +87,9 @@
   --figma-cta3-text: oklch(0.5 0.25 262);
 
   /* CTA Outline Card */
-  --cta-outline-card-border: rgba(100, 116, 139, 0.25);
-  --cta-outline-card-bg: rgba(255, 255, 255, 0.85);
-  --cta-outline-card-blur: 16px;
+  --cta-outline-card-border: rgba(100, 116, 139, 0.08);
+  --cta-outline-card-bg: rgba(255, 255, 255, 0.02);
+  --cta-outline-card-blur: 6px;
   --cta-outline-card-blend: normal;
 
   /* Background Animation Colors - OKLCH Format */
@@ -167,7 +168,7 @@
 
   /* ===== HERO ANIMATION ===== */
   /* Email Card */
-  --hero-card-bg: rgba(255, 255, 255, 0.8);
+  --hero-card-bg: rgba(255, 255, 255, 0.15);
   --hero-card-border: rgba(99, 150, 244, 0.1);
   --hero-card-border-hover: rgba(99, 150, 244, 0.18);
   --hero-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
@@ -312,12 +313,12 @@
 
   /* ===== BUTTON COMPONENT TOKENS ===== */
 
-  /* Outline Button - Visible border on light porcelain bg */
-  --button-outline-bg: rgba(255, 255, 255, 0.9);
-  --button-outline-border: oklch(0.65 0.02 250);
+  /* Outline Button - Transparent glass */
+  --button-outline-bg: rgba(255, 255, 255, 0.1);
+  --button-outline-border: rgba(0, 0, 0, 0.08);
   --button-outline-text: oklch(0.25 0.02 250);
-  --button-outline-hover-bg: oklch(1 0 0);
-  --button-outline-hover-border: oklch(0.50 0.04 250);
+  --button-outline-hover-bg: rgba(255, 255, 255, 0.2);
+  --button-outline-hover-border: rgba(0, 0, 0, 0.12);
   --button-outline-hover-text: oklch(0.15 0.02 250);
 
   /* Ghost Button */
@@ -376,19 +377,22 @@
   --page-content-bg: rgba(255, 255, 255, 0.03);
   --page-content-border: rgba(255, 255, 255, 0.08);
 
-  /* Glassmorphic System - Dark Mode: Consistent with email cards */
-  /* Idle: transparent glass | Hover: slightly more visible */
-  --glass-bg-primary: rgba(255, 255, 255, 0.04);
-  --glass-bg-secondary: rgba(255, 255, 255, 0.03);
-  --glass-bg-tertiary: rgba(255, 255, 255, 0.02);
+  /* Glassmorphic System - Dark Mode: Ultra Glass-like Effect */
+  /* Background: More transparent for dark mode */
+  --glass-bg-primary: rgba(255, 255, 255, 0.03);
+  --glass-bg-secondary: rgba(255, 255, 255, 0.02);
+  --glass-bg-tertiary: rgba(255, 255, 255, 0.01);
   --glass-bg-hover: rgba(255, 255, 255, 0.08);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-border-hover: rgba(255, 255, 255, 0.25);
-  --glass-blur: 16px;
-  --glass-blur-heavy: 24px;
-  --glass-saturate: 160%;
-  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --glass-shadow-hover: 0 8px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  /* Border: Very subtle, glass-like edge */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.12);
+  /* Blur: Reduced for less blur effect */
+  --glass-blur: 8px;
+  --glass-blur-heavy: 12px;
+  --glass-saturate: 130%;
+  /* Shadow: Minimal depth with subtle glass glow */
+  --glass-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  --glass-shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   /* Figma Card System */
   --figma-card-stroke: rgba(168, 168, 168, 0.71);
