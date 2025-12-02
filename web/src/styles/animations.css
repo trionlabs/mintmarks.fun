@@ -21,7 +21,13 @@
 
 /* Spiral icon base styles */
 .spiral-bg {
-  --spiral-color: var(--Controls-Selected);
+  /* Light mode: neutral slate with subtle blue tint */
+  --spiral-color: oklch(0.52 0.06 250);
+}
+
+.dark .spiral-bg {
+  /* Dark mode: soft blue, not too bright */
+  --spiral-color: oklch(0.60 0.12 255);
 }
 
 .spiral-icon {
@@ -218,5 +224,44 @@ body:has(.email-card:hover) .spiral-icon {
   position: absolute;
   left: 0;
   top: 0;
+}
+
+/* ============================================
+   MARQUEE / TICKER ANIMATION
+   Infinite horizontal scroll for text ticker
+   ============================================ */
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee linear infinite;
+}
+
+/* Pause on hover */
+.group:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+/* ============================================
+   NOISE TEXTURE OVERLAY
+   Film grain effect for premium aesthetic
+   ============================================ */
+
+.noise-texture {
+  /* Improved noise with better parameters for zk.email aesthetic */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  mix-blend-mode: overlay;
+}
+
+.dark .noise-texture {
+  mix-blend-mode: screen;
 }
 

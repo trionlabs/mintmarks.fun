@@ -8,14 +8,14 @@
 
 :root {
   /* Core Theme Colors */
-  /* Light Mode: "Porcelain+" - Slightly darker than pure porcelain, closer to Slate-100/Gray-100 mix */
-  --background: #F1F5F9;
+  /* Light Mode: "Porcelain" - Cool off-white, no yellow tint */
+  --background: oklch(0.975 0.004 250);
   --foreground: oklch(0.2126 0.0231 246.3010);
   --card: oklch(1.0000 0 0);
   --card-foreground: oklch(0.2126 0.0231 246.3010);
   --popover: oklch(1.0000 0 0);
   --popover-foreground: oklch(0.2126 0.0231 246.3010);
-  --primary: oklch(0.68 0.22 262);
+  --primary: oklch(0.62 0.28 262);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0.01 246);
   --secondary-foreground: oklch(0.205 0.02 246);
@@ -23,7 +23,7 @@
   --muted-foreground: oklch(0.556 0.02 246);
   --accent: oklch(0.97 0.01 246);
   --accent-foreground: oklch(0.205 0.02 246);
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: oklch(0.58 0.30 28);
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.9324 0.0168 230.9139);
   --input: oklch(0.9324 0.0168 230.9139);
@@ -35,23 +35,26 @@
   --page-text-secondary: oklch(0.4 0.02 246);
   --page-text-muted: oklch(0.55 0.02 246);
   --page-badge-bg: rgba(255, 255, 255, 0.85);
-  --page-badge-border: rgba(255, 255, 255, 0.5);
-  --page-border-color: rgba(255, 255, 255, 0.4);
-  --page-content-bg: rgba(247, 249, 252, 0.8);
-  --page-content-border: rgba(240, 244, 249, 0.5);
+  --page-badge-border: rgba(0, 0, 0, 0.08);
+  --page-border-color: rgba(0, 0, 0, 0.08);
+  --page-content-bg: rgba(255, 255, 255, 0.6);
+  --page-content-border: rgba(0, 0, 0, 0.06);
 
-  /* Glassmorphic System - Light Mode (Enhanced transparency + blur) */
-  --glass-bg-primary: rgba(255, 255, 255, 0.35);
-  --glass-bg-secondary: rgba(255, 255, 255, 0.25);
-  --glass-bg-tertiary: rgba(255, 255, 255, 0.15);
-  --glass-bg-hover: rgba(255, 255, 255, 0.45);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-border-hover: rgba(255, 255, 255, 0.6);
-  --glass-blur: 40px;
-  --glass-blur-heavy: 64px;
-  --glass-saturate: 180%;
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  --glass-shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  /* Glassmorphic System - Light Mode: Minimal, Smooth, Elegant */
+  /* Background: subtle white with very low opacity for depth */
+  --glass-bg-primary: rgba(255, 255, 255, 0.6);
+  --glass-bg-secondary: rgba(0, 0, 0, 0.03);
+  --glass-bg-tertiary: rgba(0, 0, 0, 0.02);
+  --glass-bg-hover: rgba(255, 255, 255, 0.75);
+  /* Border: subtle but visible */
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-border-hover: rgba(0, 0, 0, 0.10);
+  --glass-blur: 12px;
+  --glass-blur-heavy: 20px;
+  --glass-saturate: 120%;
+  /* Shadow: ultra smooth, minimal, no harsh edges */
+  --glass-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 16px rgba(0, 0, 0, 0.03);
+  --glass-shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
 
   /* Figma Card System */
   --figma-card-stroke: rgba(255, 255, 255, 0.3);
@@ -59,28 +62,28 @@
   --figma-card-radius: 12px;
   --figma-ultra-dark: rgba(255, 255, 255, 0.85);
 
-  /* Simple Card Shadows */
-  --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+  /* Simple Card Shadows - Ultra smooth, minimal */
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 2px 8px rgba(0, 0, 0, 0.02);
+  --card-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.03), 0 4px 16px rgba(0, 0, 0, 0.04);
 
-  /* CTA Button Tokens (Light Mode) */
-  --figma-cta1-bg: #1E1D1F;
-  --figma-cta1-border: #F7F9FC;
-  --figma-cta1-text: #F7F9FC;
-  --figma-cta1-hover-bg: #7B797D;
-  --figma-cta1-hover-border: #F7F9FC;
-  --figma-cta1-hover-text: #F7F9FC;
-  --figma-cta1-active-bg: #7B797D;
+  /* CTA Button Tokens (Light Mode) - OKLCH Format */
+  --figma-cta1-bg: oklch(0.15 0.01 260);
+  --figma-cta1-border: oklch(0.98 0.005 250);
+  --figma-cta1-text: oklch(0.98 0.005 250);
+  --figma-cta1-hover-bg: oklch(0.55 0.02 260);
+  --figma-cta1-hover-border: oklch(0.98 0.005 250);
+  --figma-cta1-hover-text: oklch(0.98 0.005 250);
+  --figma-cta1-active-bg: oklch(0.55 0.02 260);
 
-  /* Outline Button (cta2) */
-  --figma-cta2-bg: #F7FBFF;
-  --figma-cta2-border: #FFFFFF;
-  --figma-cta2-text: rgba(30, 29, 31, 0.92);
+  /* Outline Button (cta2) - OKLCH Format */
+  --figma-cta2-bg: oklch(0.99 0.005 250);
+  --figma-cta2-border: oklch(1 0 0);
+  --figma-cta2-text: oklch(0.18 0.01 260 / 0.92);
 
-  /* Secondary Button (cta3) */
-  --figma-cta3-bg: rgba(10, 75, 255, 0.08);
-  --figma-cta3-border: rgba(10, 75, 255, 0.2);
-  --figma-cta3-text: #0A4BFF;
+  /* Secondary Button (cta3) - OKLCH Format */
+  --figma-cta3-bg: oklch(0.55 0.25 262 / 0.08);
+  --figma-cta3-border: oklch(0.55 0.25 262 / 0.2);
+  --figma-cta3-text: oklch(0.5 0.25 262);
 
   /* CTA Outline Card */
   --cta-outline-card-border: rgba(100, 116, 139, 0.25);
@@ -88,19 +91,49 @@
   --cta-outline-card-blur: 16px;
   --cta-outline-card-blend: normal;
 
-  /* Background Animation Colors */
-  --bg-animation-gradient-start: #F0F4F9;
-  --bg-animation-gradient-mid: #F7F9FC;
-  --bg-animation-gradient-end: #F0F4F9;
+  /* Background Animation Colors - OKLCH Format */
+  --bg-animation-gradient-start: oklch(0.97 0.01 250);
+  --bg-animation-gradient-mid: oklch(0.98 0.008 250);
+  --bg-animation-gradient-end: oklch(0.97 0.01 250);
   --bg-animation-bar-color-light: rgba(247, 249, 252, 0.6);
   --bg-animation-bar-color-mid: rgba(240, 244, 249, 0.5);
   --bg-animation-bar-color-dark: rgba(240, 244, 249, 0.5);
   --bg-animation-line-color: rgba(230, 244, 249, 0.15);
 
-  /* Controls */
-  --Controls-Selected: #5B8AFF;
-  --Controls-Idle: rgba(91, 138, 255, 0.1);
-  --controls-selected-light: rgba(91, 138, 255, 0.4);
+  /* Controls - Neutral gray, visible but not blue */
+  --Controls-Selected: oklch(0.45 0 0);
+  --Controls-Idle: oklch(0.45 0 0 / 0.15);
+  --controls-selected-light: oklch(0.45 0.02 250 / 0.4);
+
+  /* Status Colors - Consistent across app */
+  --status-success: oklch(0.72 0.20 155);
+  --status-success-bg: oklch(0.72 0.20 155 / 0.12);
+  --status-success-border: oklch(0.72 0.20 155 / 0.3);
+  
+  --status-pending: oklch(0.72 0.12 85);
+  --status-pending-bg: oklch(0.72 0.12 85 / 0.12);
+  --status-pending-border: oklch(0.72 0.12 85 / 0.3);
+  
+  --status-info: oklch(0.65 0.10 250);
+  --status-info-bg: oklch(0.65 0.10 250 / 0.12);
+  --status-info-border: oklch(0.65 0.10 250 / 0.3);
+  
+  --status-error: oklch(0.60 0.22 25);
+  --status-error-bg: oklch(0.60 0.22 25 / 0.12);
+  --status-error-border: oklch(0.60 0.22 25 / 0.3);
+
+  /* Badge Status Colors - For email/event badges */
+  --status-confirmed: oklch(0.65 0.10 250);
+  --status-confirmed-bg: oklch(0.65 0.10 250 / 0.12);
+  --status-confirmed-border: oklch(0.65 0.10 250 / 0.3);
+  
+  --status-attended: oklch(0.68 0.15 280);
+  --status-attended-bg: oklch(0.68 0.15 280 / 0.12);
+  --status-attended-border: oklch(0.68 0.15 280 / 0.3);
+  
+  --status-minted: oklch(0.72 0.20 155);
+  --status-minted-bg: oklch(0.72 0.20 155 / 0.12);
+  --status-minted-border: oklch(0.72 0.20 155 / 0.3);
 
   /* ===== AUTH INDICATOR ===== */
   /* Container */
@@ -152,17 +185,20 @@
   --hero-container-bg: linear-gradient(145deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.95));
 
   /* Mint Success States */
-  --mint-success: rgb(34, 197, 94);
-  --mint-success-light: rgb(52, 211, 153);
-  --mint-success-bg: rgba(34, 197, 94, 0.12);
-  --mint-success-border: rgba(34, 197, 94, 0.3);
-  --mint-success-shadow: 0 4px 24px rgba(34, 197, 94, 0.15);
-  --mint-success-glow: 0 4px 16px rgba(34, 197, 94, 0.4);
-  --mint-success-gradient: linear-gradient(135deg, rgb(34, 197, 94), rgb(16, 185, 129));
+  --mint-success: oklch(0.72 0.24 152);
+  --mint-success-light: oklch(0.78 0.22 155);
+  --mint-success-bg: rgba(16, 220, 110, 0.15);
+  --mint-success-border: rgba(16, 220, 110, 0.4);
+  --mint-success-shadow: 0 4px 24px rgba(16, 220, 110, 0.20);
+  --mint-success-glow: 0 4px 16px rgba(16, 220, 110, 0.5);
+  --mint-success-gradient: linear-gradient(135deg, oklch(0.72 0.24 152), oklch(0.68 0.22 165));
 
   /* Ambient Glow */
   --hero-ambient-opacity: 0.02;
   --hero-mouse-glow-opacity: 0.03;
+
+  /* Hero Section Gradient Overlay */
+  --hero-gradient-overlay: linear-gradient(135deg, oklch(0.65 0.18 262 / 0.015) 0%, transparent 40%, oklch(0.65 0.18 262 / 0.01) 100%);
 
   /* ===== HERO GLASSMORPHIC CARDS (Light Mode) ===== */
   /* White/transparent glass cards on colored backgrounds */
@@ -174,9 +210,9 @@
   --hero-glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   --hero-glass-blur: 24px;
 
-  /* Hero Page Background */
-  --hero-page-bg: linear-gradient(135deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%);
-  --hero-page-bg-secondary: linear-gradient(180deg, #1e40af 0%, #1d4ed8 100%);
+  /* Hero Page Background - OKLCH Format */
+  --hero-page-bg: linear-gradient(135deg, oklch(0.5 0.2 262) 0%, oklch(0.45 0.18 262) 50%, oklch(0.4 0.16 262) 100%);
+  --hero-page-bg-secondary: linear-gradient(180deg, oklch(0.45 0.18 262) 0%, oklch(0.5 0.2 262) 100%);
 
   /* Hero Text Colors (on dark bg) */
   --hero-text-primary: rgba(255, 255, 255, 1);
@@ -276,12 +312,13 @@
 
   /* ===== BUTTON COMPONENT TOKENS ===== */
 
-  /* Outline Button */
-  --button-outline-bg: rgba(255, 255, 255, 0.8);
-  --button-outline-border: oklch(0.9324 0.0168 230.9139);
-  --button-outline-text: oklch(0.205 0.02 246);
-  --button-outline-hover-bg: oklch(0.99 0.01 246);
-  --button-outline-hover-border: oklch(0.88 0.02 230);
+  /* Outline Button - Visible border on light porcelain bg */
+  --button-outline-bg: rgba(255, 255, 255, 0.9);
+  --button-outline-border: oklch(0.65 0.02 250);
+  --button-outline-text: oklch(0.25 0.02 250);
+  --button-outline-hover-bg: oklch(1 0 0);
+  --button-outline-hover-border: oklch(0.50 0.04 250);
+  --button-outline-hover-text: oklch(0.15 0.02 250);
 
   /* Ghost Button */
   --button-ghost-bg: transparent;
@@ -299,17 +336,23 @@
   /* Link Button */
   --button-link-text: oklch(0.6 0.19 262);
   --button-link-hover-text: oklch(0.55 0.19 262);
-}
 
+  /* Default Button (Primary CTA) */
+  --button-default-border: oklch(0.75 0.02 246);
+  --button-default-border-hover: oklch(0.65 0.02 246);
+  --button-default-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --button-default-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.12);
+  --button-default-shadow-active: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
 .dark {
-  /* Core Theme Colors - Enhanced for Glassmorphic */
-  --background: oklch(0.10 0.005 0);
+  /* Core Theme Colors - Slightly lighter dark for grain visibility */
+  --background: oklch(0.14 0.008 260);
   --foreground: oklch(0.95 0.005 236);
   --card: oklch(0.12 0.015 246);
   --card-foreground: oklch(0.95 0.005 236);
   --popover: oklch(0.12 0.015 246);
   --popover-foreground: oklch(0.95 0.005 236);
-  --primary: oklch(0.72 0.20 262);
+  --primary: oklch(0.70 0.26 262);
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.22 0.015 246);
   --secondary-foreground: oklch(0.95 0 0);
@@ -317,7 +360,7 @@
   --muted-foreground: oklch(0.72 0.01 246);
   --accent: oklch(0.22 0.015 246);
   --accent-foreground: oklch(0.95 0 0);
-  --destructive: oklch(0.55 0.2 25);
+  --destructive: oklch(0.60 0.28 28);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.28 0.015 248);
   --input: oklch(0.28 0.015 248);
@@ -333,19 +376,19 @@
   --page-content-bg: rgba(255, 255, 255, 0.03);
   --page-content-border: rgba(255, 255, 255, 0.08);
 
-  /* Glassmorphic System - Dark Mode: Enhanced transparency + heavy blur */
-  /* Idle: darker, subtle | Hover: brighter, more visible */
-  --glass-bg-primary: rgba(255, 255, 255, 0.08);
-  --glass-bg-secondary: rgba(255, 255, 255, 0.05);
-  --glass-bg-tertiary: rgba(255, 255, 255, 0.03);
-  --glass-bg-hover: rgba(255, 255, 255, 0.12);
-  --glass-border: rgba(255, 255, 255, 0.15);
+  /* Glassmorphic System - Dark Mode: Consistent with email cards */
+  /* Idle: transparent glass | Hover: slightly more visible */
+  --glass-bg-primary: rgba(255, 255, 255, 0.04);
+  --glass-bg-secondary: rgba(255, 255, 255, 0.03);
+  --glass-bg-tertiary: rgba(255, 255, 255, 0.02);
+  --glass-bg-hover: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.12);
   --glass-border-hover: rgba(255, 255, 255, 0.25);
-  --glass-blur: 40px;
-  --glass-blur-heavy: 64px;
-  --glass-saturate: 180%;
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  --glass-shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  --glass-blur: 16px;
+  --glass-blur-heavy: 24px;
+  --glass-saturate: 160%;
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --glass-shadow-hover: 0 8px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
   /* Figma Card System */
   --figma-card-stroke: rgba(168, 168, 168, 0.71);
@@ -391,10 +434,40 @@
   --bg-animation-bar-color-dark: rgba(99, 150, 244, 0.04);
   --bg-animation-line-color: rgba(99, 150, 244, 0.08);
 
-  /* Controls */
-  --Controls-Selected: #6B9AFF;
-  --Controls-Idle: rgba(107, 154, 255, 0.2);
-  --controls-selected-light: rgba(107, 154, 255, 0.5);
+  /* Controls - Neutral/Glassmorphic (not blue) - Dark Mode */
+  --Controls-Selected: oklch(0.75 0.06 250);
+  --Controls-Idle: oklch(0.75 0.06 250 / 0.25);
+  --controls-selected-light: oklch(0.75 0.06 250 / 0.55);
+
+  /* Status Colors - Dark Mode (slightly brighter) */
+  --status-success: oklch(0.75 0.22 155);
+  --status-success-bg: oklch(0.75 0.22 155 / 0.15);
+  --status-success-border: oklch(0.75 0.22 155 / 0.35);
+  
+  --status-pending: oklch(0.75 0.14 85);
+  --status-pending-bg: oklch(0.75 0.14 85 / 0.15);
+  --status-pending-border: oklch(0.75 0.14 85 / 0.35);
+  
+  --status-info: oklch(0.70 0.10 250);
+  --status-info-bg: oklch(0.70 0.10 250 / 0.15);
+  --status-info-border: oklch(0.70 0.10 250 / 0.35);
+  
+  --status-error: oklch(0.65 0.24 25);
+  --status-error-bg: oklch(0.65 0.24 25 / 0.15);
+  --status-error-border: oklch(0.65 0.24 25 / 0.35);
+
+  /* Badge Status Colors - Dark Mode */
+  --status-confirmed: oklch(0.70 0.10 250);
+  --status-confirmed-bg: oklch(0.70 0.10 250 / 0.15);
+  --status-confirmed-border: oklch(0.70 0.10 250 / 0.35);
+  
+  --status-attended: oklch(0.72 0.15 280);
+  --status-attended-bg: oklch(0.72 0.15 280 / 0.15);
+  --status-attended-border: oklch(0.72 0.15 280 / 0.35);
+  
+  --status-minted: oklch(0.75 0.22 155);
+  --status-minted-bg: oklch(0.75 0.22 155 / 0.15);
+  --status-minted-border: oklch(0.75 0.22 155 / 0.35);
 
   /* ===== AUTH INDICATOR (Dark Mode) ===== */
   /* Container - inherits from glass vars, no override needed */
@@ -439,13 +512,13 @@
       rgba(18, 28, 50, 0.96));
 
   /* Mint Success States - Vibrant for dark */
-  --mint-success: oklch(0.8 0.18 150);
-  --mint-success-light: oklch(0.85 0.15 150);
-  --mint-success-bg: rgba(34, 197, 94, 0.18);
-  --mint-success-border: rgba(34, 197, 94, 0.4);
-  --mint-success-shadow: 0 4px 28px rgba(34, 197, 94, 0.25);
-  --mint-success-glow: 0 0 24px rgba(34, 197, 94, 0.5);
-  --mint-success-gradient: linear-gradient(135deg, oklch(0.75 0.2 150), oklch(0.7 0.18 165));
+  --mint-success: oklch(0.78 0.26 152);
+  --mint-success-light: oklch(0.82 0.24 155);
+  --mint-success-bg: rgba(16, 220, 110, 0.22);
+  --mint-success-border: rgba(16, 220, 110, 0.5);
+  --mint-success-shadow: 0 4px 28px rgba(16, 220, 110, 0.30);
+  --mint-success-glow: 0 0 24px rgba(16, 220, 110, 0.6);
+  --mint-success-gradient: linear-gradient(135deg, oklch(0.78 0.26 152), oklch(0.72 0.24 165));
 
   /* Ambient Glow - Stronger presence */
   --hero-ambient-opacity: 0.06;
@@ -461,9 +534,9 @@
   --hero-glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
   --hero-glass-blur: 24px;
 
-  /* Hero Page Background - Vibrant Blue */
-  --hero-page-bg: linear-gradient(135deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%);
-  --hero-page-bg-secondary: linear-gradient(180deg, #1e40af 0%, #1d4ed8 100%);
+  /* Hero Page Background - OKLCH Format */
+  --hero-page-bg: linear-gradient(135deg, oklch(0.5 0.2 262) 0%, oklch(0.45 0.18 262) 50%, oklch(0.4 0.16 262) 100%);
+  --hero-page-bg-secondary: linear-gradient(180deg, oklch(0.45 0.18 262) 0%, oklch(0.5 0.2 262) 100%);
 
   /* Hero Text Colors */
   --hero-text-primary: rgba(255, 255, 255, 1);
@@ -560,4 +633,11 @@
   /* Link Button */
   --button-link-text: oklch(0.7 0.15 262);
   --button-link-hover-text: oklch(0.75 0.15 262);
+
+  /* Default Button (Primary CTA) - Dark Mode */
+  --button-default-border: rgba(255, 255, 255, 0.15);
+  --button-default-border-hover: rgba(255, 255, 255, 0.25);
+  --button-default-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --button-default-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --button-default-shadow-active: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
