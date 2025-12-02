@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { FeatureCard, StatsCard, NFTCard } from '@/components/cards'
 
 
 // ============================================
@@ -413,54 +414,82 @@ export function ComponentShowcase() {
       </Section>
 
       {/* ============================================
-          FEATURE CARDS
+          FEATURE CARDS - Reusable Component
           ============================================ */}
       <Section
         title="Feature Cards"
-        description="Icon + text kombinasyonu ile özellik kartları"
+        description="Icon + text kombinasyonu ile özellik kartları (FeatureCard component)"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card variant="glass">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ background: 'var(--Controls-Idle)' }}>
-                <Shield className="h-6 w-6" style={{ color: 'var(--Controls-Selected)' }} />
-              </div>
-              <h3 className="glass-text-primary font-semibold mb-2">
-                Privacy First
-              </h3>
-              <p className="glass-text-secondary text-sm">
-                Zero-knowledge proofs verify your attendance without revealing your email content.
-              </p>
-            </CardContent>
-          </Card>
+          <FeatureCard
+            icon={Shield}
+            title="Privacy First"
+            description="Zero-knowledge proofs verify your attendance without revealing your email content."
+          />
+          <FeatureCard
+            icon={Zap}
+            title="Fast & Cheap"
+            description="Mint on Base L2 for minimal gas fees and instant confirmations."
+          />
+          <FeatureCard
+            icon={Sparkles}
+            title="Unique Collectibles"
+            description="Each Mark is a unique NFT representing your real-world commitments."
+          />
+        </div>
+      </Section>
 
-          <Card variant="glass">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ background: 'var(--Controls-Idle)' }}>
-                <Zap className="h-6 w-6" style={{ color: 'var(--Controls-Selected)' }} />
-              </div>
-              <h3 className="glass-text-primary font-semibold mb-2">
-                Fast & Cheap
-              </h3>
-              <p className="glass-text-secondary text-sm">
-                Mint on Base L2 for minimal gas fees and instant confirmations.
-              </p>
-            </CardContent>
-          </Card>
+      {/* ============================================
+          STATS CARDS - Reusable Component
+          ============================================ */}
+      <Section
+        title="Stats Cards"
+        description="İstatistik gösterimi için (StatsCard component)"
+      >
+        <div className="flex flex-row gap-2.5 sm:gap-3">
+          <StatsCard label="Total Marks" value={42} />
+          <StatsCard label="This Month" value={7} />
+          <StatsCard
+            label="Most Active"
+            value="Nov 2025"
+            subtitle="12 marks"
+            className="min-w-[130px] sm:min-w-[140px]"
+          />
+        </div>
+      </Section>
 
-          <Card variant="glass">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ background: 'var(--Controls-Idle)' }}>
-                <Sparkles className="h-6 w-6" style={{ color: 'var(--Controls-Selected)' }} />
-              </div>
-              <h3 className="glass-text-primary font-semibold mb-2">
-                Unique Collectibles
-              </h3>
-              <p className="glass-text-secondary text-sm">
-                Each Mark is a unique NFT representing your real-world commitments.
-              </p>
-            </CardContent>
-          </Card>
+      {/* ============================================
+          NFT CARDS - Reusable Component
+          ============================================ */}
+      <Section
+        title="NFT Cards"
+        description="NFT galeri kartları (NFTCard component)"
+      >
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <NFTCard
+            source="LUMA"
+            title="Zama World's Fair"
+            date="Nov 30, 2025"
+            tokenId="#9311…8397"
+          />
+          <NFTCard
+            source="LUMA"
+            title="NPC Side Event"
+            date="Nov 29, 2025"
+            tokenId="#9213…7847"
+          />
+          <NFTCard
+            source="LUMA"
+            title="Network State Conference"
+            date="Oct 3, 2025"
+            tokenId="#5538…5223"
+          />
+          <NFTCard
+            source="LUMA"
+            title="The Zama World's Fair"
+            date="Nov 28, 2025"
+            tokenId="#5973…7955"
+          />
         </div>
       </Section>
 
@@ -580,4 +609,3 @@ export function ComponentShowcase() {
 }
 
 export default ComponentShowcase
-

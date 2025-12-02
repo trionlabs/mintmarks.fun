@@ -1,10 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card'
 import { useAuth } from '@/contexts/AuthContext'
 import { useWallet, ConnectWalletModal } from '@/wallet'
 import {
@@ -16,6 +12,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { HeroEmailScatter } from '@/components/HeroEmailScatter'
+import { FeatureCard } from '@/components/cards'
 
 export function Home() {
   const navigate = useNavigate()
@@ -57,8 +54,15 @@ export function Home() {
     <>
       {/* Hero Section - Full Width Split Layout */}
       <section className="relative w-full min-h-[calc(100vh-4rem)] overflow-visible">
+        {/* Subtle gradient overlay for depth */}
+        <div 
+          className="absolute inset-0 pointer-events-none z-0"
+          style={{
+            background: 'var(--hero-gradient-overlay)',
+          }}
+        />
         {/* Container - same as header for alignment */}
-        <div className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-4rem)]">
+        <div className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-4rem)] relative z-10">
           {/* Grid: Left narrower (5/12), Right wider (7/12) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-4rem)]">
             {/* Left Column: Content - narrower (5 columns) */}
@@ -210,49 +214,21 @@ export function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card variant="glass">
-            <CardContent className="pt-6">
-              <div className="glass-icon-box">
-                <Shield className="h-6 w-6 glass-text-secondary" />
-              </div>
-              <h3 className="glass-text-primary font-semibold mb-2">
-                Privacy First
-              </h3>
-              <p className="glass-text-secondary text-sm">
-                Zero-knowledge proofs verify your attendance without revealing
-                your email content.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card variant="glass">
-            <CardContent className="pt-6">
-              <div className="glass-icon-box">
-                <Zap className="h-6 w-6 glass-text-secondary" />
-              </div>
-              <h3 className="glass-text-primary font-semibold mb-2">
-                Fast & Cheap
-              </h3>
-              <p className="glass-text-secondary text-sm">
-                Mint on Base L2 for minimal gas fees and instant confirmations.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card variant="glass">
-            <CardContent className="pt-6">
-              <div className="glass-icon-box">
-                <Sparkles className="h-6 w-6 glass-text-secondary" />
-              </div>
-              <h3 className="glass-text-primary font-semibold mb-2">
-                Unique Collectibles
-              </h3>
-              <p className="glass-text-secondary text-sm">
-                Each Mark is a unique NFT representing your real-world
-                commitments.
-              </p>
-            </CardContent>
-          </Card>
+          <FeatureCard
+            icon={Shield}
+            title="Privacy First"
+            description="Zero-knowledge proofs verify your attendance without revealing your email content."
+          />
+          <FeatureCard
+            icon={Zap}
+            title="Fast & Cheap"
+            description="Mint on Base L2 for minimal gas fees and instant confirmations."
+          />
+          <FeatureCard
+            icon={Sparkles}
+            title="Unique Collectibles"
+            description="Each Mark is a unique NFT representing your real-world commitments."
+          />
         </div>
       </section>
     </>
