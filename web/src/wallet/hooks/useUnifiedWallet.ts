@@ -2,15 +2,23 @@
  * @fileoverview Unified wallet hook.
  * Combines CDP and external wallet adapters into single interface.
  *
+ * ARCHITECTURE:
+ * - useCdpWallet: CDP embedded wallet (multichain native)
+ * - useExternalWallet: Browser wallets via wagmi (single chain)
+ * - useCdpAuthMarkerSync: Syncs CDP state to localStorage marker
+ * - useWalletMutualExclusion: Ensures only one wallet active
+ *
  * CRITICAL PATTERNS:
- * 1. useRef prevents infinite loops in mutual exclusion
- * 2. Dependency arrays use PRIMITIVE VALUES only (not objects)
- * 3. Stable function references via useCallback
+ * 1. Dependency arrays use PRIMITIVE VALUES only (not objects)
+ * 2. Stable function references via useCallback
+ * 3. Extracted hooks for separation of concerns
  */
 
-import { useEffect, useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useCdpWallet } from '../adapters/cdp'
 import { useExternalWallet } from '../adapters/external'
+import { useCdpAuthMarkerSync } from './useCdpAuthMarkerSync'
+import { useWalletMutualExclusion } from './useWalletMutualExclusion'
 import type {
   UnifiedWallet,
   TransactionRequest,
@@ -24,19 +32,41 @@ import { normalizeError } from '../utils/errorUtils'
  * Use this in components instead of provider-specific hooks.
  *
  * Priority: CDP > External (if both connected, external will be disconnected)
+ * 
+ * @returns UnifiedWallet interface with address, connection state, and actions
  */
 export function useUnifiedWallet(): UnifiedWallet {
   const cdp = useCdpWallet()
   const external = useExternalWallet()
-
-  // Ref to prevent infinite loops in mutual exclusion
-  const hasDisconnectedExternalRef = useRef(false)
 
   // Extract primitive values for stable dependencies
   const cdpConnected = cdp.state.isConnected
   const externalConnected = external.state.isConnected
   const cdpAddress = cdp.state.address
   const externalAddress = external.state.address
+  const cdpChainId = cdp.state.chainId
+  const externalChainId = external.state.chainId
+
+  // Stable function references
+  const externalDisconnect = external.disconnect
+
+  // ============================================
+  // Extracted Hooks (Separation of Concerns)
+  // ============================================
+
+  // Sync CDP auth marker to localStorage for reconnect logic
+  useCdpAuthMarkerSync(cdpConnected)
+
+  // Enforce mutual exclusion: CDP > External priority
+  useWalletMutualExclusion({
+    cdpConnected,
+    externalConnected,
+    externalDisconnect,
+  })
+
+  // ============================================
+  // Active Adapter Selection
+  // ============================================
 
   // CRITICAL: Determine active wallet using PRIMITIVE dependencies only
   // Using [cdp, external] would cause infinite re-renders!
@@ -46,31 +76,17 @@ export function useUnifiedWallet(): UnifiedWallet {
     return null
   }, [cdpConnected, externalConnected, cdp, external])
 
-  // Stable disconnect reference for effect
-  const externalDisconnect = external.disconnect
-
-  // CRITICAL: Mutual exclusion with PRIMITIVE dependencies
-  // DO NOT use [external] - it's a new object every render!
-  useEffect(() => {
-    if (
-      cdpConnected &&
-      externalConnected &&
-      !hasDisconnectedExternalRef.current
-    ) {
-      hasDisconnectedExternalRef.current = true
-      externalDisconnect()
-    }
-
-    // Reset flag when CDP disconnects (allow external to connect again)
-    if (!cdpConnected) {
-      hasDisconnectedExternalRef.current = false
-    }
-  }, [cdpConnected, externalConnected, externalDisconnect])
+  // ============================================
+  // Unified Actions
+  // ============================================
 
   // Stable sendTransaction reference
   const activeAdapterSendTransaction = activeAdapter?.sendTransaction
 
-  // Unified send transaction
+  /**
+   * Send a transaction using the active wallet.
+   * @throws WalletError if no wallet connected or transaction fails
+   */
   const sendTransaction = useCallback(
     async (tx: TransactionRequest): Promise<TransactionResult> => {
       if (!activeAdapterSendTransaction) {
@@ -84,8 +100,10 @@ export function useUnifiedWallet(): UnifiedWallet {
   // Stable disconnect references
   const cdpDisconnect = cdp.disconnect
 
-  // Unified disconnect (disconnects all connected wallets)
-  // Uses Promise.allSettled to ensure one failure doesn't block others
+  /**
+   * Disconnect all connected wallets.
+   * Uses Promise.allSettled to ensure one failure doesn't block others.
+   */
   const disconnect = useCallback(async () => {
     const disconnectPromises: Promise<void>[] = []
 
@@ -101,16 +119,20 @@ export function useUnifiedWallet(): UnifiedWallet {
       // Log any failures for debugging
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
-          console.error(`[useUnifiedWallet] Disconnect ${index} failed:`, result.reason)
+          console.error('[useUnifiedWallet] Disconnect failed:', result.reason)
         }
       })
     }
   }, [cdpConnected, externalConnected, cdpDisconnect, externalDisconnect])
 
+  // ============================================
+  // Derived State
+  // ============================================
+
   // Combined loading state
   const isLoading = cdp.state.isLoading || external.state.isLoading
 
-  // Combined error (prefer active adapter's error, includes WRONG_NETWORK)
+  // Combined error (prefer active adapter's error)
   const error =
     activeAdapter?.state.error ??
     cdp.state.error ??
@@ -120,7 +142,11 @@ export function useUnifiedWallet(): UnifiedWallet {
   // Stable switchChain reference from external wallet
   const externalSwitchChain = external.switchChain
 
-  // Switch chain - only available for external wallets
+  /**
+   * Switch to a different chain (external wallets only).
+   * CDP wallets are multichain native - no switch needed.
+   * @throws WalletError if chain switching not supported
+   */
   const switchChain = useCallback(
     async (chainId: number): Promise<void> => {
       if (!externalSwitchChain) {
@@ -134,12 +160,20 @@ export function useUnifiedWallet(): UnifiedWallet {
   // Can switch chain? Only if external wallet is connected
   const canSwitchChain = externalConnected && !!externalSwitchChain
 
-  // Is multichain? CDP wallets are multichain native
+  // Is multichain? CDP wallets are multichain native (same address on all EVM chains)
   const isMultichain = cdpConnected
 
-  // CRITICAL: Final memo with PRIMITIVE dependencies
+  // Active chainId using primitive values
+  const activeChainId = cdpConnected ? cdpChainId : externalConnected ? externalChainId : null
+
+  // ============================================
+  // Return Value
+  // ============================================
+
+  // CRITICAL: Final memo with PRIMITIVE dependencies only
   return useMemo(
     () => ({
+      // State
       address: cdpConnected
         ? cdpAddress
         : externalConnected
@@ -147,10 +181,11 @@ export function useUnifiedWallet(): UnifiedWallet {
           : null,
       isConnected: cdpConnected || externalConnected,
       source: cdpConnected ? 'cdp' : externalConnected ? 'external' : null,
-      chainId: activeAdapter?.state.chainId ?? null,
+      chainId: activeChainId,
       isLoading,
       error,
       isMultichain,
+      // Actions
       sendTransaction,
       disconnect,
       switchChain: canSwitchChain ? switchChain : undefined,
@@ -161,7 +196,7 @@ export function useUnifiedWallet(): UnifiedWallet {
       externalConnected,
       cdpAddress,
       externalAddress,
-      activeAdapter?.state.chainId,
+      activeChainId,
       isLoading,
       error,
       isMultichain,
