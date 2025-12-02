@@ -32,7 +32,7 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <LazyMotion features={domAnimation} strict>
+      <LazyMotion features={domAnimation}>
         <ThemeProvider>
           <ToastProvider>
             <AuthProvider>
