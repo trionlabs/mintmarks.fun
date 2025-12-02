@@ -209,6 +209,17 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
   // ============================================
 
   useEffect(() => {
+    // Reset timeout flag immediately when wallet connects
+    // This is critical for Gmail + External wallet flow
+    if (isWalletConnected) {
+      setConnectionTimeout(false)
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
+      return
+    }
+    
     // Only track timeout when Gmail is connected but wallet is loading
     if (isGmailConnected && walletLoading && !isWalletConnected) {
       timeoutRef.current = setTimeout(() => {
@@ -216,15 +227,10 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
         console.warn('[useAuthStatus] Wallet connection timeout')
       }, CONNECTION_TIMEOUT_MS)
     } else {
-      // Clear timeout
+      // Clear timeout timer (but don't reset flag - it will reset when wallet connects)
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
         timeoutRef.current = null
-      }
-
-      // Reset timeout flag when connected
-      if (isWalletConnected) {
-        setConnectionTimeout(false)
       }
     }
 
