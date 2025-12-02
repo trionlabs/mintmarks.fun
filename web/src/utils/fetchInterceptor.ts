@@ -89,10 +89,12 @@ function initXhrInterceptor(): void {
   XMLHttpRequest.prototype.open = function(
     method: string,
     url: string | URL,
-    ...rest: [boolean?, string?, string?]
+    async: boolean = true,
+    username?: string,
+    password?: string
   ) {
     xhrUrls.set(this, url.toString())
-    return originalOpen.call(this, method, url, ...rest)
+    return originalOpen.call(this, method, url, async, username, password)
   }
   
   // Intercept send to check response

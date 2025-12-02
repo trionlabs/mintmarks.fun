@@ -1139,7 +1139,7 @@ export function TestCenter() {
                   <span className="font-semibold">TX Sent on {lastTestTxNetwork}!</span>
                 </div>
                 <a
-                  href={getTransactionUrl(lastTestTxHash, Object.values(NETWORKS).find(n => n.name === lastTestTxNetwork) || ACTIVE_NETWORK)}
+                  href={`${(Object.values(NETWORKS).find(n => n.name === lastTestTxNetwork) ?? ACTIVE_NETWORK).blockExplorer}/tx/${lastTestTxHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-primary hover:underline"

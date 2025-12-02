@@ -762,7 +762,7 @@ export function UnifiedAuthIndicator({
                 </div>
                 <span 
                   className="text-sm text-foreground truncate cursor-default"
-                  title={userEmail}
+                  title={userEmail ?? undefined}
                 >
                   {userEmail}
                 </span>
@@ -1013,7 +1013,7 @@ export function UnifiedAuthIndicator({
               </div>
               <span 
                 className="text-sm text-foreground truncate cursor-default"
-                title={userEmail}
+                title={userEmail ?? undefined}
               >
                 {userEmail}
               </span>
