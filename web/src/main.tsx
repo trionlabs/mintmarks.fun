@@ -14,40 +14,27 @@ import './index.css'
 // Import RainbowKit styles
 import '@rainbow-me/rainbowkit/styles.css'
 
-/**
- * Clear stale CDP auth tokens on 401 errors.
- * This prevents the "stuck" state where isSignedIn=true but tokens are invalid.
- */
-function clearStaleCdpTokens() {
-  const keysToRemove = Object.keys(localStorage).filter(
-    (k) => k.includes('cdp') || k.includes('coinbase') || k.includes('embedded-wallet')
-  )
-  if (keysToRemove.length > 0) {
-    console.warn('[Auth] Clearing stale CDP tokens:', keysToRemove.length, 'keys')
-    keysToRemove.forEach((k) => localStorage.removeItem(k))
-  }
-}
+// Wallet auth state utilities
+import { shouldWagmiReconnect, logAuthState } from './wallet/utils/walletAuthState'
 
-// Global fetch interceptor to detect CDP 401 errors
-// Only intercept CDP API calls to avoid TrustedScript/CSP issues
-const originalFetch = window.fetch
-window.fetch = async (...args) => {
-  const input = args[0]
-  const url = typeof input === 'string' ? input : input instanceof Request ? input.url : ''
-  
-  // Only intercept CDP API calls
-  const isCdpApiCall = url.includes('api.cdp.coinbase.com')
-  
-  const response = await originalFetch(...args)
-  
-  // If CDP API returns 401, clear stale tokens
-  if (isCdpApiCall && response.status === 401) {
-    console.warn('[Auth] CDP auth failed with 401, clearing stale tokens')
-    clearStaleCdpTokens()
-    // Don't reload automatically - let user manually reconnect
-  }
-  
-  return response
+// Global network interceptor for CDP 401 handling (fetch + XHR)
+import { initNetworkInterceptor } from './utils/fetchInterceptor'
+
+// ============================================
+// Initialization (runs before React renders)
+// ============================================
+
+// Initialize network interceptor for CDP 401 error handling
+initNetworkInterceptor()
+
+// Determine wagmi reconnect behavior based on CDP auth state
+// SECURITY: Prevents auto-connect bug when CDP user has MetaMask installed
+const reconnectOnMount = shouldWagmiReconnect()
+
+// Debug logging (dev only)
+if (import.meta.env.DEV) {
+  console.log('[main] wagmi reconnectOnMount:', reconnectOnMount)
+  logAuthState()
 }
 
 // QueryClient with recommended defaults
@@ -77,6 +64,7 @@ const isCDPConfigured = !!import.meta.env.VITE_CDP_PROJECT_ID
  * Provider hierarchy (outer to inner):
  * 1. QueryClientProvider - TanStack Query (shared by wagmi)
  * 2. WagmiProvider - External wallet state
+ *    - reconnectOnMount: false when CDP is signed in (prevents auto-connect bug)
  * 3. RainbowKitProvider - Wallet connection UI
  * 4. CDPReactProvider - CDP embedded wallet UI components (optional)
  * 5. CDPHooksProvider - CDP hooks context (required for @coinbase/cdp-hooks)
@@ -85,7 +73,7 @@ const isCDPConfigured = !!import.meta.env.VITE_CDP_PROJECT_ID
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <WagmiProvider config={wagmiConfig}>
+      <WagmiProvider config={wagmiConfig} reconnectOnMount={reconnectOnMount}>
         <RainbowKitProvider initialChain={baseSepolia}>
           {isCDPConfigured ? (
             <CDPReactProvider config={cdpConfig}>
