@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { useWallet, ConnectWalletModal } from '@/wallet'
@@ -14,13 +14,48 @@ import { HowItWorksSection } from '@/components/HowItWorksSection'
 import { HowWeProveSection } from '@/components/HowWeProveSection'
 import { WhatYouCanDoSection } from '@/components/WhatYouCanDoSection'
 
+// Key for tracking first Gmail connection redirect
+const FIRST_GMAIL_REDIRECT_KEY = 'mintmarks_first_gmail_redirected'
+
 export function Home() {
   const navigate = useNavigate()
-  const { isAuthenticated: isGmailConnected, login: gmailLogin } = useAuth()
+  const { isAuthenticated: isGmailConnected, login: gmailLogin, isLoading: isAuthLoading } = useAuth()
   const { isConnected: isWalletConnected } = useWallet()
+
+  // Track previous Gmail connection state for detecting first connect
+  const wasGmailConnectedRef = useRef<boolean | null>(null)
 
   // Check if user is fully connected (both Gmail and Wallet)
   const isFullyConnected = isGmailConnected && isWalletConnected
+
+  // First Gmail connection redirect
+  useEffect(() => {
+    // Skip if auth is still loading (initial mount)
+    if (isAuthLoading) return
+
+    // Initialize ref on first non-loading render
+    if (wasGmailConnectedRef.current === null) {
+      wasGmailConnectedRef.current = isGmailConnected
+      return
+    }
+
+    // Detect state transition: false → true (just connected)
+    const justConnected = !wasGmailConnectedRef.current && isGmailConnected
+
+    // Update ref for next render
+    wasGmailConnectedRef.current = isGmailConnected
+
+    if (justConnected) {
+      // Check if this is the first ever Gmail connection
+      const hasRedirectedBefore = localStorage.getItem(FIRST_GMAIL_REDIRECT_KEY)
+      
+      if (!hasRedirectedBefore) {
+        // First time! Set flag and redirect
+        localStorage.setItem(FIRST_GMAIL_REDIRECT_KEY, 'true')
+        navigate('/create')
+      }
+    }
+  }, [isGmailConnected, isAuthLoading, navigate])
 
   // Mark type selection (standard or unique)
   const [markType, setMarkType] = useState<'standard' | 'unique'>('unique')
