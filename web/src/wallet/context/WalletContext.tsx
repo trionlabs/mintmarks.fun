@@ -3,7 +3,7 @@
  * Makes useWallet() available throughout the app.
  */
 
-import { createContext, useContext, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { useUnifiedWallet } from '../hooks/useUnifiedWallet'
 import type { UnifiedWallet } from '../types'
 
@@ -17,13 +17,44 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 }
 
 /**
+ * Default wallet state for when context is not available.
+ * Used to prevent crashes during provider initialization.
+ */
+const DEFAULT_WALLET: UnifiedWallet = {
+  address: null,
+  isConnected: false,
+  source: null,
+  chainId: null,
+  isLoading: false,
+  error: null,
+  isMultichain: false,
+  sendTransaction: async (_tx) => {
+    throw new Error('Wallet not connected')
+  },
+  disconnect: async () => {},
+  switchChain: undefined,
+  canSwitchChain: false,
+}
+
+/**
  * Hook to access unified wallet.
- * @throws Error if used outside WalletProvider
+ * Returns safe defaults if used outside WalletProvider (prevents crashes during initialization).
  */
 export function useWallet(): UnifiedWallet {
   const context = useContext(WalletContext)
-  if (!context) {
-    throw new Error('useWallet must be used within WalletProvider')
-  }
-  return context
+  
+  // Return safe defaults if context is not available
+  // This prevents crashes during provider initialization or error recovery
+  return useMemo(() => {
+    if (!context) {
+      if (import.meta.env.DEV) {
+        console.warn(
+          '[useWallet] Context not available - returning defaults. ' +
+          'This may indicate WalletProvider is not in the component tree.'
+        )
+      }
+      return DEFAULT_WALLET
+    }
+    return context
+  }, [context])
 }

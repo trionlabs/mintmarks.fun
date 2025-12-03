@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider } from 'wagmi'
-import { baseSepolia } from 'wagmi/chains'
+import { sepolia } from 'wagmi/chains'
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import { CDPReactProvider } from '@coinbase/cdp-react'
 import { CDPHooksProvider } from '@coinbase/cdp-hooks'
@@ -75,7 +75,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={wagmiConfig} reconnectOnMount={reconnectOnMount}>
-        <RainbowKitProvider initialChain={baseSepolia}>
+        <RainbowKitProvider initialChain={sepolia}>
           {isCDPConfigured ? (
             <CDPReactProvider config={cdpConfig}>
               <CDPHooksProvider config={cdpConfig}>
