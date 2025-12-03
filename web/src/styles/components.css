@@ -275,11 +275,13 @@ button.btn-default-hover:hover > * {
    
    Z-index hierarchy (bottom to top):
    - z-0:  SpiralCirclesBackground (animated icons)
-   - z-2:  Noise overlay (high-grain texture)
-   - z-10: Gradient overlay (linear brightness gradient)
+   - z-1:  Noise overlay (high-grain texture)
+   - z-2:  Gradient overlay (linear brightness gradient)
+   - z-30: Glassmorphic cards (for backdrop-filter to work)
    - z-50+: Content (header, main content, modals)
    
    All overlays are fixed, full viewport, pointer-events-none
+   Overlays must be BELOW glassmorphic elements for backdrop-filter to work
    ============================================ */
 
 /* ============================================
@@ -292,7 +294,7 @@ button.btn-default-hover:hover > * {
 .gradient-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10;
+  z-index: 2;
   pointer-events: none;
   
   /* Linear gradient: top transparent, bottom lighter */
@@ -333,7 +335,7 @@ button.btn-default-hover:hover > * {
 .noise-overlay {
   position: fixed;
   inset: 0;
-  z-index: 2;
+  z-index: 1;
   pointer-events: none;
   
   /* 

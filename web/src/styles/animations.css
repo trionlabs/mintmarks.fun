@@ -250,6 +250,37 @@ body:has(.email-card:hover) .spiral-icon {
 }
 
 /* ============================================
+   SCROLLING BANNER ANIMATION
+   Continuous horizontal scroll for disclaimer banner
+   ============================================ */
+
+@keyframes scroll-banner {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Utility class for scroll banner animation */
+.animate-scroll-banner {
+  animation: scroll-banner 25s linear infinite;
+}
+
+/* Pause animation on hover for accessibility */
+.animate-scroll-banner:hover {
+  animation-play-state: paused;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-banner {
+    animation: none;
+  }
+}
+
+/* ============================================
    NOISE TEXTURE OVERLAY
    Film grain effect for premium aesthetic
    ============================================ */

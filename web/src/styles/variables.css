@@ -30,13 +30,13 @@
   --ring: oklch(0.68 0.22 262);
   --radius: 0.625rem;
 
-  /* Page Content Colors - Smooth light mode palette */
-  --page-text-primary: oklch(0.28 0.04 246);
-  --page-text-secondary: oklch(0.48 0.03 246);
-  --page-text-muted: oklch(0.58 0.02 246);
-  --page-icon-primary: oklch(0.45 0.05 262); /* Softer icon color - reduced chroma, increased lightness */
-  --page-headline-accent: oklch(0.55 0.12 280); /* Soft lavender purple for light mode */
-  --page-badge-accent: oklch(0.62 0.15 262); /* Soft blue-purple for badges */
+  /* Page Content Colors - Ultra smooth light mode palette */
+  --page-text-primary: oklch(0.35 0.02 250); /* Softer, less contrast */
+  --page-text-secondary: oklch(0.52 0.015 250); /* Even softer secondary */
+  --page-text-muted: oklch(0.62 0.01 250); /* Gentle muted */
+  --page-icon-primary: oklch(0.50 0.03 262); /* Softer icon color */
+  --page-headline-accent: oklch(0.50 0.08 270); /* Soft dusty blue-purple - much softer */
+  --page-badge-accent: oklch(0.55 0.10 262); /* Softer blue-purple for badges */
   --page-badge-bg: rgba(255, 255, 255, 0.1);
   --page-badge-border: rgba(0, 0, 0, 0.05);
   
@@ -65,9 +65,9 @@
   --glass-bg-secondary: rgba(255, 255, 255, 0.03);
   --glass-bg-tertiary: rgba(255, 255, 255, 0.02);
   --glass-bg-hover: rgba(255, 255, 255, 0.1);
-  /* Border: Soft blue-gray instead of black */
-  --glass-border: rgba(99, 150, 244, 0.12);
-  --glass-border-hover: rgba(99, 150, 244, 0.18);
+  /* Border: Soft gray - neutral, no selection appearance */
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-border-hover: rgba(0, 0, 0, 0.12);
   /* Blur: Reduced for less blur effect */
   --glass-blur: 6px;
   --glass-blur-heavy: 10px;
