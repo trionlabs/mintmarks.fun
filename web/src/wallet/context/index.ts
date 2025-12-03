@@ -3,3 +3,4 @@
  */
 
 export { WalletProvider, useWallet } from './WalletContext'
+export { CdpNetworkProvider, useCdpNetwork } from './CdpNetworkContext'

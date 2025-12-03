@@ -7,6 +7,7 @@
  * - useExternalWallet: Browser wallets via wagmi (single chain)
  * - useCdpAuthMarkerSync: Syncs CDP state to localStorage marker
  * - useWalletMutualExclusion: Ensures only one wallet active
+ * - useCdpNetwork: CDP network selection (global state)
  *
  * CRITICAL PATTERNS:
  * 1. Dependency arrays use PRIMITIVE VALUES only (not objects)
@@ -19,6 +20,7 @@ import { useCdpWallet } from '../adapters/cdp'
 import { useExternalWallet } from '../adapters/external'
 import { useCdpAuthMarkerSync } from './useCdpAuthMarkerSync'
 import { useWalletMutualExclusion } from './useWalletMutualExclusion'
+import { useCdpNetwork } from '../context/CdpNetworkContext'
 import type {
   UnifiedWallet,
   TransactionRequest,
@@ -38,13 +40,17 @@ import { normalizeError } from '../utils/errorUtils'
 export function useUnifiedWallet(): UnifiedWallet {
   const cdp = useCdpWallet()
   const external = useExternalWallet()
+  
+  // CDP network selection from global context
+  // This is the user-selected network for CDP multichain wallets
+  const { selectedChainId: cdpSelectedChainId } = useCdpNetwork()
 
   // Extract primitive values for stable dependencies
   const cdpConnected = cdp.state.isConnected
   const externalConnected = external.state.isConnected
   const cdpAddress = cdp.state.address
   const externalAddress = external.state.address
-  const cdpChainId = cdp.state.chainId
+  // Note: cdp.state.chainId is static (ACTIVE_NETWORK), we use cdpSelectedChainId instead
   const externalChainId = external.state.chainId
 
   // Stable function references
@@ -163,8 +169,14 @@ export function useUnifiedWallet(): UnifiedWallet {
   // Is multichain? CDP wallets are multichain native (same address on all EVM chains)
   const isMultichain = cdpConnected
 
-  // Active chainId using primitive values
-  const activeChainId = cdpConnected ? cdpChainId : externalConnected ? externalChainId : null
+  // Active chainId:
+  // - CDP wallets: Use user-selected network from CdpNetworkContext (dynamic)
+  // - External wallets: Use actual connected chain from wagmi (dynamic)
+  const activeChainId = cdpConnected 
+    ? cdpSelectedChainId  // User's selected network for CDP
+    : externalConnected 
+      ? externalChainId   // Actual connected chain for external
+      : null
 
   // ============================================
   // Return Value
@@ -197,6 +209,7 @@ export function useUnifiedWallet(): UnifiedWallet {
       cdpAddress,
       externalAddress,
       activeChainId,
+      cdpSelectedChainId, // Include in deps for CDP network changes
       isLoading,
       error,
       isMultichain,

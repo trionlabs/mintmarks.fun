@@ -6,7 +6,7 @@
  */
 
 // Context & Hook (main API)
-export { WalletProvider, useWallet } from './context'
+export { WalletProvider, useWallet, CdpNetworkProvider, useCdpNetwork } from './context'
 
 // Components
 export { ConnectWalletModal, WalletStatus } from './components'

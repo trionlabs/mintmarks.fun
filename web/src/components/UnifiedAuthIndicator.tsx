@@ -48,7 +48,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuthStatus } from '@/hooks/useAuthStatus'
 import { useToast } from '@/contexts/ToastContext'
-import { useWallet } from '@/wallet'
+import { useWallet, useCdpNetwork } from '@/wallet'
 import { ACTIVE_NETWORK, NETWORKS, getAddressUrl, type NetworkKey } from '@/config/contracts'
 import { isActiveNetwork } from '@/config/chains'
 import { cn } from '@/lib/utils'
@@ -327,16 +327,9 @@ export function UnifiedAuthIndicator({
   // Get wallet capabilities first (needed for useAuthStatus override)
   const { switchChain, canSwitchChain, isMultichain, chainId: walletChainId } = useWallet()
   
-  // Selected network for CDP wallets (persisted in localStorage)
-  // Note: No SSR check needed - this is a Vite SPA (client-only)
-  const [selectedCdpNetwork, setSelectedCdpNetwork] = useState<number>(() => {
-    const saved = localStorage.getItem('mintmarks_selected_network')
-    if (saved) {
-      const parsed = parseInt(saved, 10)
-      if (isActiveNetwork(parsed)) return parsed
-    }
-    return ACTIVE_NETWORK.chainId // Default to Base Sepolia
-  })
+  // CDP network selection from global context
+  // This ensures selectedCdpNetwork is in sync with useWallet().chainId
+  const { selectedChainId: selectedCdpNetwork, setSelectedChainId: setSelectedCdpNetwork } = useCdpNetwork()
   
   // Get auth status with optional chainId override for CDP wallets
   const {
@@ -524,9 +517,9 @@ export function UnifiedAuthIndicator({
     const networkName = Object.values(NETWORKS).find(n => n.chainId === targetChainId)?.name || 'Network'
     
     // CDP wallets: Just update the selected network (no actual switch needed)
+    // Note: setSelectedCdpNetwork from context handles localStorage persistence
     if (isMultichain) {
       setSelectedCdpNetwork(targetChainId)
-      localStorage.setItem('mintmarks_selected_network', targetChainId.toString())
       showToast(`Viewing ${networkName}`, 'success')
       return
     }
