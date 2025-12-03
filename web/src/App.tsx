@@ -3,6 +3,7 @@ import { LazyMotion, domAnimation } from 'framer-motion'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { ToastProvider } from '@/contexts/ToastContext'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { SmoothScroll } from '@/components/SmoothScroll'
 import { Layout } from '@/components/Layout'
 import { Home } from '@/pages/Home'
 import { CreateMark } from '@/pages/CreateMark'
@@ -11,6 +12,9 @@ import { TestMint } from '@/pages/TestMint'
 import { ComponentShowcase } from '@/pages/ComponentShowcase'
 import { HeroDemo } from '@/pages/HeroDemo'
 import { TestCenter } from '@/pages/TestCenter'
+
+// Lenis smooth scroll styles
+import 'lenis/dist/lenis.css'
 
 function AppContent() {
   return (
@@ -36,7 +40,9 @@ function App() {
         <ThemeProvider>
           <ToastProvider>
             <AuthProvider>
-              <AppContent />
+              <SmoothScroll>
+                <AppContent />
+              </SmoothScroll>
             </AuthProvider>
           </ToastProvider>
         </ThemeProvider>
