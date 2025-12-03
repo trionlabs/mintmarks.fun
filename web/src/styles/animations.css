@@ -265,7 +265,7 @@ body:has(.email-card:hover) .spiral-icon {
 
 /* Utility class for scroll banner animation */
 .animate-scroll-banner {
-  animation: scroll-banner 25s linear infinite;
+  animation: scroll-banner 50s linear infinite;
 }
 
 /* Pause animation on hover for accessibility */

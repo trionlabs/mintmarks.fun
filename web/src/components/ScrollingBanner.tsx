@@ -13,9 +13,8 @@ import { cn } from '@/lib/utils'
 // Constants
 // ============================================
 
-const BANNER_TEXT = 'Unaudited beta - use at your own risk'
-const BANNER_SEPARATOR = '•'
-const SCROLL_DURATION = '25s' // Duration for one complete scroll cycle
+const BANNER_TEXT = 'Unaudited Beta - Use at Your Own Risk • Email Wallet Recommended'
+const SCROLL_DURATION = '50s' // Duration for one complete scroll cycle - slower for better readability
 
 // ============================================
 // Component
@@ -26,14 +25,14 @@ export function ScrollingBanner() {
 
   // Create repeated content for seamless infinite scroll
   // We need at least 2 copies to create the illusion of infinite scroll
-  const repeatedContent = Array(4).fill(null).map((_, i) => (
+  const repeatedContent = Array(3).fill(null).map((_, i) => (
     <span key={i} className="inline-flex items-center whitespace-nowrap">
       <span className="mx-4 sm:mx-6">{BANNER_TEXT}</span>
       <span 
         className="mx-4 sm:mx-6 opacity-40"
         style={{ color: 'var(--page-text-muted)' }}
       >
-        {BANNER_SEPARATOR}
+        •
       </span>
     </span>
   ))
