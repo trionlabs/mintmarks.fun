@@ -122,23 +122,22 @@ export function Home() {
           }}
         />
         {/* Container - optimized for MacBook screens (max-w-7xl = 1280px) */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 lg:py-0 lg:min-h-[calc(100vh-4rem)] relative z-10">
-          {/* Grid: Left wider on lg, narrower on xl+ */}
-          {/* Mobile: 1 col, lg: 5/12 + 7/12, xl: 4/12 + 8/12 */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-14 lg:py-0 lg:min-h-[calc(100vh-4rem)] relative z-10">
+          {/* Grid: Full width on mobile, split on lg+ */}
           <div className="grid grid-cols-1 lg:grid-cols-12 lg:min-h-[calc(100vh-4rem)]">
-            {/* Left Column: Content - wider on lg (5 cols), narrower on xl (4 cols) */}
+            {/* Left Column: Content - full width on mobile, constrained on desktop */}
             <div
-              className="relative z-20 flex items-center py-8 sm:py-12 md:py-16 lg:py-20 lg:col-span-5 xl:col-span-4"
+              className="relative z-20 flex items-center lg:py-20 lg:col-span-5 xl:col-span-4"
             >
-              <div className="w-full">
-                {/* Badge */}
+              <div className="w-full text-center lg:text-left">
+                {/* Badge - centered on mobile */}
                 <div
-                  className="glass-badge inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full mb-5 sm:mb-6 md:mb-8 transition-all duration-300 hero-animate-slide-up"
+                  className="glass-badge inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full mb-5 sm:mb-6 md:mb-8 transition-all duration-300 hero-animate-slide-up"
                 >
                   <Sparkles
-                    className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 glass-text-primary transition-all duration-300 hero-sparkle-icon"
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4 glass-text-primary transition-all duration-300 hero-sparkle-icon"
                   />
-                  <span className="text-[10px] xs:text-xs sm:text-sm font-semibold tracking-wider glass-text-primary">
+                  <span className="text-xs sm:text-sm font-semibold tracking-wider glass-text-primary">
                     Powered by{' '}
                     <a
                       href="https://zk.email/"
@@ -160,26 +159,25 @@ export function Home() {
                   </span>
                 </div>
 
-                {/* Hero Content - New Hierarchy */}
+                {/* Hero Content - Centered on mobile */}
                 <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6">
-                  {/* h2: Story */}
-                  <div className="space-y-1 sm:space-y-1.5 md:space-y-2">
-                    <h2
-                      className="glass-text-secondary text-xs sm:text-sm md:text-base lg:text-lg font-medium leading-relaxed hero-animate-slide-up hero-delay-100"
+                  {/* Story text - smaller on mobile */}
+                  <div className="space-y-1 sm:space-y-1.5">
+                    <p
+                      className="glass-text-secondary text-sm sm:text-base md:text-lg font-medium leading-relaxed hero-animate-slide-up hero-delay-100"
                     >
                       Every Email In Your Inbox Tells A Story.
-                    </h2>
+                    </p>
 
                     {/* Rotating commitments */}
                     <div
-                      className="glass-text-secondary text-xs sm:text-sm md:text-base lg:text-lg font-medium leading-relaxed hero-animate-slide-up hero-delay-150 min-h-[1.5em] relative"
+                      className="glass-text-secondary text-sm sm:text-base md:text-lg font-medium leading-relaxed hero-animate-slide-up hero-delay-150 min-h-[1.5em] relative"
                     >
                       <div className="hero-rotate-wrapper">
                         {commitments.map((commitment, index) => (
                           <span
                             key={index}
-                            className={`hero-rotate-item ${index === commitmentIndex ? 'active' : 'inactive'
-                              }`}
+                            className={`hero-rotate-item ${index === commitmentIndex ? 'active' : 'inactive'}`}
                           >
                             {commitment}
                           </span>
@@ -188,26 +186,26 @@ export function Home() {
                     </div>
                   </div>
 
-                  {/* Main Value Proposition - Improved Hierarchy */}
+                  {/* Main Value Proposition */}
                   <div className="space-y-3 sm:space-y-4 md:space-y-5">
-                    {/* h3: Combined Title */}
-                    <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-extrabold leading-[1.15] tracking-tight hero-animate-slide-up hero-delay-400 flex flex-col gap-0.5 sm:gap-1">
-                      <span className="glass-text-primary">Turn E-mails into</span>
-                      <span className="glass-text-primary">Private Onchain</span>
+                    {/* Main Title - Large and impactful */}
+                    <h1 className="text-[2rem] xs:text-4xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-extrabold leading-[1.05] tracking-tight hero-animate-slide-up hero-delay-200">
+                      <span className="glass-text-primary block">Turn E-mails into</span>
+                      <span className="glass-text-primary block">Private Onchain</span>
                       <span 
-                        className="light:text-[var(--status-success)] dark:text-[var(--page-headline-accent)] dark:mix-blend-screen"
+                        className="block light:text-[var(--status-success)] dark:text-[var(--page-headline-accent)] dark:mix-blend-screen"
                       >Marks</span>
-                    </h3>
+                    </h1>
 
-                    {/* Secondary Line */}
-                    <p className="glass-text-secondary text-xs sm:text-sm md:text-base lg:text-lg font-medium hero-animate-slide-up hero-delay-500">
-                      to Unlock{' '}<span className="hero-gradient-text font-semibold ml-1">{unlockOptions[unlockIndex]}</span>
+                    {/* Unlock Line */}
+                    <p className="glass-text-secondary text-base sm:text-lg md:text-xl lg:text-2xl font-medium hero-animate-slide-up hero-delay-300">
+                      to Unlock{' '}<span className="hero-gradient-text font-semibold">{unlockOptions[unlockIndex]}</span>
                     </p>
                   </div>
                 </div>
 
-                {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 mt-6 sm:mt-8 md:mt-9 lg:mt-10">
+                {/* CTA Buttons - Full width on mobile */}
+                <div className="flex flex-col gap-3 mt-6 sm:mt-8 md:mt-10 lg:mt-12 sm:flex-row sm:justify-center lg:justify-start">
                   {isFullyConnected ? (
                     <Button
                       size="lg"
@@ -262,8 +260,9 @@ export function Home() {
           </div>
 
           {/* Mobile & Tablet: Compact Email Scatter below hero content */}
+          {/* Mobile: 2×2 grid, Tablet: 3×2 grid */}
           <div className="lg:hidden pb-6 sm:pb-8 pt-4 sm:pt-6">
-            <div className="max-w-md sm:max-w-3xl mx-auto">
+            <div className="w-full h-[280px] sm:h-[380px]">
               <HeroEmailScatter />
             </div>
           </div>

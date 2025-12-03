@@ -75,18 +75,22 @@
   vertical-align: baseline;
   width: 100%;
   min-height: 1.2em;
+  /* Inherit text alignment from parent */
+  text-align: inherit;
 }
 
-/* Rotating Text Items - NO TRANSLATE Y */
+/* Rotating Text Items - Inherit alignment from parent */
 .hero-rotate-item {
   display: block;
   white-space: nowrap;
   transition: opacity 500ms cubic-bezier(0.4, 0, 0.2, 1);
   line-height: 1.2;
   width: 100%;
-  text-align: left;
+  /* Inherit text alignment - mobile: center, desktop: left */
+  text-align: inherit;
   position: absolute;
   left: 0;
+  right: 0;
   top: 0;
 }
 

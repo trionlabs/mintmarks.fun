@@ -110,25 +110,44 @@ const EMAIL_TEMPLATES = [
   { sender: "Figma", subject: "You're a Figma Pro!" },
 ] as const
 
+// ============================================
+// Grid Configuration
+// ============================================
+// Mobile (< 640px):  2×2 = 4 cards
+// Tablet (640-1024): 3×2 = 6 cards  
+// Desktop (1024+):   3×3 = 9 cards
+// ============================================
+
 const MAX_EMAILS = { mobile: 4, tablet: 6, desktop: 9 }
 const EMAIL_LIFETIME = 14000
 const SPAWN_INTERVAL = 2200
 
-// Grid positions
+// Grid positions (x, y as percentages)
 const GRID_SLOTS = {
+  // Desktop: 3 columns × 3 rows = 9 cards
   desktop: [
-    { x: 0, y: 20 }, { x: 33, y: 23 }, { x: 70, y: 21 },
-    { x: 3, y: 42 }, { x: 35, y: 45 }, { x: 72, y: 43 },
-    { x: 0, y: 64 }, { x: 33, y: 67 }, { x: 70, y: 65 },
+    // Row 1
+    { x: 2, y: 12 },  { x: 35, y: 14 }, { x: 68, y: 12 },
+    // Row 2
+    { x: 0, y: 40 },  { x: 33, y: 42 }, { x: 66, y: 40 },
+    // Row 3
+    { x: 2, y: 68 },  { x: 35, y: 70 }, { x: 68, y: 68 },
   ],
+  // Tablet/iPad: 2 columns × 3 rows = 6 cards (centered)
   tablet: [
-    { x: 4, y: 18 }, { x: 56, y: 21 },
-    { x: 2, y: 44 }, { x: 58, y: 47 },
-    { x: 4, y: 70 }, { x: 56, y: 73 },
+    // Row 1
+    { x: 8, y: 8 },   { x: 54, y: 10 },
+    // Row 2
+    { x: 6, y: 38 },  { x: 52, y: 40 },
+    // Row 3
+    { x: 8, y: 68 },  { x: 54, y: 70 },
   ],
+  // Mobile: 2 columns × 2 rows = 4 cards
   mobile: [
-    { x: 2, y: 18 }, { x: 54, y: 21 },
-    { x: 4, y: 50 }, { x: 56, y: 53 },
+    // Row 1
+    { x: 2, y: 3 },   { x: 51, y: 5 },
+    // Row 2
+    { x: 2, y: 50 },  { x: 51, y: 52 },
   ],
 } as const
 
@@ -185,8 +204,8 @@ const EmailCard = React.memo(function EmailCard({ email, onMint, isExiting }: Em
     <div
       className={`
         hero-email-card
-        absolute w-[185px] sm:w-[205px] md:w-[225px] lg:w-[250px]
-        rounded-2xl transition-all duration-300 ease-out
+        absolute w-[46%] sm:w-[200px] lg:w-[250px]
+        rounded-xl sm:rounded-2xl transition-all duration-300 ease-out
         ${!email.isMinted ? 'cursor-pointer' : ''}
         ${isExiting ? 'hero-card-exit' : 'hero-card-enter'}
         ${email.isMinted ? 'is-minted' : ''}
@@ -230,17 +249,17 @@ const EmailCard = React.memo(function EmailCard({ email, onMint, isExiting }: Em
       )}
 
       {/* Card Content */}
-      <div className="p-4 sm:p-[18px]">
-        <div className="flex items-start gap-3">
-          <div className="hero-icon-box p-2.5 rounded-xl shrink-0 transition-colors">
-            <Mail className="hero-icon h-4 w-4 transition-colors" />
+      <div className="p-3 sm:p-4 md:p-[18px]">
+        <div className="flex items-start gap-2.5 sm:gap-3">
+          <div className="hero-icon-box p-2 sm:p-2.5 rounded-lg sm:rounded-xl shrink-0 transition-colors">
+            <Mail className="hero-icon h-3.5 w-3.5 sm:h-4 sm:w-4 transition-colors" />
           </div>
           
           <div className="min-w-0 flex-1">
-            <div className="hero-sender text-[10px] font-medium uppercase tracking-wider mb-1.5 transition-colors">
+            <div className="hero-sender text-[9px] sm:text-[10px] font-medium uppercase tracking-wider mb-1 sm:mb-1.5 transition-colors">
               {email.sender}
             </div>
-            <div className="hero-subject text-[14px] sm:text-[15px] font-medium leading-snug">
+            <div className="hero-subject text-[13px] sm:text-[14px] md:text-[15px] font-medium leading-snug">
               {email.subject}
             </div>
             
@@ -306,15 +325,31 @@ export const HeroEmailScatter: React.FC = () => {
   const [emails, setEmails] = useState<ActiveEmail[]>([])
   const [exitingIds, setExitingIds] = useState<Set<number>>(new Set())
   const [isVisible, setIsVisible] = useState(false)
-  const [screenSize, setScreenSize] = useState<ScreenSize>('desktop')
+  // Initialize with correct screen size (lazy init for SSR safety)
+  const [screenSize, setScreenSize] = useState<ScreenSize>(() => {
+    if (typeof window !== 'undefined') {
+      return getScreenSize(window.innerWidth)
+    }
+    return 'mobile' // Default to mobile for SSR
+  })
   
   const emailIdRef = useRef(0)
   const spawnTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const cleanupIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Screen size detection
+  // Screen size detection - also clears emails on size change
   useEffect(() => {
-    const check = () => setScreenSize(getScreenSize(window.innerWidth))
+    const check = () => {
+      const newSize = getScreenSize(window.innerWidth)
+      setScreenSize(prev => {
+        if (prev !== newSize) {
+          // Clear emails when screen size changes to prevent layout issues
+          setEmails([])
+          emailIdRef.current = 0
+        }
+        return newSize
+      })
+    }
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
