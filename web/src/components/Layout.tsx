@@ -14,6 +14,7 @@ import { Moon, Sun, Plus, Bookmark, FlaskConical } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { UnifiedAuthIndicator } from '@/components/UnifiedAuthIndicator'
 import { SpiralCirclesBackground } from '@/components/SpiralCirclesBackground'
+import { ScrollingBanner } from '@/components/ScrollingBanner'
 import { cn } from '@/lib/utils'
 
 // ============================================
@@ -60,10 +61,10 @@ export function Layout({ children }: LayoutProps) {
 
   const showGradient = isScrolled || isHovered
   
-  // Home page uses wider layout, other pages use narrower
+  // Home page uses wider layout (optimized for MacBook), other pages use narrower
   const isHomePage = location.pathname === '/'
   const containerClass = isHomePage 
-    ? 'max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8' 
+    ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' 
     : 'max-w-5xl mx-auto px-4 sm:px-6'
 
   return (
@@ -135,6 +136,17 @@ export function Layout({ children }: LayoutProps) {
             >
               MINTMARKS.FUN
             </span>
+            <span
+              className="text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded"
+              style={{
+                color: 'var(--page-text-muted)',
+                opacity: 0.7,
+                border: '1px solid var(--glass-border)',
+                background: 'var(--glass-bg-secondary)',
+              }}
+            >
+              [unaudited]
+            </span>
           </Link>
 
           {/* Navigation Items + Auth */}
@@ -185,6 +197,9 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </nav>
       </header>
+
+      {/* Scrolling Banner */}
+      <ScrollingBanner />
 
       {/* Main Content */}
       <main className="flex-1">
@@ -242,6 +257,21 @@ export function Layout({ children }: LayoutProps) {
                 style={{ color: 'var(--page-text-secondary)' }}
               >
                 zk-passport
+              </a>
+              <span
+                className="opacity-40"
+                style={{ color: 'var(--page-text-muted)' }}
+              >
+                &
+              </span>
+              <a
+                href="https://noir-lang.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium transition-opacity hover:opacity-80 underline underline-offset-2"
+                style={{ color: 'var(--page-text-secondary)' }}
+              >
+                noir
               </a>
             </div>
             <span
