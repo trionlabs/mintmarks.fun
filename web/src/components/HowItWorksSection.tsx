@@ -30,11 +30,6 @@ const BADGE_STYLES = {
   }
 } as const
 
-// Animation variants for optimized rendering
-const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 }
-}
 
 interface HowItWorksSectionProps {
   markType: 'standard' | 'unique'
@@ -53,8 +48,12 @@ export function HowItWorksSection({ markType, onMarkTypeChange }: HowItWorksSect
     demoContent: (
       <div className="relative w-full h-full flex items-center justify-center">
         <div className="relative">
-          {/* Passport Card - Minimal */}
-          <div className="w-44 h-28 bg-[var(--glass-bg)] backdrop-blur-xl rounded-2xl border border-[var(--glass-border)] p-5 flex flex-col gap-2.5 shadow-sm relative overflow-hidden">
+            {/* Passport Card - Minimal */}
+            <div className="w-40 h-24 bg-[var(--glass-bg)] backdrop-blur-xl rounded-2xl border border-[var(--glass-border)] p-4 flex flex-col gap-2 relative overflow-hidden"
+              style={{
+                boxShadow: 'var(--glass-shadow)',
+              }}
+            >
             {/* Passport Icon + ID */}
             <div className="flex items-center gap-3">
               <Shield className="w-6 h-6" style={{ color: 'var(--page-icon-primary)' }} />
@@ -130,7 +129,11 @@ export function HowItWorksSection({ markType, onMarkTypeChange }: HowItWorksSect
         <div className="relative w-full h-full flex items-center justify-center">
           <div className="relative">
             {/* Email Card - Minimal */}
-            <div className="w-40 h-28 bg-[var(--glass-bg)] backdrop-blur-xl rounded-2xl border border-[var(--glass-border)] p-5 flex flex-col gap-2.5 shadow-sm relative overflow-hidden">
+            <div className="w-36 h-24 bg-[var(--glass-bg)] backdrop-blur-xl rounded-2xl border border-[var(--glass-border)] p-4 flex flex-col gap-2 relative overflow-hidden"
+              style={{
+                boxShadow: 'var(--glass-shadow)',
+              }}
+            >
               {/* Email Icon + Header */}
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5" style={{ color: 'var(--page-icon-primary)' }} />
@@ -193,7 +196,11 @@ export function HowItWorksSection({ markType, onMarkTypeChange }: HowItWorksSect
         <div className="relative w-full h-full flex items-center justify-center">
           <div className="relative">
             {/* Art Generation Card - Minimal */}
-            <div className="w-36 h-36 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl shadow-sm flex items-center justify-center overflow-hidden">
+            <div className="w-32 h-32 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl flex items-center justify-center overflow-hidden"
+              style={{
+                boxShadow: 'var(--glass-shadow)',
+              }}
+            >
               {/* Center Icon - Simple Rotate */}
               <motion.div
                 animate={{ rotate: 360 }}
@@ -203,7 +210,7 @@ export function HowItWorksSection({ markType, onMarkTypeChange }: HowItWorksSect
                   ease: "linear" 
                 }}
               >
-                <Sparkles className="w-14 h-14" style={{ color: 'var(--page-icon-primary)' }} />
+                <Sparkles className="w-12 h-12" style={{ color: 'var(--page-icon-primary)' }} />
               </motion.div>
             </div>
             
@@ -232,8 +239,12 @@ export function HowItWorksSection({ markType, onMarkTypeChange }: HowItWorksSect
         <div className="relative w-full h-full flex items-center justify-center">
           <div className="relative">
             {/* NFT Card - Minimal */}
-            <div className="w-28 h-36 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl shadow-sm flex items-center justify-center overflow-hidden">
-              <Sparkles className="w-12 h-12" style={{ color: 'var(--page-icon-primary)' }} />
+            <div className="w-24 h-32 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl flex items-center justify-center overflow-hidden"
+              style={{
+                boxShadow: 'var(--glass-shadow)',
+              }}
+            >
+              <Sparkles className="w-10 h-10" style={{ color: 'var(--page-icon-primary)' }} />
             </div>
             
             {/* Simple Upload Arrow */}
@@ -264,7 +275,7 @@ export function HowItWorksSection({ markType, onMarkTypeChange }: HowItWorksSect
                 duration: 0.3, 
                 ease: "backOut" 
               }}
-              className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg border text-xs font-bold"
+              className="absolute -top-8 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg border text-[10px] font-bold"
               style={{ 
                 backgroundColor: 'var(--status-info-bg)',
                 borderColor: 'var(--status-info-border)',
@@ -307,19 +318,19 @@ export function HowItWorksSection({ markType, onMarkTypeChange }: HowItWorksSect
   const stepCount = steps.length
 
   return (
-    <section id="how-it-works" className="relative max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 py-20 sm:py-32 md:py-40 lg:py-52 xl:py-64">
-      {/* Section Header */}
-      <div className="mb-12 sm:mb-16 md:mb-20 lg:mb-24 xl:mb-28">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 lg:gap-8 mb-6">
+    <section id="how-it-works" className="home-section relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 lg:py-24 xl:py-28">
+      {/* Section Header - Compact */}
+      <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-14">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6 mb-4">
           <div className="flex-1">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tighter leading-[0.85] mb-4 sm:mb-5 md:mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-black tracking-tighter leading-[0.9] mb-2 sm:mb-3">
               <span style={{ color: 'var(--page-text-primary)' }}>Create Your </span>
               <span 
                 className="light:text-[var(--status-success)] dark:text-[var(--page-headline-accent)] dark:mix-blend-screen"
               >Mark</span>
               <span style={{ color: 'var(--page-text-primary)' }}> in {stepCount} Steps</span>
             </h2>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl leading-relaxed font-light" style={{ color: 'var(--page-text-secondary)' }}>
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg max-w-xl leading-relaxed font-light" style={{ color: 'var(--page-text-secondary)' }}>
               Turn your digital footprint into a permanent legacy.
             </p>
           </div>
@@ -395,52 +406,48 @@ export function HowItWorksSection({ markType, onMarkTypeChange }: HowItWorksSect
         </div>
       </div>
 
-      {/* Dynamic Grid - 3 or 4 columns based on mark type */}
-      {/* Mobile: 1 col, Tablet (iPad): 2 cols, Desktop: 3 or 4 cols */}
-      <div className={`grid grid-cols-1 ${markType === 'unique' ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6 sm:gap-7 md:gap-8 lg:gap-10 relative`}>
-        {steps.map((step, index) => (
-          <motion.div
+      {/* Dynamic Grid - Responsive columns optimized for MacBook */}
+      {/* Mobile: 1 col, Tablet: 2 cols, lg (1024px): 3 cols, xl (1280px+): 4 cols (unique) or 3 cols (standard) */}
+      <div className={`grid grid-cols-1 ${markType === 'unique' ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'md:grid-cols-2 lg:grid-cols-3'} gap-5 sm:gap-6 md:gap-7 lg:gap-8 relative`}>
+        {steps.map((step) => (
+          <div
             key={step.id}
-            variants={cardVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ delay: index * 0.12, duration: 0.5, ease: "easeOut" }}
-            whileHover={{ 
-              y: -4,
-              transition: { duration: 0.2, ease: "easeOut" }
-            }}
-            className="glass-primary rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-lg group relative"
+            className="glass-card-interactive rounded-2xl lg:rounded-3xl overflow-hidden group relative"
           >
-            {/* Vertical Split: Top Animation, Bottom Text */}
-            <div className="flex flex-col min-h-[400px] sm:min-h-[420px] md:min-h-[480px] lg:min-h-[550px]">
+            {/* Vertical Split: Top Animation, Bottom Text - Compact */}
+            <div className="flex flex-col min-h-[300px] sm:min-h-[320px] md:min-h-[340px] lg:min-h-[360px]">
               
-              {/* Top: Animation */}
-              <div className="glass-inset p-6 sm:p-8 md:p-9 lg:p-12 flex items-center justify-center border-b border-[var(--glass-border)] min-h-[200px] sm:min-h-[220px] md:min-h-[240px] lg:min-h-[280px]">
+              {/* Top: Animation - Compact */}
+              <div className="glass-inset p-4 sm:p-5 md:p-6 lg:p-7 flex items-center justify-center border-b min-h-[120px] sm:min-h-[130px] md:min-h-[140px] lg:min-h-[150px]"
+                style={{
+                  borderBottomColor: 'var(--glass-border)',
+                  borderBottomWidth: '1px',
+                }}
+              >
                 {step.demoContent}
               </div>
 
-              {/* Bottom: Content */}
-              <div className="p-6 sm:p-7 md:p-8 lg:p-10 flex flex-col">
+              {/* Bottom: Content - Compact */}
+              <div className="p-4 sm:p-5 md:p-6 lg:p-7 flex flex-col flex-1">
                 {/* Step Badge + Icon */}
-                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-xl glass-inset flex items-center justify-center">
-                    <span className="text-xs sm:text-sm font-black" style={{ color: 'var(--page-text-primary)' }}>
+                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg glass-inset flex items-center justify-center">
+                    <span className="text-xs font-black" style={{ color: 'var(--page-text-primary)' }}>
                       {step.step}
                     </span>
                   </div>
-                  <div className="p-1.5 sm:p-2 rounded-xl glass-inset">
-                    <step.icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--page-icon-primary)' }} />
+                  <div className="p-1.5 rounded-lg glass-inset">
+                    <step.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: 'var(--page-icon-primary)' }} />
                   </div>
                 </div>
 
                 {/* Title */}
-                <h3 className="text-xl sm:text-2xl md:text-2xl lg:text-2xl font-bold tracking-tight leading-tight mb-3 sm:mb-4" style={{ color: 'var(--page-text-primary)' }}>
+                <h3 className="text-lg sm:text-xl lg:text-xl font-bold tracking-tight leading-tight mb-2" style={{ color: 'var(--page-text-primary)' }}>
                   {step.title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-sm sm:text-base md:text-[15px] lg:text-base leading-relaxed mb-4 sm:mb-5 md:mb-6" style={{ color: 'var(--page-text-secondary)' }}>
+                <p className="text-xs sm:text-sm leading-relaxed mb-3 line-clamp-3" style={{ color: 'var(--page-text-secondary)' }}>
                   {step.description}
                 </p>
 
@@ -465,14 +472,15 @@ export function HowItWorksSection({ markType, onMarkTypeChange }: HowItWorksSect
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
 
-        {/* Connecting Arrows - Between Cards (Dynamic based on step count) - Hidden on tablet, shown on desktop */}
-        {Array.from({ length: stepCount - 1 }).map((_, index) => {
-          const columnPercentage = markType === 'unique' ? 25 : 33.33
+        {/* Connecting Arrows - Between Cards (Dynamic based on step count) - Only shown on xl screens with 4 cols */}
+        {markType === 'unique' && Array.from({ length: stepCount - 1 }).map((_, index) => {
+          // Only show arrows on xl screens where we have 4 columns (25% each)
+          const columnPercentage = 25
           return (
-            <div key={index} className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-10" style={{ left: `calc(${(index + 1) * columnPercentage}% - 1rem)` }}>
+            <div key={index} className="hidden xl:block absolute top-1/2 -translate-y-1/2 z-10" style={{ left: `calc(${(index + 1) * columnPercentage}% - 1rem)` }}>
               <motion.div
                 animate={{ x: [0, 5, 0] }}
                 transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}

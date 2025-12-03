@@ -4,12 +4,7 @@ import { Gift, Users, Shield, User, Code, ChevronDown, CheckCircle2 } from 'luci
 
 type Perspective = 'users' | 'builders'
 
-// Animation variants for optimized rendering
-const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 }
-}
-
+// Animation variants for list item animations
 const exampleVariants = {
   hidden: { opacity: 0, x: -10 },
   visible: { opacity: 1, x: 0 }
@@ -19,11 +14,6 @@ const expandVariants = {
   hidden: { opacity: 0, height: 0, x: -10 },
   visible: { opacity: 1, height: 'auto', x: 0 },
   exit: { opacity: 0, height: 0, x: -10 }
-}
-
-const bottomCTAVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 }
 }
 
 export function WhatYouCanDoSection() {
@@ -134,19 +124,19 @@ export function WhatYouCanDoSection() {
   ]
 
   return (
-    <section className="relative max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 py-20 sm:py-32 md:py-40 lg:py-52 xl:py-64">
-      {/* Section Header */}
-      <div className="mb-12 sm:mb-16 md:mb-20 lg:mb-24">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 lg:gap-8 mb-6 sm:mb-7 md:mb-8">
-          <div className="flex-1 space-y-2 sm:space-y-3">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tighter leading-[0.85]">
+    <section id="whats-possible" className="home-section relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 lg:py-24 xl:py-28">
+      {/* Section Header - Compact */}
+      <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-14">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6 mb-4">
+          <div className="flex-1 space-y-1 sm:space-y-2">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-black tracking-tighter leading-[0.9]">
               <span style={{ color: 'var(--page-text-primary)' }}>What's Possible with</span>
               <br />
               <span 
                 className="light:text-[var(--status-info)] dark:text-[var(--page-headline-accent)] dark:mix-blend-screen"
               >ZK-Email Marks</span>
             </h2>
-            <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-light tracking-wide" style={{ color: 'var(--page-text-muted)' }}>
+            <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-light tracking-wide" style={{ color: 'var(--page-text-muted)' }}>
               Private. Verifiable. Composable.
             </h3>
           </div>
@@ -229,54 +219,49 @@ export function WhatYouCanDoSection() {
         </p>
       </div>
 
-      {/* 3-Column Grid - Mobile: 1 col, Tablet (iPad): 2 cols, Desktop: 3 cols */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 md:gap-7 lg:gap-8">
-        {utilities.map((utility, index) => {
+      {/* 3-Column Grid - Compact */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+        {utilities.map((utility) => {
           const content = utility[activePerspective]
           
           return (
-            <motion.div
+            <div
               key={`${utility.id}-${activePerspective}`}
-              variants={cardVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ delay: index * 0.08, duration: 0.4, ease: "easeOut" }}
-              className="glass-primary rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group"
+              className="glass-card-interactive rounded-xl lg:rounded-2xl overflow-hidden group"
             >
-              <div className="p-6 sm:p-7 md:p-8 lg:p-10 flex flex-col min-h-[350px] sm:min-h-[380px] md:min-h-[420px] lg:min-h-[500px]">
+              <div className="p-4 sm:p-5 lg:p-6 flex flex-col min-h-[280px] sm:min-h-[300px] md:min-h-[320px] lg:min-h-[360px]">
                 
-                {/* Header */}
-                <div className="mb-4 sm:mb-5 md:mb-6">
-                  <div className="p-2 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl glass-inset inline-flex mb-3 sm:mb-4 transition-all duration-300 group-hover:scale-[1.02]">
-                    <utility.icon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" style={{ color: 'var(--page-icon-primary)' }} />
+                {/* Header - Compact */}
+                <div className="mb-3 sm:mb-4">
+                  <div className="p-1.5 sm:p-2 rounded-lg glass-inset inline-flex mb-2 sm:mb-3 transition-all duration-300">
+                    <utility.icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--page-icon-primary)' }} />
                   </div>
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-[1.1]" style={{ color: 'var(--page-text-primary)' }}>
+                  <h3 className="text-lg sm:text-xl lg:text-xl font-bold tracking-tight leading-[1.1]" style={{ color: 'var(--page-text-primary)' }}>
                     {utility.title}
                   </h3>
                 </div>
 
-                {/* Description */}
-                <p className="text-sm sm:text-base leading-relaxed mb-4 sm:mb-5 md:mb-6" style={{ color: 'var(--page-text-secondary)' }}>
+                {/* Description - Compact */}
+                <p className="text-xs sm:text-sm leading-relaxed mb-3 line-clamp-2" style={{ color: 'var(--page-text-secondary)' }}>
                   {content.description}
                 </p>
 
-                {/* Examples */}
-                <div className="space-y-2 sm:space-y-2.5 mb-auto">
-                  {content.examples.slice(0, 4).map((example, idx) => (
+                {/* Examples - Compact (show 3 instead of 4) */}
+                <div className="space-y-1.5 sm:space-y-2 mb-auto">
+                  {content.examples.slice(0, 3).map((example, idx) => (
                     <motion.div
                       key={example}
                       variants={exampleVariants}
                       initial="hidden"
                       animate="visible"
                       transition={{ delay: 0.15 + idx * 0.04, duration: 0.3, ease: "easeOut" }}
-                      className="flex items-start gap-2 sm:gap-2.5 group/item cursor-default"
-                      whileHover={{ x: 2, transition: { duration: 0.15 } }}
+                      className="flex items-start gap-1.5 sm:gap-2 group/item cursor-default"
+                      whileHover={{ x: 1, transition: { duration: 0.15 } }}
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0 transition-colors duration-200" 
+                      <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 mt-0.5 flex-shrink-0 transition-colors duration-200" 
                         style={{ color: 'var(--page-text-muted)' }} 
                       />
-                      <span className="text-xs sm:text-sm leading-relaxed transition-colors duration-200" style={{ color: 'var(--page-text-secondary)' }}>
+                      <span className="text-[11px] sm:text-xs leading-relaxed transition-colors duration-200 line-clamp-1" style={{ color: 'var(--page-text-secondary)' }}>
                         {example}
                       </span>
                     </motion.div>
@@ -292,7 +277,7 @@ export function WhatYouCanDoSection() {
                         exit="exit"
                         transition={{ delay: idx * 0.04, duration: 0.25, ease: "easeOut" }}
                         className="flex items-start gap-2.5 group/item cursor-default"
-                        whileHover={{ x: 2, transition: { duration: 0.15 } }}
+                        whileHover={{ x: 1, transition: { duration: 0.15 } }}
                       >
                         <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 transition-colors duration-200" 
                           style={{ color: 'var(--page-text-muted)' }} 
@@ -304,61 +289,54 @@ export function WhatYouCanDoSection() {
                     ))}
                   </AnimatePresence>
 
-                  {content.examples.length > 4 && (
+                  {content.examples.length > 3 && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         toggleExpand(utility.id)
                       }}
-                      className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-[var(--glass-bg-hover)] group/btn w-full min-h-[44px]"
+                      className="flex items-center gap-1.5 mt-2 px-2 py-1.5 rounded-md transition-all duration-300 hover:bg-[var(--glass-bg-hover)] group/btn w-full min-h-[32px]"
                     >
-                      <span className="text-xs font-semibold tracking-wide" style={{ color: 'var(--page-text-muted)' }}>
+                      <span className="text-[10px] sm:text-xs font-semibold tracking-wide" style={{ color: 'var(--page-text-muted)' }}>
                         {expandedCards[utility.id] 
                           ? 'Show Less' 
-                          : `Show ${content.examples.length - 4} More Examples`
+                          : `+${content.examples.length - 3} more`
                         }
                       </span>
                       <motion.div
                         animate={{ rotate: expandedCards[utility.id] ? 180 : 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: 'var(--page-text-muted)' }} />
+                        <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" style={{ color: 'var(--page-text-muted)' }} />
                       </motion.div>
                     </button>
                   )}
                 </div>
 
-                {/* Badge */}
-                <div className="mt-4 sm:mt-5 md:mt-6 pt-4 sm:pt-5 md:pt-6 border-t border-[var(--glass-border)]">
-                  <div className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border"
+                {/* Badge - Compact */}
+                <div className="mt-3 pt-3 border-t border-[var(--glass-border)]">
+                  <div className="inline-flex items-center px-2 py-1 rounded-md border"
                     style={{ 
                       backgroundColor: 'var(--glass-bg-hover)',
                       borderColor: 'var(--glass-border-hover)'
                     }}
                   >
-                    <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase" style={{ color: 'var(--page-text-primary)' }}>
+                    <span className="text-[10px] font-bold tracking-wider uppercase" style={{ color: 'var(--page-text-primary)' }}>
                       {activePerspective === 'users' ? 'For You' : 'Build It'}
                     </span>
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )
         })}
       </div>
 
-      {/* Bottom CTA */}
-      <motion.div
-        variants={bottomCTAVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-        className="mt-12 sm:mt-16 md:mt-20 lg:mt-28 text-center"
-      >
-        <div className="glass-badge inline-flex items-center gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 rounded-xl backdrop-blur-xl">
-          <Shield className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 flex-shrink-0" style={{ color: 'var(--page-icon-primary)' }} />
-          <p className="text-xs sm:text-sm md:text-base lg:text-lg" style={{ color: 'var(--page-text-secondary)' }}>
+      {/* Bottom CTA - Compact */}
+      <div className="mt-6 sm:mt-8 md:mt-10 lg:mt-12 text-center">
+        <div className="glass-badge inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 rounded-lg backdrop-blur-xl">
+          <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 flex-shrink-0" style={{ color: 'var(--page-icon-primary)' }} />
+          <p className="text-xs sm:text-sm" style={{ color: 'var(--page-text-secondary)' }}>
             <span className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
               Email Marks are unstoppable.
             </span>
@@ -368,7 +346,7 @@ export function WhatYouCanDoSection() {
             </span>
           </p>
         </div>
-      </motion.div>
+      </div>
     </section>
   )
 }

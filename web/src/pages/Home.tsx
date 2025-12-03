@@ -13,6 +13,18 @@ import { HeroEmailScatter } from '@/components/HeroEmailScatter'
 import { HowItWorksSection } from '@/components/HowItWorksSection'
 import { HowWeProveSection } from '@/components/HowWeProveSection'
 import { WhatYouCanDoSection } from '@/components/WhatYouCanDoSection'
+import { ScrollIndicator } from '@/components/ScrollIndicator'
+import { ScrollDownIndicator } from '@/components/ScrollDownIndicator'
+import { SectionDivider } from '@/components/SectionDivider'
+import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
+
+// Section configuration for scroll indicator and keyboard navigation
+const HOMEPAGE_SECTIONS = [
+  { id: 'hero', label: 'Home' },
+  { id: 'how-it-works', label: 'How It Works' },
+  { id: 'how-we-prove', label: 'How We Prove' },
+  { id: 'whats-possible', label: "What's Possible" },
+]
 
 // Key for tracking first Gmail connection redirect
 const FIRST_GMAIL_REDIRECT_KEY = 'mintmarks_first_gmail_redirected'
@@ -88,10 +100,20 @@ export function Home() {
     return () => clearInterval(interval)
   }, [unlockOptions.length])
 
+  // Enable keyboard navigation between sections
+  useKeyboardNavigation({
+    sections: HOMEPAGE_SECTIONS,
+    enabled: true,
+    scrollOffset: 64, // 4rem header height
+  })
+
   return (
     <>
+      {/* Scroll Progress Indicator - Floating Navigation */}
+      <ScrollIndicator sections={HOMEPAGE_SECTIONS} />
+
       {/* Hero Section - Full Width Split Layout */}
-      <section className="relative w-full min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-4rem)] overflow-visible">
+      <section id="hero" className="home-section relative w-full min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-4rem)] overflow-visible">
         {/* Subtle gradient overlay for depth */}
         <div 
           className="absolute inset-0 pointer-events-none z-0"
@@ -99,16 +121,16 @@ export function Home() {
             background: 'var(--hero-gradient-overlay)',
           }}
         />
-        {/* Container - same as header for alignment */}
-        <div className="max-w-[100rem] mx-auto px-4 sm:px-6 md:px-8 lg:px-8 py-12 sm:py-16 md:py-20 lg:py-0 lg:min-h-[calc(100vh-4rem)] relative z-10">
-          {/* Grid: Left narrower (5/12), Right wider (7/12) */}
-          {/* Mobile: 1 col, Tablet (iPad): 1 col (centered), Desktop: 12 cols */}
+        {/* Container - optimized for MacBook screens (max-w-7xl = 1280px) */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 lg:py-0 lg:min-h-[calc(100vh-4rem)] relative z-10">
+          {/* Grid: Left wider on lg, narrower on xl+ */}
+          {/* Mobile: 1 col, lg: 5/12 + 7/12, xl: 4/12 + 8/12 */}
           <div className="grid grid-cols-1 lg:grid-cols-12 lg:min-h-[calc(100vh-4rem)]">
-            {/* Left Column: Content - narrower (5 columns) */}
+            {/* Left Column: Content - wider on lg (5 cols), narrower on xl (4 cols) */}
             <div
-              className="relative z-20 flex items-center py-8 sm:py-12 md:py-16 lg:py-20 lg:col-span-5"
+              className="relative z-20 flex items-center py-8 sm:py-12 md:py-16 lg:py-20 lg:col-span-5 xl:col-span-4"
             >
-              <div className="max-w-lg w-full">
+              <div className="w-full">
                 {/* Badge */}
                 <div
                   className="glass-badge inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full mb-5 sm:mb-6 md:mb-8 transition-all duration-300 hero-animate-slide-up"
@@ -227,10 +249,13 @@ export function Home() {
               </div>
             </div>
 
-            {/* Right Column: Email Scatter - wider (7 columns), overflow allowed */}
-            <div className="hidden lg:block relative lg:col-span-7 overflow-visible">
-              {/* Overflow container - cards can spill out */}
-              <div className="absolute inset-0 -left-12 -right-8 overflow-visible z-10">
+            {/* Right Column: Email Scatter - narrower on lg (7 cols), wider on xl (8 cols) */}
+            <div className="hidden lg:block relative lg:col-span-7 xl:col-span-8 overflow-visible">
+              {/* Overflow container - cards can spill out - push more to right on lg */}
+              <div 
+                className="absolute inset-0 lg:pl-12 xl:pl-8 overflow-visible z-10"
+                style={{ right: '-4rem', width: 'calc(100% + 4rem)' }}
+              >
                 <HeroEmailScatter />
               </div>
             </div>
@@ -243,13 +268,25 @@ export function Home() {
             </div>
           </div>
         </div>
+
+        {/* Scroll Down Indicator */}
+        <ScrollDownIndicator targetId="how-it-works" />
       </section>
+
+      {/* Divider: Hero → How It Works */}
+      <SectionDivider variant="gradient" className="my-4 sm:my-6 md:my-8" />
 
       {/* How It Works Section */}
       <HowItWorksSection markType={markType} onMarkTypeChange={setMarkType} />
 
+      {/* Divider: How It Works → How We Prove */}
+      <SectionDivider variant="dots" className="my-4 sm:my-6 md:my-8" />
+
       {/* How We Prove Section */}
       <HowWeProveSection />
+
+      {/* Divider: How We Prove → What's Possible */}
+      <SectionDivider variant="gradient" className="my-4 sm:my-6 md:my-8" />
 
       {/* What You Can Do More Section */}
       <WhatYouCanDoSection />

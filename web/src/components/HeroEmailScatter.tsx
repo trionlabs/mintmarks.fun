@@ -117,18 +117,18 @@ const SPAWN_INTERVAL = 2200
 // Grid positions
 const GRID_SLOTS = {
   desktop: [
-    { x: 2, y: 4 }, { x: 34, y: 8 }, { x: 66, y: 5 },
-    { x: 4, y: 36 }, { x: 36, y: 40 }, { x: 64, y: 38 },
-    { x: 2, y: 68 }, { x: 34, y: 72 }, { x: 64, y: 70 },
+    { x: 0, y: 20 }, { x: 33, y: 23 }, { x: 70, y: 21 },
+    { x: 3, y: 42 }, { x: 35, y: 45 }, { x: 72, y: 43 },
+    { x: 0, y: 64 }, { x: 33, y: 67 }, { x: 70, y: 65 },
   ],
   tablet: [
-    { x: 6, y: 6 }, { x: 52, y: 10 },
-    { x: 4, y: 40 }, { x: 54, y: 42 },
-    { x: 6, y: 72 }, { x: 52, y: 75 },
+    { x: 4, y: 18 }, { x: 56, y: 21 },
+    { x: 2, y: 44 }, { x: 58, y: 47 },
+    { x: 4, y: 70 }, { x: 56, y: 73 },
   ],
   mobile: [
-    { x: 4, y: 10 }, { x: 52, y: 14 },
-    { x: 6, y: 56 }, { x: 54, y: 60 },
+    { x: 2, y: 18 }, { x: 54, y: 21 },
+    { x: 4, y: 50 }, { x: 56, y: 53 },
   ],
 } as const
 
@@ -336,11 +336,28 @@ export const HeroEmailScatter: React.FC = () => {
     const occupied = new Set<number>()
     
     existing.forEach(email => {
+      // Find the closest slot to this email
+      let closestSlotIdx = -1
+      let minDistance = Infinity
+      
       slots.forEach((slot, idx) => {
-        if (Math.abs(slot.x - email.x) < 18 && Math.abs(slot.y - email.startY) < 18) {
-          occupied.add(idx)
+        // Calculate distance accounting for random offset (±1.5)
+        const xDiff = Math.abs(slot.x - email.x)
+        const yDiff = Math.abs(slot.y - email.startY)
+        const distance = Math.sqrt(xDiff * xDiff + yDiff * yDiff)
+        
+        // If email is within reasonable range of slot (accounting for ±1.5 offset)
+        // Threshold: 8 units (slot center ±1.5 offset + small margin)
+        if (distance < 8 && distance < minDistance) {
+          minDistance = distance
+          closestSlotIdx = idx
         }
       })
+      
+      // Mark the closest slot as occupied
+      if (closestSlotIdx >= 0) {
+        occupied.add(closestSlotIdx)
+      }
     })
     
     const available = slots.map((_, i) => i).filter(i => !occupied.has(i))
@@ -433,20 +450,14 @@ export const HeroEmailScatter: React.FC = () => {
     }
   }, [isVisible, screenSize, spawnEmail, exitingIds])
 
-  const minHeight = useMemo(() => {
-    if (screenSize === 'mobile') return 'min-h-[340px]'
-    if (screenSize === 'tablet') return 'min-h-[460px]'
-    return 'min-h-[400px] sm:min-h-[500px] md:min-h-[580px] lg:min-h-[680px]'
-  }, [screenSize])
-
   return (
     <div 
       ref={containerRef}
-      className={`relative h-full overflow-hidden ${minHeight}`}
+      className="relative h-full w-full overflow-visible"
       style={{ background: 'transparent' }}
     >
       {/* Email Cards */}
-      <div className="absolute inset-0 z-10 px-1 sm:px-3 md:px-4 lg:px-0">
+      <div className="absolute inset-0 z-10">
         {emails.map(email => (
           <EmailCard 
             key={email.id}
