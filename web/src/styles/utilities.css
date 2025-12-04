@@ -5,14 +5,18 @@
 
 /* 
  * Smooth scrolling is handled by Lenis.
- * CSS scroll-behavior is disabled to prevent conflicts.
+ * CSS scroll-behavior and scroll-snap are disabled to prevent conflicts.
  * Lenis provides buttery-smooth momentum scrolling.
  */
 
-/* Scroll snap points for homepage sections */
+/* Homepage sections - scroll-margin for anchor links, NO scroll-snap (conflicts with Lenis) */
 .home-section {
-  scroll-snap-align: start;
   scroll-margin-top: 4rem; /* Account for sticky header */
+}
+
+/* Main content container - CSS containment for scroll performance */
+main {
+  contain: layout style;
 }
 
 /* Reduce motion for accessibility */

@@ -173,8 +173,9 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: gradient-shift 8s ease-in-out infinite;
-  will-change: background-position;
-  transform: translateZ(0); /* GPU acceleration */
+  /* GPU acceleration without constant will-change layer */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .dark .hero-gradient-text {
@@ -190,8 +191,9 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: gradient-shift 8s ease-in-out infinite;
-  will-change: background-position;
-  transform: translateZ(0); /* GPU acceleration */
+  /* GPU acceleration without constant will-change layer */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 @keyframes gradient-shift {

@@ -1,17 +1,14 @@
 /**
- * @fileoverview Smooth Scroll Provider with Lenis + Framer Motion
+ * @fileoverview Smooth Scroll Provider with Lenis
  * 
- * Buttery-smooth scrolling integrated with Framer Motion:
- * - Uses official lenis/react package
- * - Synced with Framer Motion's frame system
- * - Works with CSS scroll-snap
+ * Optimized buttery-smooth scrolling:
+ * - Uses official lenis/react package with native RAF
+ * - Lightweight, no Framer Motion frame sync overhead
  * - Respects prefers-reduced-motion
  */
 
 import { ReactLenis, useLenis } from 'lenis/react'
-import type { LenisRef } from 'lenis/react'
-import { cancelFrame, frame } from 'framer-motion'
-import { useEffect, useRef, ReactNode } from 'react'
+import { ReactNode, useMemo } from 'react'
 
 // ============================================
 // Types
@@ -28,27 +25,11 @@ interface SmoothScrollProps {
 // ============================================
 
 export function SmoothScroll({ children, enabled = true }: SmoothScrollProps) {
-  const lenisRef = useRef<LenisRef>(null)
-
-  // Check for reduced motion preference
-  const prefersReducedMotion = 
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-  // Integrate Lenis with Framer Motion's frame system
-  useEffect(() => {
-    // Skip if disabled or prefers reduced motion
-    if (!enabled || prefersReducedMotion) return
-
-    function update(data: { timestamp: number }) {
-      lenisRef.current?.lenis?.raf(data.timestamp)
-    }
-
-    // Add to Framer Motion's frame loop
-    frame.update(update, true)
-
-    return () => cancelFrame(update)
-  }, [enabled, prefersReducedMotion])
+  // Check for reduced motion preference (memoized for perf)
+  const prefersReducedMotion = useMemo(() => {
+    if (typeof window === 'undefined') return false
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  }, [])
 
   // If disabled or prefers reduced motion, just render children
   if (!enabled || prefersReducedMotion) {
@@ -57,16 +38,25 @@ export function SmoothScroll({ children, enabled = true }: SmoothScrollProps) {
 
   return (
     <ReactLenis 
-      root 
-      ref={lenisRef}
+      root
       options={{
-        autoRaf: false, // We use Framer Motion's frame system
-        duration: 0.8, // Faster scroll (was 1.2)
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Ease out expo
+        // Use Lenis native RAF - more performant than manual sync
+        autoRaf: true,
+        // Smooth lerp interpolation (0.1 = smooth, 1 = instant)
+        lerp: 0.1,
+        // Natural scroll duration
+        duration: 1.0,
+        // Smooth wheel scrolling
         smoothWheel: true,
-        touchMultiplier: 2,
-        wheelMultiplier: 1.2, // Faster wheel response
+        // Natural multipliers for responsive feel
+        wheelMultiplier: 1,
+        touchMultiplier: 1.5,
+        // Prevent infinite scroll
         infinite: false,
+        // Sync touch scrolling for mobile
+        syncTouch: true,
+        // Sync touch lerp for consistent feel
+        syncTouchLerp: 0.075,
       }}
     >
       {children}

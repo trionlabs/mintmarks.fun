@@ -36,9 +36,11 @@ export function ScrollIndicator({ sections, className }: ScrollIndicatorProps) {
   // Get Lenis instance for smooth scrolling
   const lenis = useLenis()
 
-  // Track scroll position and determine active section
+  // Track scroll position and determine active section - throttled for performance
   useEffect(() => {
-    const handleScroll = () => {
+    let ticking = false
+    
+    const updateScrollState = () => {
       const scrollY = window.scrollY
       const viewportHeight = window.innerHeight
 
@@ -46,20 +48,31 @@ export function ScrollIndicator({ sections, className }: ScrollIndicatorProps) {
       setIsVisible(scrollY > viewportHeight * 0.5)
 
       // Find which section is currently in view
-      sections.forEach((section, index) => {
-        const element = document.getElementById(section.id)
+      for (let index = sections.length - 1; index >= 0; index--) {
+        const element = document.getElementById(sections[index].id)
         if (element) {
           const rect = element.getBoundingClientRect()
           // Section is active when its top is in the upper half of viewport
-          if (rect.top <= viewportHeight * 0.4 && rect.bottom >= viewportHeight * 0.4) {
+          if (rect.top <= viewportHeight * 0.4) {
             setActiveSection(index)
+            break
           }
         }
-      })
+      }
+    }
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateScrollState()
+          ticking = false
+        })
+        ticking = true
+      }
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll() // Initial check
+    updateScrollState() // Initial check
 
     return () => window.removeEventListener('scroll', handleScroll)
   }, [sections])
