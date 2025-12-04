@@ -85,8 +85,12 @@ contract MintmarksTest is Test {
     MockEmailVerifier public mockEmailVerifier;
     MockZKPassportVerifier public mockPassportVerifier;
 
+    address public owner = address(0x999);
     address public alice = address(0x1);
     address public bob = address(0x2);
+
+    // Known Luma DKIM pubkey hash (from real proof)
+    bytes32 public constant LUMA_PUBKEY_HASH = 0x2262a82e42989fff21ac1f474de8440bbd7ddec5e868dd699efdf4439184dcf0;
 
     bytes32[] public sampleEmailInputs;
     ProofVerificationParams public samplePassportParams;
@@ -96,12 +100,13 @@ contract MintmarksTest is Test {
         mockPassportVerifier = new MockZKPassportVerifier();
         mintmarks = new Mintmarks(
             address(mockEmailVerifier),
-            address(mockPassportVerifier)
+            address(mockPassportVerifier),
+            owner
         );
 
         // Build sample email public inputs (324 elements)
         sampleEmailInputs = new bytes32[](324);
-        sampleEmailInputs[0] = bytes32(uint256(0x1234)); // pubkey_hash
+        sampleEmailInputs[0] = LUMA_PUBKEY_HASH; // pubkey_hash (must be in allowed list)
         sampleEmailInputs[1] = bytes32(uint256(0xabcd)); // nullifier
 
         // date.storage
@@ -778,6 +783,163 @@ contract MintmarksTest is Test {
         string memory contractUri = mintmarks.contractURI();
         assertTrue(bytes(contractUri).length > 0);
         assertTrue(_startsWith(contractUri, "data:application/json;base64,"));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                    DKIM PUBKEY HASH VALIDATION TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_luma_pubkey_hash_allowed_by_default() public view {
+        assertTrue(mintmarks.allowedPubkeyHashes(LUMA_PUBKEY_HASH));
+    }
+
+    function test_luma_pubkey_hash_constant() public view {
+        assertEq(mintmarks.LUMA_PUBKEY_HASH(), LUMA_PUBKEY_HASH);
+    }
+
+    function test_mint_reverts_on_unknown_pubkey_hash() public {
+        // Use an unknown pubkey hash
+        bytes32 unknownPubkeyHash = bytes32(uint256(0xdeadbeef));
+        sampleEmailInputs[0] = unknownPubkeyHash;
+
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.InvalidPubkeyHash.selector);
+        mintmarks.mint("", sampleEmailInputs);
+    }
+
+    function test_mint_with_passport_reverts_on_unknown_pubkey_hash() public {
+        // Use an unknown pubkey hash
+        bytes32 unknownPubkeyHash = bytes32(uint256(0xdeadbeef));
+        sampleEmailInputs[0] = unknownPubkeyHash;
+
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.InvalidPubkeyHash.selector);
+        mintmarks.mintWithPassport("", sampleEmailInputs, samplePassportParams);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                      ADMIN PUBKEY MANAGEMENT TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_owner_can_add_pubkey_hash() public {
+        bytes32 newPubkeyHash = bytes32(uint256(0x1111));
+
+        // Initially not allowed
+        assertFalse(mintmarks.allowedPubkeyHashes(newPubkeyHash));
+
+        // Owner adds it
+        vm.prank(owner);
+        mintmarks.setAllowedPubkeyHash(newPubkeyHash, true);
+
+        // Now allowed
+        assertTrue(mintmarks.allowedPubkeyHashes(newPubkeyHash));
+    }
+
+    function test_owner_can_remove_pubkey_hash() public {
+        // Initially allowed
+        assertTrue(mintmarks.allowedPubkeyHashes(LUMA_PUBKEY_HASH));
+
+        // Owner removes it
+        vm.prank(owner);
+        mintmarks.setAllowedPubkeyHash(LUMA_PUBKEY_HASH, false);
+
+        // No longer allowed
+        assertFalse(mintmarks.allowedPubkeyHashes(LUMA_PUBKEY_HASH));
+    }
+
+    function test_non_owner_cannot_add_pubkey_hash() public {
+        bytes32 newPubkeyHash = bytes32(uint256(0x2222));
+
+        vm.prank(alice);
+        vm.expectRevert();
+        mintmarks.setAllowedPubkeyHash(newPubkeyHash, true);
+    }
+
+    function test_pubkey_hash_updated_event_emitted() public {
+        bytes32 newPubkeyHash = bytes32(uint256(0x3333));
+
+        vm.expectEmit(true, false, false, true);
+        emit Mintmarks.PubkeyHashUpdated(newPubkeyHash, true);
+
+        vm.prank(owner);
+        mintmarks.setAllowedPubkeyHash(newPubkeyHash, true);
+    }
+
+    function test_batch_add_pubkey_hashes() public {
+        bytes32[] memory hashes = new bytes32[](3);
+        hashes[0] = bytes32(uint256(0x4444));
+        hashes[1] = bytes32(uint256(0x5555));
+        hashes[2] = bytes32(uint256(0x6666));
+
+        bool[] memory allowed = new bool[](3);
+        allowed[0] = true;
+        allowed[1] = true;
+        allowed[2] = true;
+
+        // Initially not allowed
+        assertFalse(mintmarks.allowedPubkeyHashes(hashes[0]));
+        assertFalse(mintmarks.allowedPubkeyHashes(hashes[1]));
+        assertFalse(mintmarks.allowedPubkeyHashes(hashes[2]));
+
+        // Owner batch adds
+        vm.prank(owner);
+        mintmarks.setAllowedPubkeyHashBatch(hashes, allowed);
+
+        // All now allowed
+        assertTrue(mintmarks.allowedPubkeyHashes(hashes[0]));
+        assertTrue(mintmarks.allowedPubkeyHashes(hashes[1]));
+        assertTrue(mintmarks.allowedPubkeyHashes(hashes[2]));
+    }
+
+    function test_batch_reverts_on_length_mismatch() public {
+        bytes32[] memory hashes = new bytes32[](2);
+        hashes[0] = bytes32(uint256(0x7777));
+        hashes[1] = bytes32(uint256(0x8888));
+
+        bool[] memory allowed = new bool[](1);
+        allowed[0] = true;
+
+        vm.prank(owner);
+        vm.expectRevert("Length mismatch");
+        mintmarks.setAllowedPubkeyHashBatch(hashes, allowed);
+    }
+
+    function test_mint_succeeds_with_newly_added_pubkey() public {
+        bytes32 newPubkeyHash = bytes32(uint256(0x9999));
+        sampleEmailInputs[0] = newPubkeyHash;
+
+        // Initially fails
+        vm.prank(alice);
+        vm.expectRevert(Mintmarks.InvalidPubkeyHash.selector);
+        mintmarks.mint("", sampleEmailInputs);
+
+        // Owner adds the hash
+        vm.prank(owner);
+        mintmarks.setAllowedPubkeyHash(newPubkeyHash, true);
+
+        // Now succeeds
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        uint256 tokenId = mintmarks.getTokenId("NPC Side Event");
+        assertEq(mintmarks.balanceOf(alice, tokenId), 1);
+    }
+
+    function test_mint_fails_after_pubkey_removed() public {
+        // First mint succeeds with default Luma hash
+        vm.prank(alice);
+        mintmarks.mint("", sampleEmailInputs);
+
+        // Owner removes the Luma hash
+        vm.prank(owner);
+        mintmarks.setAllowedPubkeyHash(LUMA_PUBKEY_HASH, false);
+
+        // Second mint fails (different nullifier, same pubkey hash)
+        sampleEmailInputs[1] = bytes32(uint256(0xbeef));
+
+        vm.prank(bob);
+        vm.expectRevert(Mintmarks.InvalidPubkeyHash.selector);
+        mintmarks.mint("", sampleEmailInputs);
     }
 
     /*//////////////////////////////////////////////////////////////
