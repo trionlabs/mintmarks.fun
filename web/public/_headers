@@ -1,0 +1,15 @@
+/*
+  Cross-Origin-Embedder-Policy: credentialless
+  Cross-Origin-Opener-Policy: same-origin
+
+/*.wasm
+  Content-Type: application/wasm
+  Cross-Origin-Embedder-Policy: credentialless
+  Cross-Origin-Opener-Policy: same-origin
+
+/*.wasm.gz
+  Content-Type: application/wasm
+  Content-Encoding: gzip
+  Cross-Origin-Embedder-Policy: credentialless
+  Cross-Origin-Opener-Policy: same-origin
+
