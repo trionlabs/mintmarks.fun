@@ -10,8 +10,12 @@ global MAX_DATE_LENGTH: u32 = 64;           // Date format (RFC2822) date format
 global MAX_SUBJECT_LENGTH: u32 = 256;       // Event name in subject line
 
 // Header field prefixes
-global DATE_FIELD_PREFIX_LEN: u32 = 5;      // "Date: ", 5 bytes
-global SUBJECT_FIELD_PREFIX_LEN: u32 = 8;   // "Subject: ", 8 bytes
+global DATE_FIELD_PREFIX_LEN: u32 = 5;      // "date:", 5 bytes
+global SUBJECT_FIELD_PREFIX_LEN: u32 = 8;   // "subject:", 8 bytes
+
+// Luma "Thanks for joining" prefix - REQUIRED for valid attendance emails
+// "Thanks for joining " = 19 bytes (including trailing space)
+global THANKS_FOR_JOINING_PREFIX_LEN: u32 = 19;
 
 /**
  * Mintmarks - Proof of Luma Event Attendance Circuit
@@ -95,11 +99,32 @@ fn main(
         "Subject value sequence invalid"
     );
 
-    // STEP 5: Extract event name from subject
-    // Validate event name is within subject value
+    // STEP 5: Validate "Thanks for joining " prefix in subject
+    // This is CRITICAL for security - ensures only Luma attendance emails are accepted
+    // Subject must be at least 20 chars: "Thanks for joining " (19) + event name (1+)
     assert(
-        event_name_sequence.index >= subject_value_sequence.index
-            & event_name_sequence.end_index() <= subject_value_sequence.end_index()
+        subject_value_sequence.length >= THANKS_FOR_JOINING_PREFIX_LEN + 1,
+        "Subject too short for Thanks for joining prefix"
+    );
+
+    // Verify the subject starts with "Thanks for joining " (19 bytes)
+    // "Thanks for joining " = [84,104,97,110,107,115,32,102,111,114,32,106,111,105,110,105,110,103,32]
+    let thanks_prefix: [u8; 19] = [84, 104, 97, 110, 107, 115, 32, 102, 111, 114, 32, 106, 111, 105, 110, 105, 110, 103, 32];
+    for i in 0..19 {
+        let header_byte = header.get(subject_value_sequence.index + i);
+        assert(header_byte == thanks_prefix[i], "Subject must start with Thanks for joining");
+    }
+
+    // STEP 6: Extract event name from subject
+    // Event name MUST start exactly after "Thanks for joining " prefix
+    assert(
+        event_name_sequence.index == subject_value_sequence.index + THANKS_FOR_JOINING_PREFIX_LEN,
+        "Event name must start after Thanks for joining prefix"
+    );
+
+    // Event name must end at or before subject value end
+    assert(
+        event_name_sequence.end_index() <= subject_value_sequence.end_index()
             & event_name_sequence.length > 0
             & event_name_sequence.length <= MAX_SUBJECT_LENGTH,
         "Event name sequence invalid"
@@ -138,4 +163,343 @@ fn extract_bytes<let MAX_LENGTH: u32>(
 
     result.len = length;
     result
+}
+
+// =============================================================================
+// TESTS
+// =============================================================================
+
+// Helper to create a test header with known content
+// "subject:Thanks for joining Test Event\r\ndate:Sat, 22 Nov 2025"
+fn create_test_header() -> BoundedVec<u8, MAX_EMAIL_HEADER_LENGTH> {
+    let mut header: BoundedVec<u8, MAX_EMAIL_HEADER_LENGTH> = BoundedVec::new();
+
+    // "subject:" (8 bytes)
+    header.push(115); header.push(117); header.push(98); header.push(106);
+    header.push(101); header.push(99); header.push(116); header.push(58);
+
+    // "Thanks for joining " (19 bytes)
+    header.push(84); header.push(104); header.push(97); header.push(110);
+    header.push(107); header.push(115); header.push(32); header.push(102);
+    header.push(111); header.push(114); header.push(32); header.push(106);
+    header.push(111); header.push(105); header.push(110); header.push(105);
+    header.push(110); header.push(103); header.push(32);
+
+    // "Test Event" (10 bytes)
+    header.push(84); header.push(101); header.push(115); header.push(116);
+    header.push(32); header.push(69); header.push(118); header.push(101);
+    header.push(110); header.push(116);
+
+    // "\r\n" (2 bytes)
+    header.push(13); header.push(10);
+
+    // "date:" (5 bytes)
+    header.push(100); header.push(97); header.push(116); header.push(101);
+    header.push(58);
+
+    // "Sat, 22 Nov 2025" (16 bytes)
+    header.push(83); header.push(97); header.push(116); header.push(44);
+    header.push(32); header.push(50); header.push(50); header.push(32);
+    header.push(78); header.push(111); header.push(118); header.push(32);
+    header.push(50); header.push(48); header.push(50); header.push(53);
+
+    header // Total: 60 bytes
+}
+
+// -------------------------------------------------------------------------
+// Validation Helper Functions (mirror main() assertions for testing)
+// -------------------------------------------------------------------------
+
+// Validates that value sequence is properly nested within header sequence
+fn validate_value_in_header(
+    value_index: u32,
+    value_length: u32,
+    header_index: u32,
+    header_length: u32,
+    prefix_len: u32,
+    max_length: u32,
+) {
+    let header_end = header_index + header_length;
+    let value_end = value_index + value_length;
+
+    assert(
+        value_index >= header_index + prefix_len
+            & value_end <= header_end
+            & value_length > 0
+            & value_length <= max_length,
+        "Value sequence invalid"
+    );
+}
+
+// Validates event name is within subject value
+fn validate_event_in_subject(
+    event_index: u32,
+    event_length: u32,
+    subject_index: u32,
+    subject_length: u32,
+    max_length: u32,
+) {
+    let subject_end = subject_index + subject_length;
+    let event_end = event_index + event_length;
+
+    assert(
+        event_index >= subject_index
+            & event_end <= subject_end
+            & event_length > 0
+            & event_length <= max_length,
+        "Event name sequence invalid"
+    );
+}
+
+// -------------------------------------------------------------------------
+// Should-Fail Tests: Verify circuit REJECTS invalid inputs
+// -------------------------------------------------------------------------
+
+#[test(should_fail_with = "Value sequence invalid")]
+fn test_fail_value_before_prefix() {
+    // Attack: value starts before prefix ends
+    validate_value_in_header(
+        102,  // value_index: only 2 bytes after header
+        30,   // value_length
+        100,  // header_index
+        40,   // header_length
+        5,    // prefix_len (e.g., "date:")
+        64    // max_length
+    );
+}
+
+#[test(should_fail_with = "Value sequence invalid")]
+fn test_fail_value_extends_past_header() {
+    // Attack: value extends beyond header boundary
+    validate_value_in_header(
+        110,  // value_index
+        35,   // value_length: 110 + 35 = 145, but header ends at 140
+        100,  // header_index
+        40,   // header_length: ends at 140
+        5,    // prefix_len
+        64    // max_length
+    );
+}
+
+#[test(should_fail_with = "Value sequence invalid")]
+fn test_fail_zero_length_value() {
+    // Attack: zero-length value
+    validate_value_in_header(
+        110,  // value_index
+        0,    // value_length: ZERO
+        100,  // header_index
+        40,   // header_length
+        5,    // prefix_len
+        64    // max_length
+    );
+}
+
+#[test(should_fail_with = "Value sequence invalid")]
+fn test_fail_value_exceeds_max_length() {
+    // Attack: value length exceeds maximum
+    validate_value_in_header(
+        105,  // value_index
+        100,  // value_length: exceeds max of 64
+        100,  // header_index
+        200,  // header_length
+        5,    // prefix_len
+        64    // max_length
+    );
+}
+
+#[test(should_fail_with = "Event name sequence invalid")]
+fn test_fail_event_before_subject() {
+    // Attack: event starts before subject
+    validate_event_in_subject(
+        95,   // event_index: before subject starts
+        14,   // event_length
+        100,  // subject_index
+        33,   // subject_length
+        256   // max_length
+    );
+}
+
+#[test(should_fail_with = "Event name sequence invalid")]
+fn test_fail_event_extends_past_subject() {
+    // Attack: event extends beyond subject
+    validate_event_in_subject(
+        125,  // event_index
+        20,   // event_length: 125 + 20 = 145, but subject ends at 133
+        100,  // subject_index
+        33,   // subject_length: ends at 133
+        256   // max_length
+    );
+}
+
+#[test(should_fail_with = "Event name sequence invalid")]
+fn test_fail_zero_length_event() {
+    // Attack: zero-length event name
+    validate_event_in_subject(
+        110,  // event_index
+        0,    // event_length: ZERO
+        100,  // subject_index
+        33,   // subject_length
+        256   // max_length
+    );
+}
+
+// -------------------------------------------------------------------------
+// Valid Input Tests: Verify validation PASSES for correct inputs
+// -------------------------------------------------------------------------
+
+#[test]
+fn test_valid_date_sequence_from_real_email() {
+    // Real data from luma_thanks_npc_short_name.eml
+    // date_header: index=265, length=36
+    // date_value: index=270, length=31
+    validate_value_in_header(
+        270,  // date_value_index
+        31,   // date_value_length
+        265,  // date_header_index
+        36,   // date_header_length
+        5,    // DATE_FIELD_PREFIX_LEN ("date:")
+        64    // MAX_DATE_LENGTH
+    );
+}
+
+#[test]
+fn test_valid_subject_sequence_from_real_email() {
+    // Real data from luma_thanks_npc_short_name.eml
+    // subject_header: index=123, length=41
+    // subject_value: index=131, length=33
+    validate_value_in_header(
+        131,  // subject_value_index
+        33,   // subject_value_length
+        123,  // subject_header_index
+        41,   // subject_header_length
+        8,    // SUBJECT_FIELD_PREFIX_LEN ("subject:")
+        256   // MAX_SUBJECT_LENGTH
+    );
+}
+
+#[test]
+fn test_valid_event_sequence_from_real_email() {
+    // Real data from luma_thanks_npc_short_name.eml
+    // subject_value: index=131, length=33
+    // event_name: index=150, length=14 ("NPC Side Event")
+    validate_event_in_subject(
+        150,  // event_name_index
+        14,   // event_name_length
+        131,  // subject_value_index
+        33,   // subject_value_length
+        256   // MAX_SUBJECT_LENGTH
+    );
+}
+
+// -------------------------------------------------------------------------
+// "Thanks for joining" Prefix Validation Tests (SECURITY CRITICAL)
+// These tests verify that only Luma attendance emails are accepted
+// -------------------------------------------------------------------------
+
+// Helper to verify "Thanks for joining " prefix in a header
+fn validate_thanks_prefix(
+    header: BoundedVec<u8, MAX_EMAIL_HEADER_LENGTH>,
+    subject_value_index: u32,
+    subject_value_length: u32,
+) {
+    // Subject must be long enough for prefix + at least 1 char event name
+    assert(
+        subject_value_length >= THANKS_FOR_JOINING_PREFIX_LEN + 1,
+        "Subject too short for Thanks for joining prefix"
+    );
+
+    // "Thanks for joining " = [84,104,97,110,107,115,32,102,111,114,32,106,111,105,110,105,110,103,32]
+    let thanks_prefix: [u8; 19] = [84, 104, 97, 110, 107, 115, 32, 102, 111, 114, 32, 106, 111, 105, 110, 105, 110, 103, 32];
+    for i in 0..19 {
+        let header_byte = header.get(subject_value_index + i);
+        assert(header_byte == thanks_prefix[i], "Subject must start with Thanks for joining");
+    }
+}
+
+// Helper to verify event name position after prefix
+fn validate_event_after_prefix(
+    event_name_index: u32,
+    subject_value_index: u32,
+) {
+    assert(
+        event_name_index == subject_value_index + THANKS_FOR_JOINING_PREFIX_LEN,
+        "Event name must start after Thanks for joining prefix"
+    );
+}
+
+#[test]
+fn test_thanks_prefix_bytes_correct() {
+    // Verify the prefix bytes match "Thanks for joining "
+    let thanks_prefix: [u8; 19] = [84, 104, 97, 110, 107, 115, 32, 102, 111, 114, 32, 106, 111, 105, 110, 105, 110, 103, 32];
+
+    // T=84, h=104, a=97, n=110, k=107, s=115, space=32
+    assert(thanks_prefix[0] == 84, "T");
+    assert(thanks_prefix[1] == 104, "h");
+    assert(thanks_prefix[2] == 97, "a");
+    assert(thanks_prefix[3] == 110, "n");
+    assert(thanks_prefix[4] == 107, "k");
+    assert(thanks_prefix[5] == 115, "s");
+    assert(thanks_prefix[6] == 32, "space");
+
+    // f=102, o=111, r=114, space=32
+    assert(thanks_prefix[7] == 102, "f");
+    assert(thanks_prefix[8] == 111, "o");
+    assert(thanks_prefix[9] == 114, "r");
+    assert(thanks_prefix[10] == 32, "space");
+
+    // j=106, o=111, i=105, n=110, i=105, n=110, g=103, space=32
+    assert(thanks_prefix[11] == 106, "j");
+    assert(thanks_prefix[12] == 111, "o");
+    assert(thanks_prefix[13] == 105, "i");
+    assert(thanks_prefix[14] == 110, "n");
+    assert(thanks_prefix[15] == 105, "i");
+    assert(thanks_prefix[16] == 110, "n");
+    assert(thanks_prefix[17] == 103, "g");
+    assert(thanks_prefix[18] == 32, "trailing space");
+}
+
+#[test(should_fail_with = "Subject too short for Thanks for joining prefix")]
+fn test_fail_subject_too_short() {
+    let header = create_test_header();
+    // Try with subject length of only 15 (less than 19 + 1 = 20)
+    validate_thanks_prefix(header, 8, 15);
+}
+
+#[test(should_fail_with = "Subject must start with Thanks for joining")]
+fn test_fail_wrong_prefix() {
+    // Create a header that starts with "Welcome to" instead of "Thanks for joining"
+    let mut header: BoundedVec<u8, MAX_EMAIL_HEADER_LENGTH> = BoundedVec::new();
+
+    // "subject:" (8 bytes)
+    header.push(115); header.push(117); header.push(98); header.push(106);
+    header.push(101); header.push(99); header.push(116); header.push(58);
+
+    // "Welcome to the " (15 bytes) - WRONG PREFIX
+    header.push(87);  // W
+    header.push(101); // e
+    header.push(108); // l
+    header.push(99);  // c
+    header.push(111); // o
+    header.push(109); // m
+    header.push(101); // e
+    header.push(32);  // space
+    header.push(116); // t
+    header.push(111); // o
+    header.push(32);  // space
+    header.push(116); // t
+    header.push(104); // h
+    header.push(101); // e
+    header.push(32);  // space
+
+    // "Event" (5 bytes)
+    header.push(69); header.push(118); header.push(101); header.push(110); header.push(116);
+
+    // This should fail because it starts with "Welcome to" not "Thanks for joining"
+    validate_thanks_prefix(header, 8, 20);
+}
+
+#[test(should_fail_with = "Event name must start after Thanks for joining prefix")]
+fn test_fail_event_wrong_position() {
+    // Event name at index 25 instead of 27 (subject_value_index 8 + 19 = 27)
+    validate_event_after_prefix(25, 8);
 }
