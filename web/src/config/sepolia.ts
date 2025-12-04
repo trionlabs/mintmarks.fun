@@ -42,7 +42,7 @@ export const MINTMARKS_CONTRACTS = {
  */
 export const ZKPASSPORT_CONFIG = {
   domain: isDev ? 'localhost' : 'mintmarks.fun',
-  scope: 'mintmarks-personhood',
+  scope: 'mintmarks',  // Must match contract SCOPE constant
   devMode: isDev,
 }
 
@@ -50,17 +50,22 @@ export const ZKPASSPORT_CONFIG = {
  * Mintmarks contract ABI
  */
 export const MINTMARKS_ABI = [
-  // Errors
+  // Errors (must match Mintmarks.sol exactly)
   { type: 'error', name: 'InvalidEmailProof', inputs: [] },
+  { type: 'error', name: 'InvalidPubkeyHash', inputs: [] },
   { type: 'error', name: 'InvalidPassportProof', inputs: [] },
   { type: 'error', name: 'InvalidPassportScope', inputs: [] },
   { type: 'error', name: 'InvalidBoundAddress', inputs: [] },
   { type: 'error', name: 'InvalidBoundChain', inputs: [] },
-  { type: 'error', name: 'InvalidBoundEmailNullifier', inputs: [] },
   { type: 'error', name: 'EmailNullifierAlreadyUsed', inputs: [] },
-  { type: 'error', name: 'PassportIdAlreadyUsed', inputs: [] },
+  { type: 'error', name: 'AlreadyMintedThisEvent', inputs: [] },
+  { type: 'error', name: 'PassportAlreadyUsedForEvent', inputs: [] },
   { type: 'error', name: 'EventNameTooLong', inputs: [] },
   { type: 'error', name: 'NonTransferable', inputs: [] },
+  { type: 'error', name: 'NotMinted', inputs: [] },
+  { type: 'error', name: 'AlreadyVerified', inputs: [] },
+  { type: 'error', name: 'WalletBoundToDifferentPassport', inputs: [] },
+  { type: 'error', name: 'PassportBoundToDifferentWallet', inputs: [] },
   // Events
   {
     type: 'event',
@@ -71,6 +76,7 @@ export const MINTMARKS_ABI = [
       { name: 'eventName', type: 'string', indexed: false },
       { name: 'emailNullifier', type: 'bytes32', indexed: false },
       { name: 'passportId', type: 'bytes32', indexed: false },
+      { name: 'withPassport', type: 'bool', indexed: false },
     ],
   },
   {
@@ -85,6 +91,18 @@ export const MINTMARKS_ABI = [
     ],
   },
   // Functions
+  // Simple mint (email only, no passport)
+  {
+    inputs: [
+      { name: 'emailProof', type: 'bytes' },
+      { name: 'emailPublicInputs', type: 'bytes32[]' },
+    ],
+    name: 'mint',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // mintWithPassport (email + passport)
   {
     inputs: [
       { name: 'emailProof', type: 'bytes' },
@@ -117,7 +135,7 @@ export const MINTMARKS_ABI = [
         ],
       },
     ],
-    name: 'mint',
+    name: 'mintWithPassport',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',

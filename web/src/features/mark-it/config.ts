@@ -67,7 +67,7 @@ export const DEMO_MOCK_DATA: DemoMockData = {
     serviceConfig: {
       validityPeriodInSeconds: 3600,
       domain: 'localhost',
-      scope: 'mintmarks-personhood',
+      scope: 'mintmarks',  // Must match contract SCOPE constant
       devMode: true,
     },
   },
