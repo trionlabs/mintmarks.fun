@@ -25,6 +25,6 @@ export type {
 } from './types'
 
 // Utilities
-export { truncateAddress, isValidAddress, formatAddress } from './utils'
+export { truncateAddress, isValidAddress, formatAddress, maskEmail, maskAddress } from './utils'
 export { normalizeError, createWalletError } from './utils'
 

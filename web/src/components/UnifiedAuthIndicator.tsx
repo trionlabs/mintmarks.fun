@@ -39,6 +39,8 @@ import {
   LogOut,
   ExternalLink,
   Sparkles,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -48,7 +50,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuthStatus } from '@/hooks/useAuthStatus'
 import { useToast } from '@/contexts/ToastContext'
-import { useWallet, useCdpNetwork } from '@/wallet'
+import { useWallet, useCdpNetwork, maskEmail, maskAddress } from '@/wallet'
 import { ACTIVE_NETWORK, NETWORKS, getAddressUrl, type NetworkKey } from '@/config/contracts'
 import { isActiveNetwork } from '@/config/chains'
 import { cn } from '@/lib/utils'
@@ -78,6 +80,9 @@ const DEBOUNCE_MS = 300
 // Touch interaction timing
 const TOUCH_ADDRESS_DISPLAY_MS = 2000
 const LONG_PRESS_MS = 500
+
+// Privacy mode localStorage key
+const PRIVACY_MODE_KEY = 'mintmarks:privacy-mode'
 
 // ============================================
 // Network Icon Component
@@ -334,6 +339,13 @@ export function UnifiedAuthIndicator({
   const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false)
   const [switchingToChainId, setSwitchingToChainId] = useState<number | null>(null)
   
+  // Privacy mode state - default to true (masked), persisted in localStorage
+  const [isPrivacyMode, setIsPrivacyMode] = useState(() => {
+    const stored = localStorage.getItem(PRIVACY_MODE_KEY)
+    // Default to true if not set
+    return stored === null ? true : stored === 'true'
+  })
+  
   // Touch handling refs
   const touchStartTimeRef = useRef<number>(0)
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -344,7 +356,14 @@ export function UnifiedAuthIndicator({
   const chainId = isMultichain 
     ? selectedCdpNetwork 
     : (walletChainId ?? ACTIVE_NETWORK.chainId)
-  const emailName = userEmail?.split('@')[0]?.slice(0, 10) || ''
+  const emailNameRaw = userEmail?.split('@')[0]?.slice(0, 10) || ''
+  
+  // Masked versions for privacy mode
+  const displayEmail = isPrivacyMode ? maskEmail(userEmail || '') : userEmail
+  const displayEmailName = isPrivacyMode 
+    ? (userEmail ? maskEmail(userEmail).split('@')[0] : '')
+    : emailNameRaw
+  const displayWalletAddress = isPrivacyMode ? maskAddress(walletAddress || '') : walletAddress
   
   // Show address when hovered (desktop) or touched (mobile), but not when dropdown is open
   const showAddress = (isHovered || isTouched) && !isDropdownOpen
@@ -432,6 +451,14 @@ export function UnifiedAuthIndicator({
     await handleFullLogout()
     setIsDropdownOpen(false)
   }, [handleFullLogout])
+  
+  const togglePrivacyMode = useCallback(() => {
+    setIsPrivacyMode(prev => {
+      const newValue = !prev
+      localStorage.setItem(PRIVACY_MODE_KEY, String(newValue))
+      return newValue
+    })
+  }, [])
   
   // Debounced versions for rapid click protection
   const debouncedGmailLogin = useDebounce(gmailLogin, DEBOUNCE_MS)
@@ -602,19 +629,19 @@ export function UnifiedAuthIndicator({
       case 'GMAIL_AUTH_ERROR':
         return 'Authentication error. Click to retry.'
       case 'GMAIL_ONLY_NO_WALLET':
-        return `Signed in as ${emailName}. Click to connect wallet.`
+        return `Signed in as ${displayEmailName}. Click to connect wallet.`
       case 'GMAIL_ONLY_WALLET_LOADING':
-        return `Signed in as ${emailName}. Connecting wallet...`
+        return `Signed in as ${displayEmailName}. Connecting wallet...`
       case 'WALLET_CONNECTION_ERROR':
-        return `Signed in as ${emailName}. Wallet connection failed. Click to retry.`
+        return `Signed in as ${displayEmailName}. Wallet connection failed. Click to retry.`
       case 'BALANCE_FETCH_ERROR':
         return `Wallet connected. Balance error. Click to open wallet menu.`
       case 'FULLY_CONNECTED':
-        return `Wallet balance: ${formattedBalance}. Email: ${emailName}. Click to open wallet menu.`
+        return `Wallet balance: ${formattedBalance}. Email: ${displayEmailName}. Click to open wallet menu.`
       default:
         return 'Authentication status'
     }
-  }, [currentState, emailName, formattedBalance])
+  }, [currentState, displayEmailName, formattedBalance])
   
   // Helper for address truncation - shorter format for compact display
   const truncateAddress = (addr: string) => addr ? `${addr.slice(0, 4)}...${addr.slice(-3)}` : ''
@@ -696,7 +723,7 @@ export function UnifiedAuthIndicator({
           style={{ color: 'var(--gmail-icon-connected-color)' }}
           aria-hidden="true" 
         />
-        <span className="hidden sm:inline text-muted-foreground">{emailName}</span>
+        <span className="hidden sm:inline text-muted-foreground">{displayEmailName}</span>
         <div className="hidden sm:block w-px h-4 bg-border/60 mx-0.5" aria-hidden="true" />
         <AlertTriangle className="w-4 h-4" aria-hidden="true" />
         <RefreshCw className="w-4 h-4" aria-hidden="true" />
@@ -755,7 +782,7 @@ export function UnifiedAuthIndicator({
               className="text-sm hidden sm:inline"
               style={{ color: 'var(--page-text-muted)' }}
             >
-              {isLoading ? 'Connecting...' : emailName}
+              {isLoading ? 'Connecting...' : displayEmailName}
             </span>
             <ChevronDown 
               className={cn(
@@ -782,20 +809,30 @@ export function UnifiedAuthIndicator({
                 </div>
                 <span 
                   className="text-sm text-foreground truncate cursor-default"
-                  title={userEmail ?? undefined}
+                  title={displayEmail ?? undefined}
                 >
-                  {userEmail}
+                  {displayEmail}
                 </span>
               </div>
-              <button
-                onClick={handleSignOut}
-                disabled={isLoggingOut}
-                className="p-2 rounded-lg text-[var(--page-text-muted)] hover:text-[var(--page-text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200 disabled:opacity-50 flex-shrink-0"
-                aria-label="Sign out"
-                title="Sign out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={togglePrivacyMode}
+                  className="p-2 rounded-lg text-[var(--page-text-muted)] hover:text-[var(--page-text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200"
+                  aria-label={isPrivacyMode ? 'Show full addresses' : 'Hide addresses'}
+                  title={isPrivacyMode ? 'Show full addresses' : 'Hide addresses'}
+                >
+                  {isPrivacyMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={handleSignOut}
+                  disabled={isLoggingOut}
+                  className="p-2 rounded-lg text-[var(--page-text-muted)] hover:text-[var(--page-text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200 disabled:opacity-50"
+                  aria-label="Sign out"
+                  title="Sign out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
           
@@ -857,7 +894,7 @@ export function UnifiedAuthIndicator({
               </div>
               <div className="flex-1 min-w-0">
                 <span className="text-sm font-medium block" style={{ color: 'var(--page-text-primary)' }}>Browser Wallet</span>
-                <span className="text-[10px]" style={{ color: 'var(--page-text-muted)' }}>MetaMask, Rabby, Coinbase</span>
+                <span className="text-[10px]" style={{ color: 'var(--page-text-muted)' }}>MetaMask, Rabby, Rainbow</span>
               </div>
             </button>
           </div>
@@ -978,9 +1015,9 @@ export function UnifiedAuthIndicator({
                     showAddress ? "opacity-100" : "opacity-0 absolute pointer-events-none"
                   )}
                   style={{ color: 'var(--page-text-secondary)' }}
-                  title={walletAddress ?? undefined}
+                  title={displayWalletAddress ?? undefined}
                 >
-                  <span className="truncate min-w-0">{truncateAddress(walletAddress || '')}</span>
+                  <span className="truncate min-w-0">{isPrivacyMode ? displayWalletAddress : truncateAddress(walletAddress || '')}</span>
                   {copied ? (
                     <Check className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--mint-success)' }} aria-hidden="true" />
                   ) : (
@@ -1003,7 +1040,7 @@ export function UnifiedAuthIndicator({
             className="hidden sm:inline text-xs"
             style={{ color: 'var(--page-text-muted)' }}
           >
-            {emailName}
+            {displayEmailName}
           </span>
           
           {/* Chevron */}
@@ -1038,20 +1075,30 @@ export function UnifiedAuthIndicator({
               </div>
               <span 
                 className="text-sm text-foreground truncate cursor-default"
-                title={userEmail ?? undefined}
+                title={displayEmail ?? undefined}
               >
-                {userEmail}
+                {displayEmail}
               </span>
             </div>
-            <button
-              onClick={handleSignOut}
-              disabled={isLoggingOut}
-              className="p-2 rounded-lg text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/10 transition-all duration-200 disabled:opacity-50 flex-shrink-0"
-              aria-label="Sign out"
-              title="Sign out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                onClick={togglePrivacyMode}
+                className="p-2 rounded-lg text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/10 transition-all duration-200"
+                aria-label={isPrivacyMode ? 'Show full addresses' : 'Hide addresses'}
+                title={isPrivacyMode ? 'Show full addresses' : 'Hide addresses'}
+              >
+                {isPrivacyMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+              <button
+                onClick={handleSignOut}
+                disabled={isLoggingOut}
+                className="p-2 rounded-lg text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/10 transition-all duration-200 disabled:opacity-50"
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
         
@@ -1090,9 +1137,9 @@ export function UnifiedAuthIndicator({
                 'px-1.5 py-1 rounded-lg hover:bg-black/[0.04] dark:hover:bg-white/[0.06]',
                 'min-w-0' // Allow shrinking
               )}
-              title={`${walletAddress} - Click to copy`}
+              title={`${displayWalletAddress} - Click to copy`}
             >
-              {walletAddress}
+              {displayWalletAddress}
             </code>
             <div className="flex items-center gap-0.5 flex-shrink-0">
               <button

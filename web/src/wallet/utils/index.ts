@@ -3,7 +3,7 @@
  */
 
 export { normalizeError, createWalletError } from './errorUtils'
-export { truncateAddress, isValidAddress, formatAddress } from './addressUtils'
+export { truncateAddress, isValidAddress, formatAddress, maskEmail, maskAddress } from './addressUtils'
 export {
   // Constants
   CDP_ACTIVE_KEY,

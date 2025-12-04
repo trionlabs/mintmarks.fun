@@ -11,6 +11,31 @@ export function truncateAddress(address: string, start = 6, end = 4): string {
 }
 
 /**
+ * Masks an email address for privacy (e.g., "ya*****@gmail.com").
+ * Shows first 2 characters of username + ***** + domain.
+ */
+export function maskEmail(email: string): string {
+  if (!email) return ''
+  const [username, domain] = email.split('@')
+  if (!username || !domain) return email
+  const visible = username.slice(0, 2)
+  return `${visible}*****@${domain}`
+}
+
+/**
+ * Masks a wallet address for privacy (e.g., "0x*****").
+ * Shows "0x" prefix + first 2 hex chars + *****.
+ */
+export function maskAddress(address: string): string {
+  if (!address) return ''
+  if (address.startsWith('0x') && address.length > 4) {
+    return `${address.slice(0, 4)}*****`
+  }
+  // Fallback for non-standard addresses
+  return `${address.slice(0, 2)}*****`
+}
+
+/**
  * Validates if a string is a valid Ethereum address.
  */
 export function isValidAddress(address: string): address is `0x${string}` {
