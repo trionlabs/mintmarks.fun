@@ -2,6 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {
     IZKPassportVerifier,
@@ -22,7 +23,7 @@ interface IEmailVerifier {
 ///      1. Email-only: Proves event attendance (mint)
 ///      2. Passport-verified: Proves attendance + unique personhood (mintWithPassport)
 ///      Tokens are non-transferable (soulbound) - only minting is allowed.
-contract Mintmarks is ERC1155 {
+contract Mintmarks is ERC1155, Ownable {
     /*//////////////////////////////////////////////////////////////
                             PUBLIC INPUTS LAYOUT
     //////////////////////////////////////////////////////////////*/
@@ -34,6 +35,7 @@ contract Mintmarks is ERC1155 {
     ///      [66]: date.len
     ///      [67-322]: event_name.storage (256 bytes)
     ///      [323]: event_name.len
+    uint256 private constant PUBKEY_HASH_INDEX = 0;
     uint256 private constant NULLIFIER_INDEX = 1;
     uint256 private constant EVENT_NAME_START = 67;
     uint256 private constant EVENT_NAME_LEN_INDEX = 323;
@@ -49,6 +51,10 @@ contract Mintmarks is ERC1155 {
     /// @dev All passport proofs use the same scope for stable passportId (1:1 wallet-passport binding)
     string public constant SCOPE = "mintmarks";
 
+    /// @notice Known Luma DKIM public key hash (user.luma-mail.com)
+    /// @dev Poseidon hash of the RSA-2048 DKIM public key used by Luma
+    bytes32 public constant LUMA_PUBKEY_HASH = 0x2262a82e42989fff21ac1f474de8440bbd7ddec5e868dd699efdf4439184dcf0;
+
     /*//////////////////////////////////////////////////////////////
                             STATE VARIABLES
     //////////////////////////////////////////////////////////////*/
@@ -58,6 +64,10 @@ contract Mintmarks is ERC1155 {
 
     /// @notice The ZKPassport verifier contract
     IZKPassportVerifier public immutable PASSPORT_VERIFIER;
+
+    /// @notice Tracks which DKIM pubkey hashes are allowed (Luma domains)
+    /// @dev Only emails signed with allowed DKIM keys can mint
+    mapping(bytes32 => bool) public allowedPubkeyHashes;
 
     /// @notice Tracks which email nullifiers have been used (prevents double-claiming same email)
     mapping(bytes32 => bool) public emailNullifierUsed;
@@ -88,6 +98,9 @@ contract Mintmarks is ERC1155 {
 
     /// @dev Thrown when the DKIM email proof verification fails
     error InvalidEmailProof();
+
+    /// @dev Thrown when the DKIM pubkey hash is not in the allowed list
+    error InvalidPubkeyHash();
 
     /// @dev Thrown when the ZKPassport proof verification fails
     error InvalidPassportProof();
@@ -158,6 +171,11 @@ contract Mintmarks is ERC1155 {
         bytes32 passportId
     );
 
+    /// @notice Emitted when a DKIM pubkey hash is added or removed from allowed list
+    /// @param pubkeyHash The DKIM public key hash
+    /// @param allowed Whether the hash is now allowed or not
+    event PubkeyHashUpdated(bytes32 indexed pubkeyHash, bool allowed);
+
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
@@ -165,9 +183,18 @@ contract Mintmarks is ERC1155 {
     /// @notice Creates a new Mintmarks contract
     /// @param _emailVerifier Address of the DKIM email proof verifier (UltraHonk)
     /// @param _passportVerifier Address of the ZKPassport verifier
-    constructor(address _emailVerifier, address _passportVerifier) ERC1155("") {
+    /// @param _owner Address of the contract owner (can manage allowed pubkey hashes)
+    constructor(
+        address _emailVerifier,
+        address _passportVerifier,
+        address _owner
+    ) ERC1155("") Ownable(_owner) {
         EMAIL_VERIFIER = IEmailVerifier(_emailVerifier);
         PASSPORT_VERIFIER = IZKPassportVerifier(_passportVerifier);
+
+        // Add known Luma DKIM pubkey hash to allowed list
+        allowedPubkeyHashes[LUMA_PUBKEY_HASH] = true;
+        emit PubkeyHashUpdated(LUMA_PUBKEY_HASH, true);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -252,22 +279,28 @@ contract Mintmarks is ERC1155 {
             revert InvalidEmailProof();
         }
 
-        // 2. Extract email nullifier and event name
+        // 2. Verify DKIM pubkey hash is from allowed list (Luma domains only)
+        bytes32 pubkeyHash = emailPublicInputs[PUBKEY_HASH_INDEX];
+        if (!allowedPubkeyHashes[pubkeyHash]) {
+            revert InvalidPubkeyHash();
+        }
+
+        // 3. Extract email nullifier and event name
         bytes32 emailNullifier = emailPublicInputs[NULLIFIER_INDEX];
         string memory eventName = _extractEventName(emailPublicInputs);
         uint256 tokenId = uint256(keccak256(bytes(eventName)));
 
-        // 3. Check email nullifier not used
+        // 4. Check email nullifier not used
         if (emailNullifierUsed[emailNullifier]) {
             revert EmailNullifierAlreadyUsed();
         }
 
-        // 4. Check user hasn't minted this event
+        // 5. Check user hasn't minted this event
         if (hasMinted[msg.sender][tokenId]) {
             revert AlreadyMintedThisEvent();
         }
 
-        // 5. If passport verified, check passport not used for this event
+        // 6. If passport verified, check passport not used for this event
         if (withPassport) {
             if (passportUsedForEvent[passportId][tokenId]) {
                 revert PassportAlreadyUsedForEvent();
@@ -275,17 +308,17 @@ contract Mintmarks is ERC1155 {
             passportUsedForEvent[passportId][tokenId] = true;
         }
 
-        // 6. Mark as used
+        // 7. Mark as used
         emailNullifierUsed[emailNullifier] = true;
         hasMinted[msg.sender][tokenId] = true;
         isPassportVerified[msg.sender][tokenId] = withPassport;
 
-        // 7. Store event name if new
+        // 8. Store event name if new
         if (bytes(tokenNames[tokenId]).length == 0) {
             tokenNames[tokenId] = eventName;
         }
 
-        // 8. Mint
+        // 9. Mint
         _mint(msg.sender, tokenId, 1, "");
 
         emit Minted(msg.sender, tokenId, eventName, emailNullifier, passportId, withPassport);
@@ -326,6 +359,34 @@ contract Mintmarks is ERC1155 {
         isPassportVerified[msg.sender][tokenId] = true;
 
         emit Upgraded(msg.sender, tokenId, passportId);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                         ADMIN: PUBKEY MANAGEMENT
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Add or remove a DKIM pubkey hash from the allowed list
+    /// @dev Only owner can call. Used to add new Luma DKIM keys or revoke compromised ones.
+    /// @param pubkeyHash The Poseidon hash of the DKIM public key
+    /// @param allowed Whether to allow or disallow this pubkey hash
+    function setAllowedPubkeyHash(bytes32 pubkeyHash, bool allowed) external onlyOwner {
+        allowedPubkeyHashes[pubkeyHash] = allowed;
+        emit PubkeyHashUpdated(pubkeyHash, allowed);
+    }
+
+    /// @notice Batch add or remove DKIM pubkey hashes
+    /// @dev Only owner can call. Useful for adding multiple keys at once.
+    /// @param pubkeyHashes Array of pubkey hashes to update
+    /// @param allowed Array of allowed states (must match length of pubkeyHashes)
+    function setAllowedPubkeyHashBatch(
+        bytes32[] calldata pubkeyHashes,
+        bool[] calldata allowed
+    ) external onlyOwner {
+        require(pubkeyHashes.length == allowed.length, "Length mismatch");
+        for (uint256 i = 0; i < pubkeyHashes.length; i++) {
+            allowedPubkeyHashes[pubkeyHashes[i]] = allowed[i];
+            emit PubkeyHashUpdated(pubkeyHashes[i], allowed[i]);
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
