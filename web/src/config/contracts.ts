@@ -50,30 +50,6 @@ export const NETWORKS = {
     blockExplorer: 'https://etherscan.io',
     faucet: null,
   },
-  arbitrum: {
-    chainId: 42161,
-    name: 'Arbitrum',
-    network: 'arbitrum' as const,
-    rpcUrl: 'https://arb1.arbitrum.io/rpc',
-    blockExplorer: 'https://arbiscan.io',
-    faucet: null,
-  },
-  optimism: {
-    chainId: 10,
-    name: 'Optimism',
-    network: 'optimism' as const,
-    rpcUrl: 'https://mainnet.optimism.io',
-    blockExplorer: 'https://optimistic.etherscan.io',
-    faucet: null,
-  },
-  polygon: {
-    chainId: 137,
-    name: 'Polygon',
-    network: 'polygon' as const,
-    rpcUrl: 'https://polygon-rpc.com',
-    blockExplorer: 'https://polygonscan.com',
-    faucet: null,
-  },
 } as const;
 
 export type NetworkKey = keyof typeof NETWORKS;

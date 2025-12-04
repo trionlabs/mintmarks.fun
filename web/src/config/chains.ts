@@ -10,9 +10,6 @@ import {
   base,
   sepolia,
   mainnet,
-  arbitrum,
-  optimism,
-  polygon,
 } from 'viem/chains'
 import type { Chain } from 'viem'
 import { NETWORKS } from './contracts'
@@ -43,7 +40,7 @@ export type ActiveNetworkId = typeof ACTIVE_NETWORK_IDS[number]
 
 /**
  * Get viem chain config by chainId.
- * Supports all CDP-compatible EVM chains.
+ * Supports Base and Ethereum chains.
  * 
  * @throws Error if chainId is not supported
  */
@@ -59,15 +56,9 @@ export function getViemChain(chainId: number): Chain {
       return base
     case NETWORKS.ethereum.chainId:
       return mainnet
-    case NETWORKS.arbitrum.chainId:
-      return arbitrum
-    case NETWORKS.optimism.chainId:
-      return optimism
-    case NETWORKS.polygon.chainId:
-      return polygon
     default:
       throw new Error(
-        `Unsupported chain ID: ${chainId}. Supported: Base (${NETWORKS.baseSepolia.chainId}, ${NETWORKS.base.chainId}), Ethereum (${NETWORKS.ethereumSepolia.chainId}, ${NETWORKS.ethereum.chainId}), Arbitrum (${NETWORKS.arbitrum.chainId}), Optimism (${NETWORKS.optimism.chainId}), Polygon (${NETWORKS.polygon.chainId})`
+        `Unsupported chain ID: ${chainId}. Supported: Base (${NETWORKS.baseSepolia.chainId}, ${NETWORKS.base.chainId}), Ethereum (${NETWORKS.ethereumSepolia.chainId}, ${NETWORKS.ethereum.chainId})`
       )
   }
 }
@@ -75,13 +66,9 @@ export function getViemChain(chainId: number): Chain {
 /**
  * Get native currency symbol for a chain
  */
-export function getNativeSymbol(chainId: number): string {
-  switch (chainId) {
-    case NETWORKS.polygon.chainId:
-      return 'MATIC'
-    default:
-      return 'ETH'
-  }
+export function getNativeSymbol(_chainId: number): string {
+  // All supported chains (Base, Ethereum) use ETH
+  return 'ETH'
 }
 
 /**
