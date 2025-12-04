@@ -209,7 +209,6 @@ export function useMyMarks({
         const result = await fetchAllMintmarks(selectedNetworks)
         
         // Partial errors are stored in result.error but we continue with available data
-        
         setNfts(result.nfts)
         
         // Also cache to localStorage for offline/quick access
@@ -237,7 +236,7 @@ export function useMyMarks({
     } finally {
       setLoading(false)
     }
-  }, [isDemo, selectedNetworks])
+  }, [isDemo, selectedNetworks, userAddress])
 
   // Initial fetch
   useEffect(() => {

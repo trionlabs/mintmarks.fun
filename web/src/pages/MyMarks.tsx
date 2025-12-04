@@ -9,7 +9,7 @@
  * - Demo mode via ?demo=true URL parameter
  */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Loader2,
@@ -44,15 +44,22 @@ function formatDate(dateStr: string): string {
   }
 }
 
-/** Truncate token ID for display */
+/** Truncate token ID for display - max 4 chars */
 function shortenTokenId(tokenId: string): string {
-  return tokenId.length > 8
-    ? `${tokenId.slice(0, 4)}…${tokenId.slice(-4)}`
+  return tokenId.length > 4
+    ? `…${tokenId.slice(-4)}`
     : tokenId
 }
 
 /** NFT Card instance for MyMarks page */
 function MarkCard({ nft }: { nft: MintmarkNFT }) {
+  const handleShare = () => {
+    const text = `Check out my mark: "${nft.eventName}" 🎉\n\nVerified on @mintmarks_fun with ZK proofs.\n\n#mintmarks #web3 #NFT`
+    const url = getTransactionUrl(nft.network, nft.txHash)
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
+    window.open(twitterUrl, '_blank', 'width=550,height=420')
+  }
+  
   return (
     <NFTCard
       source={nft.source?.toUpperCase() || 'MARK'}
@@ -62,9 +69,8 @@ function MarkCard({ nft }: { nft: MintmarkNFT }) {
       imageUrl={nft.imageUri}
       isSvgImage={nft.imageUri?.startsWith('data:image/svg+xml')}
       href={getTransactionUrl(nft.network, nft.txHash)}
-    >
-      <ShareNFTButton nft={nft} />
-    </NFTCard>
+      onShare={handleShare}
+    />
   )
 }
 
@@ -232,35 +238,7 @@ function ShareButton({ count }: { count: number }) {
   )
 }
 
-// ============================================
-// Share Single NFT to X (Twitter)
-// ============================================
-
-function ShareNFTButton({ nft }: { nft: MintmarkNFT }) {
-  const handleShare = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    const text = `Check out my mark: "${nft.eventName}" 🎉\n\nVerified on @mintmarks_fun with ZK proofs.\n\n#mintmarks #web3 #NFT`
-    const url = getTransactionUrl(nft.network, nft.txHash)
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
-
-    window.open(twitterUrl, '_blank', 'width=550,height=420')
-  }
-
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleShare}
-      title="Share on X (Twitter)"
-      className="gap-1.5 py-1.5 px-3 text-xs"
-    >
-      <Share2 className="h-3.5 w-3.5" />
-      Share
-    </Button>
-  )
-}
+// ShareNFTButton removed - share is now handled via onShare prop in NFTCard
 
 // StatsCards is now imported from @/components/cards
 
@@ -359,15 +337,25 @@ export function MyMarks() {
     getEnabledNetworks().map((n) => n.id)
   )
 
-  // Always fetch user's NFTs only (viewFilter: 'mine')
+  // View filter toggle: 'mine' = user's NFTs only, 'all' = all NFTs
+  const [viewFilter, setViewFilter] = useState<'mine' | 'all'>('all')
+
   const { nfts, timeline, stats, loading, error, refresh, isDemo } = useMyMarks({
     userAddress: address ?? undefined,
     selectedNetworks: networks,
-    viewFilter: 'mine', // Only user's NFTs
+    viewFilter,
   })
 
-  // Show connect wallet state if not connected and not in demo mode
-  const showConnectState = !isConnected && !isDemo
+  // Memoize stats object to prevent unnecessary re-renders
+  const cardStats = useMemo(() => ({
+    total: isConnected || isDemo ? stats.userNfts : stats.totalMinted,
+    thisMonth: stats.thisMonth,
+    mostActiveMonth: stats.mostActiveMonth?.month || null,
+    mostActiveCount: stats.mostActiveMonth?.count,
+  }), [isConnected, isDemo, stats])
+
+  // Show connect wallet state if not connected, not in demo mode, AND viewing 'mine'
+  const showConnectState = !isConnected && !isDemo && viewFilter === 'mine'
 
   return (
     <div className="max-w-5xl mx-auto px-4 pt-8 sm:px-6 sm:pt-12 md:pt-16 lg:pt-20">
@@ -393,7 +381,7 @@ export function MyMarks() {
         >
           <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: 'var(--page-text-primary)' }} aria-hidden="true" />
           <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase" style={{ color: 'var(--page-text-primary)', letterSpacing: '0.05em' }}>
-            {isConnected || isDemo ? 'unlimited possibilities' : 'Community Collection'}
+            {viewFilter === 'all' ? 'Community Collection' : (isConnected || isDemo ? 'Your Collection' : 'Community Collection')}
           </span>
         </div>
 
@@ -431,19 +419,50 @@ export function MyMarks() {
           {/* Stats Cards - Next to text */}
           <div className="flex-shrink-0 w-full lg:w-auto pt-4 lg:pt-0">
             <StatsCards
-              showAll={Boolean(isConnected || isDemo)}
-              stats={{
-                total: isConnected || isDemo ? stats.userNfts : stats.totalMinted,
-                thisMonth: stats.thisMonth,
-                mostActiveMonth: stats.mostActiveMonth?.month || null,
-                mostActiveCount: stats.mostActiveMonth?.count,
-              }}
+              showAll={isConnected || isDemo}
+              stats={cardStats}
             />
           </div>
         </div>
 
         {/* Actions - Minimalist, inline with header */}
         <div className="flex flex-wrap items-center gap-3 mt-10 sm:mt-12">
+          {/* View Toggle: My Marks / All Marks */}
+          <div
+            className="inline-flex rounded-lg p-0.5"
+            style={{ background: 'var(--muted)' }}
+          >
+            <button
+              type="button"
+              onClick={() => setViewFilter('mine')}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                viewFilter === 'mine'
+                  ? 'shadow-sm'
+                  : 'hover:opacity-70'
+              }`}
+              style={{
+                background: viewFilter === 'mine' ? 'var(--card)' : 'transparent',
+                color: viewFilter === 'mine' ? 'var(--page-text-primary)' : 'var(--page-text-muted)',
+              }}
+            >
+              My Marks
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewFilter('all')}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                viewFilter === 'all'
+                  ? 'shadow-sm'
+                  : 'hover:opacity-70'
+              }`}
+              style={{
+                background: viewFilter === 'all' ? 'var(--card)' : 'transparent',
+                color: viewFilter === 'all' ? 'var(--page-text-primary)' : 'var(--page-text-muted)',
+              }}
+            >
+              All Marks
+            </button>
+          </div>
           <ShareButton count={stats.userNfts} />
           <NetworkDropdown selected={networks} onChange={setNetworks} />
           <button
