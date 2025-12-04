@@ -1283,6 +1283,91 @@ export function TestCenter() {
             )}
           </div>
           
+          {/* Support Button Preview */}
+          <div className="p-4 rounded-xl bg-card border border-border">
+            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <ExternalLink className="w-5 h-5 text-primary" />
+              Support Button Preview
+            </h2>
+            
+            <p className="text-xs text-muted-foreground mb-4">
+              Preview of the floating "Follow on X" button (shown in production after 3s delay)
+            </p>
+            
+            {/* Button Preview - Theme aware style */}
+            <div className="flex flex-wrap gap-4 items-center">
+              {/* Main Style - Theme Aware (Light=Black, Dark=White) */}
+              <div className="space-y-2">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Production Style</span>
+                <a
+                  href="https://x.com/mintmarksfun"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 pl-4 pr-4 py-3 rounded-full transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-0.5 active:scale-[0.98] bg-[#0a0a0a] text-white dark:bg-white dark:text-[#0a0a0a] border border-white/10 dark:border-black/10 shadow-[0_4px_20px_rgba(0,0,0,0.25),0_2px_8px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_20px_rgba(255,255,255,0.15),0_2px_8px_rgba(0,0,0,0.1)]"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  <span className="text-sm font-semibold whitespace-nowrap">
+                    Follow on X
+                  </span>
+                </a>
+              </div>
+              
+              {/* Light Mode Preview (forced) */}
+              <div className="space-y-2">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Light Mode</span>
+                <a
+                  href="https://x.com/mintmarksfun"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 pl-4 pr-4 py-3 rounded-full transition-all duration-300 ease-out hover:scale-105 active:scale-[0.98]"
+                  style={{
+                    background: '#0a0a0a',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    color: 'white',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15)',
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  <span className="text-sm font-semibold whitespace-nowrap">
+                    Follow on X
+                  </span>
+                </a>
+              </div>
+              
+              {/* Dark Mode Preview (forced) */}
+              <div className="space-y-2">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Dark Mode</span>
+                <a
+                  href="https://x.com/mintmarksfun"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 pl-4 pr-4 py-3 rounded-full transition-all duration-300 ease-out hover:scale-105 active:scale-[0.98]"
+                  style={{
+                    background: 'white',
+                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                    color: '#0a0a0a',
+                    boxShadow: '0 4px 20px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1)',
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  <span className="text-sm font-semibold whitespace-nowrap">
+                    Follow on X
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <p className="text-[10px] text-muted-foreground mt-3">
+              💡 Button automatically switches: Light mode → Black, Dark mode → White
+            </p>
+          </div>
+          
           {/* Console Hint */}
           <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
             <div className="flex items-start gap-3">

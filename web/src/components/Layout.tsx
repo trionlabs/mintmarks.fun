@@ -84,12 +84,21 @@ export function Layout({ children }: LayoutProps) {
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
 
-  // Scroll detection for header gradient
+  // Scroll detection for header gradient - throttled & passive for performance
   useEffect(() => {
+    let ticking = false
+    
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 10)
+          ticking = false
+        })
+        ticking = true
+      }
     }
-    window.addEventListener('scroll', handleScroll)
+    
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -358,9 +367,9 @@ export function Layout({ children }: LayoutProps) {
       <AnimatePresence>
         {showSupportButton && !isSupportDismissed && (
           <m.div
-            initial={{ opacity: 0, x: -20, scale: 0.9 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -20, scale: 0.9 }}
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
             transition={{ 
               type: 'spring', 
               stiffness: 300, 
@@ -369,29 +378,35 @@ export function Layout({ children }: LayoutProps) {
             }}
             className="fixed bottom-6 left-6 z-50 group"
           >
-            {/* Main Button */}
+            {/* Main Button - Theme aware: Light=Black, Dark=White */}
             <a
               href={X_PROFILE_URL}
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                'flex items-center gap-2 pl-4 pr-3 py-3',
-                'rounded-full shadow-lg border',
-                'backdrop-blur-[32px]',
-                'transition-all duration-200',
-                'hover:scale-[1.02] active:scale-[0.98]',
-                'group/link'
+                'flex items-center gap-2.5 pl-4 pr-3 py-3',
+                'rounded-full',
+                'transition-all duration-300 ease-out',
+                'hover:scale-105 hover:-translate-y-0.5 active:scale-[0.98]',
+                'group/link',
+                // Light mode: Black bg, white text
+                'bg-[#0a0a0a] text-white',
+                // Dark mode: White bg, black text
+                'dark:bg-white dark:text-[#0a0a0a]',
+                // Border
+                'border border-white/10 dark:border-black/10'
               )}
               style={{
-                background: 'var(--glass-bg-primary)',
-                borderColor: 'var(--glass-border)',
-                color: 'var(--page-text-primary)',
+                // Layered shadow for depth
+                boxShadow: theme === 'dark'
+                  ? '0 4px 20px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                  : '0 4px 20px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
               }}
               aria-label="Support us on X (Twitter)"
             >
               <XLogo className="h-4 w-4 flex-shrink-0" />
-              <span className="text-sm font-medium hidden sm:inline whitespace-nowrap">
-                Support us on X
+              <span className="text-sm font-semibold hidden sm:inline whitespace-nowrap">
+                Follow on X
               </span>
               
               {/* Dismiss Button - Always visible on mobile, hover on desktop */}
@@ -404,9 +419,10 @@ export function Layout({ children }: LayoutProps) {
                 className={cn(
                   'ml-1 p-1 rounded-full',
                   'transition-all duration-200',
-                  'opacity-60 sm:opacity-0 sm:group-hover:opacity-60',
-                  'hover:!opacity-100 hover:bg-[var(--glass-bg-hover)]',
-                  'focus:outline-none focus:ring-1 focus:ring-[var(--glass-border-hover)]'
+                  'opacity-70 sm:opacity-0 sm:group-hover:opacity-70',
+                  'hover:!opacity-100',
+                  'hover:bg-white/20 dark:hover:bg-black/10',
+                  'focus:outline-none focus:ring-1 focus:ring-white/30 dark:focus:ring-black/20'
                 )}
                 aria-label="Dismiss"
               >
