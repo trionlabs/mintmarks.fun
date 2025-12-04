@@ -98,7 +98,7 @@ pnpm build
 
 ## Environment Variables
 
-See `.env.example` for all required variables:
+See `.env.example` for all required variables.
 
 
 ## Architecture
