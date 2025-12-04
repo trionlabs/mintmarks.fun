@@ -109,36 +109,6 @@ function NetworkIcon({ chainId, size = 'sm' }: { chainId: number; size?: 'sm' | 
     )
   }
   
-  // Arbitrum
-  if (chainId === 42161) {
-    return (
-      <svg viewBox="0 0 24 24" fill="none" className={cls} aria-hidden="true">
-        <circle cx="12" cy="12" r="10" fill="#28A0F0" />
-        <path d="M8 15l4-8 4 8h-2l-2-4-2 4H8z" fill="white"/>
-      </svg>
-    )
-  }
-  
-  // Optimism
-  if (chainId === 10) {
-    return (
-      <svg viewBox="0 0 24 24" fill="none" className={cls} aria-hidden="true">
-        <circle cx="12" cy="12" r="10" fill="#FF0420" />
-        <circle cx="12" cy="12" r="4" fill="white"/>
-      </svg>
-    )
-  }
-  
-  // Polygon
-  if (chainId === 137) {
-    return (
-      <svg viewBox="0 0 24 24" fill="none" className={cls} aria-hidden="true">
-        <circle cx="12" cy="12" r="10" fill="#8247E5" />
-        <path d="M15 10l-3-2-3 2v4l3 2 3-2v-4z" fill="white"/>
-      </svg>
-    )
-  }
-  
   // Unknown network fallback
   return (
     <div className={cn(cls, 'rounded-full bg-muted flex items-center justify-center')}>
@@ -659,11 +629,11 @@ export function UnifiedAuthIndicator({
         onClick={debouncedGmailLogin}
         variant="outline"
         size="sm"
-        className={cn('h-9 px-4 sm:px-5 gap-2 text-sm', className)}
+        className={cn('h-9 px-3 sm:px-5 gap-2 text-sm', className)}
         aria-label={getAriaLabel()}
       >
         <Mail className="w-4 h-4" aria-hidden="true" />
-        Sign in
+        <span className="hidden sm:inline">Sign in</span>
       </Button>
     )
   }
@@ -677,7 +647,7 @@ export function UnifiedAuthIndicator({
       <button
         onClick={debouncedRetryGmail}
         className={cn(
-          'flex items-center gap-2 h-9 px-4 sm:px-5 rounded-md text-sm',
+          'flex items-center gap-1.5 sm:gap-2 h-9 px-3 sm:px-4 rounded-md text-sm',
           'transition-colors duration-200',
           className
         )}
@@ -692,7 +662,7 @@ export function UnifiedAuthIndicator({
         onKeyDown={handleKeyDown}
       >
         <AlertTriangle className="w-4 h-4" aria-hidden="true" />
-        <span>Auth Error</span>
+        <span className="hidden sm:inline">Auth Error</span>
         <RefreshCw className="w-4 h-4" aria-hidden="true" />
       </button>
     )
@@ -707,7 +677,7 @@ export function UnifiedAuthIndicator({
       <button
         onClick={debouncedRetryWallet}
         className={cn(
-          'flex items-center gap-2 h-9 px-4 sm:px-5 rounded-md text-sm',
+          'flex items-center gap-1.5 sm:gap-2 h-9 px-3 sm:px-4 rounded-md text-sm',
           'transition-colors duration-200',
           className
         )}
@@ -726,8 +696,8 @@ export function UnifiedAuthIndicator({
           style={{ color: 'var(--gmail-icon-connected-color)' }}
           aria-hidden="true" 
         />
-        <span className="text-muted-foreground">{emailName}</span>
-        <div className="w-px h-4 bg-border/60 mx-0.5" aria-hidden="true" />
+        <span className="hidden sm:inline text-muted-foreground">{emailName}</span>
+        <div className="hidden sm:block w-px h-4 bg-border/60 mx-0.5" aria-hidden="true" />
         <AlertTriangle className="w-4 h-4" aria-hidden="true" />
         <RefreshCw className="w-4 h-4" aria-hidden="true" />
       </button>
@@ -743,12 +713,12 @@ export function UnifiedAuthIndicator({
     
     return (
       <>
-      <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+      <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen} modal={false}>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
             className={cn(
-              'flex items-center justify-start gap-2 h-9 px-4 sm:px-5 rounded-xl text-sm',
+              'flex items-center justify-start gap-1.5 sm:gap-2 h-9 px-2.5 sm:px-4 rounded-xl text-sm',
               'backdrop-blur-md',
               'transition-all duration-200 ease-out',
               'outline-none focus-visible:ring-1 focus-visible:ring-primary/30',
@@ -776,19 +746,20 @@ export function UnifiedAuthIndicator({
             onKeyDown={handleKeyDown}
           >
             <Wallet 
-              className="w-4 h-4"
+              className={cn('w-4 h-4', isLoading && 'animate-pulse')}
               style={{ color: 'var(--wallet-icon-warning-color)' }}
               aria-hidden="true"
             />
+            {/* Mobile: show abbreviated text, Desktop: full text */}
             <span 
-              className="text-sm"
+              className="text-sm hidden sm:inline"
               style={{ color: 'var(--page-text-muted)' }}
             >
               {isLoading ? 'Connecting...' : emailName}
             </span>
             <ChevronDown 
               className={cn(
-                'w-3.5 h-3.5 transition-transform duration-300 ease-out opacity-50',
+                'w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-300 ease-out opacity-50',
                 isDropdownOpen && 'rotate-180'
               )}
               style={{ color: 'var(--page-text-muted)' }}
@@ -914,7 +885,7 @@ export function UnifiedAuthIndicator({
   const hasBalanceError = currentState === 'BALANCE_FETCH_ERROR'
   
   return (
-    <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+    <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen} modal={false}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
@@ -924,11 +895,13 @@ export function UnifiedAuthIndicator({
           onTouchEnd={handleTouchEnd}
           onKeyDown={handleKeyDown}
           className={cn(
-            'flex items-center gap-2 h-9 pl-1.5 pr-2.5 rounded-xl text-sm',
+            'flex items-center h-9 rounded-xl text-sm',
             'backdrop-blur-md',
             'transition-all duration-200 ease-out',
             'outline-none focus-visible:ring-1 focus-visible:ring-primary/30',
-            'min-w-[160px]', // Fixed width to prevent layout shift
+            // Mobile: compact, Desktop: full width
+            'gap-1.5 pl-1.5 pr-2 sm:gap-2 sm:pl-1.5 sm:pr-2.5',
+            'sm:min-w-[160px]', // Fixed width only on desktop
             'hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_2px_12px_rgba(0,0,0,0.25)]',
             'hover:border-black/[0.12] dark:hover:border-white/[0.15]',
             className
@@ -952,9 +925,9 @@ export function UnifiedAuthIndicator({
           {/* Network Icon */}
           <NetworkIcon chainId={chainId} />
           
-          {/* Balance/Address Container - Fixed width to prevent layout shift */}
+          {/* Balance/Address Container - Hidden on mobile, visible on desktop */}
           <div 
-            className="relative flex items-center gap-1 w-[70px] shrink-0"
+            className="relative hidden sm:flex items-center gap-1 w-[70px] shrink-0"
             style={showAddress ? { cursor: 'copy' } : undefined}
             onClick={showAddress ? (e) => {
               e.preventDefault()
@@ -1018,16 +991,16 @@ export function UnifiedAuthIndicator({
             )}
           </div>
           
-          {/* Divider */}
+          {/* Divider - Desktop only */}
           <div 
-            className="w-px h-3.5 mx-1 opacity-40" 
+            className="hidden sm:block w-px h-3.5 mx-1 opacity-40" 
             style={{ background: 'var(--page-text-muted)' }}
             aria-hidden="true" 
           />
           
-          {/* Email */}
+          {/* Email - Desktop only */}
           <span 
-            className="text-xs"
+            className="hidden sm:inline text-xs"
             style={{ color: 'var(--page-text-muted)' }}
           >
             {emailName}
@@ -1036,7 +1009,7 @@ export function UnifiedAuthIndicator({
           {/* Chevron */}
           <ChevronDown 
             className={cn(
-              'w-3.5 h-3.5 transition-transform duration-300 ease-out opacity-50',
+              'w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-300 ease-out opacity-50',
               isDropdownOpen && 'rotate-180'
             )}
             style={{ color: 'var(--page-text-muted)' }}
@@ -1109,7 +1082,16 @@ export function UnifiedAuthIndicator({
           
           {/* Wallet Address + Actions */}
           <div className="flex items-center gap-2">
-            <code className="text-xs text-muted-foreground/80 font-mono truncate flex-1">
+            <code 
+              onClick={handleCopyAddress}
+              className={cn(
+                'text-xs text-muted-foreground/80 font-mono flex-1 truncate cursor-pointer',
+                'hover:text-[var(--page-text-secondary)] transition-colors duration-200',
+                'px-1.5 py-1 rounded-lg hover:bg-black/[0.04] dark:hover:bg-white/[0.06]',
+                'min-w-0' // Allow shrinking
+              )}
+              title={`${walletAddress} - Click to copy`}
+            >
               {walletAddress}
             </code>
             <div className="flex items-center gap-0.5 flex-shrink-0">
