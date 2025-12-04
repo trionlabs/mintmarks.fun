@@ -62,6 +62,9 @@ contract Mintmarks is ERC1155, Ownable {
     
     /// @notice Secondary Luma DKIM public key hash (rotated key as of Dec 2024)
     bytes32 public constant LUMA_PUBKEY_HASH_2 = 0x14867ad1414e10a18a36e0db535e47f1a11a4d3d97f7eb3eb2ad6c09d8772e33;
+    
+    /// @notice Third Luma DKIM public key hash (another selector)
+    bytes32 public constant LUMA_PUBKEY_HASH_3 = 0x1b38eebb7fe1727ea967eded5baf387e8455858dfa483e7de3bc7784144b4699;
 
     /*//////////////////////////////////////////////////////////////
                             STATE VARIABLES
@@ -206,6 +209,9 @@ contract Mintmarks is ERC1155, Ownable {
         
         allowedPubkeyHashes[LUMA_PUBKEY_HASH_2] = true;
         emit PubkeyHashUpdated(LUMA_PUBKEY_HASH_2, true);
+        
+        allowedPubkeyHashes[LUMA_PUBKEY_HASH_3] = true;
+        emit PubkeyHashUpdated(LUMA_PUBKEY_HASH_3, true);
     }
 
     /*//////////////////////////////////////////////////////////////

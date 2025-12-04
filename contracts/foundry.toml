@@ -4,9 +4,10 @@ out = "out"
 libs = ["lib"]
 solc = "0.8.28"
 optimizer = false
-remappings = [
-    "@verifier/=../circuits/solidity-verifier/",
-]
+# remappings temporarily disabled for deployment
+# remappings = [
+#     "@verifier/=../circuits/solidity-verifier/",
+# ]
 
 # For tests, disable optimizer to avoid stack-too-deep in UltraHonkVerifier
 [profile.test]
@@ -29,18 +30,18 @@ solc = "0.8.28"
 optimizer = true
 optimizer_runs = 200
 via_ir = true
-remappings = [
-    "@verifier/=../circuits/solidity-verifier/",
-]
+# Empty remappings to avoid compiling UltraHonkVerifier
+remappings = []
 
-# Verifier deployment profile: optimizer OFF (UltraHonkVerifier needs this)
+# Verifier deployment profile: optimizer ON with low runs to reduce size
 [profile.deploy-verifier]
 src = "../circuits/solidity-verifier"
 test = "none"
 out = "out"
 libs = ["lib"]
 solc = "0.8.28"
-optimizer = false
+optimizer = true
+optimizer_runs = 10
 remappings = [
     "@verifier/=../circuits/solidity-verifier/",
 ]
