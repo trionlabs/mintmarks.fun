@@ -294,6 +294,7 @@ export function MarkItFlowModal({
           className="flex-1 overflow-y-auto px-8 py-8 min-h-[240px]"
           style={{
             background: 'transparent',
+            overscrollBehavior: 'contain',
           }}
         >
           <div className="flex flex-col h-full justify-center max-w-md mx-auto w-full">

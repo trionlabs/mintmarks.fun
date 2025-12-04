@@ -8,37 +8,37 @@
 
 :root {
   /* Core Theme Colors */
-  /* Light Mode: "Porcelain" - Cool off-white, no yellow tint */
-  --background: oklch(0.975 0.004 250);
-  --foreground: oklch(0.2126 0.0231 246.3010);
-  --card: oklch(1.0000 0 0);
-  --card-foreground: oklch(0.2126 0.0231 246.3010);
-  --popover: oklch(1.0000 0 0);
-  --popover-foreground: oklch(0.2126 0.0231 246.3010);
+  /* Light Mode: "Porcelain" - Soft, muted off-white with subtle warmth */
+  --background: oklch(0.965 0.006 70);  /* Softer, slight warm cream undertone */
+  --foreground: oklch(0.25 0.02 250);
+  --card: oklch(0.98 0.004 70);  /* Slightly warmer than pure white */
+  --card-foreground: oklch(0.25 0.02 250);
+  --popover: oklch(0.98 0.004 70);
+  --popover-foreground: oklch(0.25 0.02 250);
   --primary: oklch(0.62 0.28 262);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0.01 246);
-  --secondary-foreground: oklch(0.205 0.02 246);
-  --muted: oklch(0.97 0.01 246);
-  --muted-foreground: oklch(0.556 0.02 246);
-  --accent: oklch(0.97 0.01 246);
-  --accent-foreground: oklch(0.205 0.02 246);
+  --secondary: oklch(0.955 0.008 70);  /* Soft warm gray */
+  --secondary-foreground: oklch(0.25 0.02 250);
+  --muted: oklch(0.95 0.008 70);  /* Muted porcelain */
+  --muted-foreground: oklch(0.50 0.015 250);
+  --accent: oklch(0.955 0.008 70);
+  --accent-foreground: oklch(0.25 0.02 250);
   --destructive: oklch(0.58 0.30 28);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.9324 0.0168 230.9139);
-  --input: oklch(0.9324 0.0168 230.9139);
+  --border: oklch(0.92 0.01 70);  /* Warm soft border */
+  --input: oklch(0.92 0.01 70);
   --ring: oklch(0.68 0.22 262);
   --radius: 0.625rem;
 
-  /* Page Content Colors - Ultra smooth light mode palette */
-  --page-text-primary: oklch(0.35 0.02 250); /* Softer, less contrast */
-  --page-text-secondary: oklch(0.52 0.015 250); /* Even softer secondary */
-  --page-text-muted: oklch(0.62 0.01 250); /* Gentle muted */
-  --page-icon-primary: oklch(0.50 0.03 262); /* Softer icon color */
-  --page-headline-accent: oklch(0.50 0.08 270); /* Soft dusty blue-purple - much softer */
-  --page-badge-accent: oklch(0.55 0.10 262); /* Softer blue-purple for badges */
-  --page-badge-bg: rgba(255, 255, 255, 0.1);
-  --page-badge-border: rgba(0, 0, 0, 0.05);
+  /* Page Content Colors - Soft porcelain palette */
+  --page-text-primary: oklch(0.30 0.015 250); /* Soft charcoal, easy on eyes */
+  --page-text-secondary: oklch(0.48 0.012 250); /* Muted secondary */
+  --page-text-muted: oklch(0.58 0.01 250); /* Gentle muted */
+  --page-icon-primary: oklch(0.45 0.025 262); /* Subtle icon color */
+  --page-headline-accent: oklch(0.48 0.07 270); /* Soft dusty blue-purple */
+  --page-badge-accent: oklch(0.52 0.09 262); /* Muted blue-purple for badges */
+  --page-badge-bg: rgba(245, 243, 240, 0.6); /* Warm cream tint */
+  --page-badge-border: rgba(0, 0, 0, 0.04);
   
   /* Card-specific badge colors (Light Mode) - Ultra soft, subtle colors with transparency */
   --card-badge-verify: oklch(0.62 0.06 155 / 0.85); /* Very soft mint green - minimal chroma, slight transparency */
@@ -59,22 +59,22 @@
   --page-content-bg: rgba(255, 255, 255, 0.08);
   --page-content-border: rgba(0, 0, 0, 0.04);
 
-  /* Glassmorphic System - Light Mode: Smooth glass-like effect */
-  /* Background: Very transparent, crystal clear glass - idle state */
-  --glass-bg-primary: rgba(255, 255, 255, 0.05);
-  --glass-bg-secondary: rgba(255, 255, 255, 0.03);
-  --glass-bg-tertiary: rgba(255, 255, 255, 0.02);
-  --glass-bg-hover: rgba(255, 255, 255, 0.1);
-  /* Border: Soft gray - neutral, no selection appearance */
-  --glass-border: rgba(0, 0, 0, 0.06);
-  --glass-border-hover: rgba(0, 0, 0, 0.12);
-  /* Blur: Reduced for less blur effect */
-  --glass-blur: 6px;
-  --glass-blur-heavy: 10px;
-  --glass-saturate: 120%;
-  /* Shadow: Minimal, glass-like reflection */
-  --glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.01);
-  --glass-shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.04), 0 8px 16px rgba(0, 0, 0, 0.02);
+  /* Glassmorphic System - Light Mode: Soft porcelain glass */
+  /* Background: Warm-tinted transparent glass */
+  --glass-bg-primary: rgba(252, 250, 247, 0.4);
+  --glass-bg-secondary: rgba(252, 250, 247, 0.25);
+  --glass-bg-tertiary: rgba(252, 250, 247, 0.15);
+  --glass-bg-hover: rgba(255, 253, 250, 0.6);
+  /* Border: Warm soft edge */
+  --glass-border: rgba(120, 100, 80, 0.06);
+  --glass-border-hover: rgba(120, 100, 80, 0.1);
+  /* Blur: Soft diffusion */
+  --glass-blur: 8px;
+  --glass-blur-heavy: 12px;
+  --glass-saturate: 110%;
+  /* Shadow: Subtle warm shadows */
+  --glass-shadow: 0 1px 3px rgba(100, 80, 60, 0.03), 0 2px 6px rgba(100, 80, 60, 0.02);
+  --glass-shadow-hover: 0 4px 12px rgba(100, 80, 60, 0.05), 0 8px 20px rgba(100, 80, 60, 0.03);
 
   /* Figma Card System */
   --figma-card-stroke: rgba(255, 255, 255, 0.08);
@@ -82,23 +82,23 @@
   --figma-card-radius: 12px;
   --figma-ultra-dark: rgba(255, 255, 255, 0.12);
 
-  /* Simple Card Shadows - Ultra smooth, minimal */
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 2px 8px rgba(0, 0, 0, 0.02);
-  --card-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.03), 0 4px 16px rgba(0, 0, 0, 0.04);
+  /* Simple Card Shadows - Soft warm shadows */
+  --card-shadow: 0 1px 3px rgba(100, 80, 60, 0.04), 0 2px 8px rgba(100, 80, 60, 0.03);
+  --card-shadow-hover: 0 2px 6px rgba(100, 80, 60, 0.05), 0 6px 20px rgba(100, 80, 60, 0.06);
 
-  /* CTA Button Tokens (Light Mode) - OKLCH Format */
-  --figma-cta1-bg: oklch(0.15 0.01 260);
-  --figma-cta1-border: oklch(0.98 0.005 250);
-  --figma-cta1-text: oklch(0.98 0.005 250);
-  --figma-cta1-hover-bg: oklch(0.55 0.02 260);
-  --figma-cta1-hover-border: oklch(0.98 0.005 250);
-  --figma-cta1-hover-text: oklch(0.98 0.005 250);
-  --figma-cta1-active-bg: oklch(0.55 0.02 260);
+  /* CTA Button Tokens (Light Mode) - Soft porcelain palette */
+  --figma-cta1-bg: oklch(0.18 0.01 250);
+  --figma-cta1-border: oklch(0.96 0.005 70);
+  --figma-cta1-text: oklch(0.96 0.005 70);
+  --figma-cta1-hover-bg: oklch(0.28 0.015 250);
+  --figma-cta1-hover-border: oklch(0.98 0.004 70);
+  --figma-cta1-hover-text: oklch(0.98 0.004 70);
+  --figma-cta1-active-bg: oklch(0.35 0.015 250);
 
-  /* Outline Button (cta2) - OKLCH Format */
-  --figma-cta2-bg: oklch(0.99 0.005 250);
-  --figma-cta2-border: oklch(1 0 0);
-  --figma-cta2-text: oklch(0.18 0.01 260 / 0.92);
+  /* Outline Button (cta2) - Soft porcelain */
+  --figma-cta2-bg: oklch(0.98 0.004 70);
+  --figma-cta2-border: oklch(0.92 0.008 70);
+  --figma-cta2-text: oklch(0.22 0.01 250 / 0.9);
 
   /* Secondary Button (cta3) - OKLCH Format */
   --figma-cta3-bg: oklch(0.55 0.25 262 / 0.08);
@@ -111,14 +111,14 @@
   --cta-outline-card-blur: 6px;
   --cta-outline-card-blend: normal;
 
-  /* Background Animation Colors - OKLCH Format */
-  --bg-animation-gradient-start: oklch(0.97 0.01 250);
-  --bg-animation-gradient-mid: oklch(0.98 0.008 250);
-  --bg-animation-gradient-end: oklch(0.97 0.01 250);
-  --bg-animation-bar-color-light: rgba(247, 249, 252, 0.6);
-  --bg-animation-bar-color-mid: rgba(240, 244, 249, 0.5);
-  --bg-animation-bar-color-dark: rgba(240, 244, 249, 0.5);
-  --bg-animation-line-color: rgba(230, 244, 249, 0.15);
+  /* Background Animation Colors - Soft Porcelain */
+  --bg-animation-gradient-start: oklch(0.96 0.006 70);
+  --bg-animation-gradient-mid: oklch(0.965 0.005 70);
+  --bg-animation-gradient-end: oklch(0.96 0.006 70);
+  --bg-animation-bar-color-light: rgba(250, 248, 245, 0.7);
+  --bg-animation-bar-color-mid: rgba(248, 246, 242, 0.6);
+  --bg-animation-bar-color-dark: rgba(245, 243, 238, 0.5);
+  --bg-animation-line-color: rgba(240, 238, 232, 0.2);
 
   /* Controls - Soft blue-gray */
   --Controls-Selected: oklch(0.48 0.05 250);
@@ -206,8 +206,8 @@
   /* Grid Background */
   --hero-grid-color: rgba(99, 150, 244, 0.025);
 
-  /* Container Background */
-  --hero-container-bg: linear-gradient(145deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.95));
+  /* Container Background - Soft porcelain */
+  --hero-container-bg: linear-gradient(145deg, rgba(252, 250, 247, 0.98), rgba(248, 246, 242, 0.95));
 
   /* Mint Success States */
   --mint-success: oklch(0.72 0.24 152);
@@ -222,8 +222,8 @@
   --hero-ambient-opacity: 0.02;
   --hero-mouse-glow-opacity: 0.03;
 
-  /* Hero Section Gradient Overlay */
-  --hero-gradient-overlay: linear-gradient(135deg, oklch(0.65 0.18 262 / 0.015) 0%, transparent 40%, oklch(0.65 0.18 262 / 0.01) 100%);
+  /* Hero Section Gradient Overlay - Subtle warmth */
+  --hero-gradient-overlay: linear-gradient(135deg, oklch(0.92 0.015 70 / 0.3) 0%, transparent 50%, oklch(0.65 0.12 262 / 0.02) 100%);
 
   /* ===== HERO GLASSMORPHIC CARDS (Light Mode) ===== */
   /* White/transparent glass cards on colored backgrounds */
@@ -337,19 +337,19 @@
 
   /* ===== BUTTON COMPONENT TOKENS ===== */
 
-  /* Outline Button - Transparent glass */
-  --button-outline-bg: rgba(255, 255, 255, 0.1);
-  --button-outline-border: rgba(0, 0, 0, 0.08);
-  --button-outline-text: oklch(0.25 0.02 250);
-  --button-outline-hover-bg: rgba(255, 255, 255, 0.2);
-  --button-outline-hover-border: rgba(0, 0, 0, 0.12);
-  --button-outline-hover-text: oklch(0.15 0.02 250);
+  /* Outline Button - Soft porcelain glass */
+  --button-outline-bg: rgba(252, 250, 247, 0.5);
+  --button-outline-border: rgba(120, 100, 80, 0.1);
+  --button-outline-text: oklch(0.28 0.015 250);
+  --button-outline-hover-bg: rgba(255, 253, 250, 0.7);
+  --button-outline-hover-border: rgba(120, 100, 80, 0.15);
+  --button-outline-hover-text: oklch(0.18 0.015 250);
 
-  /* Ghost Button */
+  /* Ghost Button - Soft porcelain */
   --button-ghost-bg: transparent;
-  --button-ghost-text: oklch(0.35 0.02 246);
-  --button-ghost-hover-bg: oklch(0.98 0.01 246);
-  --button-ghost-hover-text: oklch(0.15 0.02 246);
+  --button-ghost-text: oklch(0.38 0.015 250);
+  --button-ghost-hover-bg: oklch(0.96 0.006 70);
+  --button-ghost-hover-text: oklch(0.20 0.015 250);
 
   /* Destructive Button */
   --button-destructive-bg: oklch(0.577 0.245 27.325);
@@ -362,14 +362,14 @@
   --button-link-text: oklch(0.6 0.19 262);
   --button-link-hover-text: oklch(0.55 0.19 262);
 
-  /* Default Button (Primary CTA) */
-  --button-default-border: oklch(0.75 0.02 246);
-  --button-default-border-hover: oklch(0.65 0.02 246);
-  --button-default-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  --button-default-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.12);
-  --button-default-shadow-active: 0 2px 8px rgba(0, 0, 0, 0.15);
+  /* Default Button (Primary CTA) - Soft warm shadows */
+  --button-default-border: oklch(0.72 0.015 70);
+  --button-default-border-hover: oklch(0.62 0.015 70);
+  --button-default-shadow: 0 4px 14px rgba(80, 60, 40, 0.12), inset 0 1px 0 rgba(255, 253, 250, 0.15);
+  --button-default-shadow-hover: 0 6px 20px rgba(80, 60, 40, 0.18), inset 0 1px 2px rgba(255, 253, 250, 0.18);
+  --button-default-shadow-active: 0 2px 8px rgba(80, 60, 40, 0.12);
 }
-.dark {
+html.dark, .dark {
   /* Core Theme Colors - Slightly lighter dark for grain visibility */
   --background: oklch(0.14 0.008 260);
   --foreground: oklch(0.95 0.005 236);
@@ -575,6 +575,9 @@
   /* Ambient Glow - Stronger presence */
   --hero-ambient-opacity: 0.06;
   --hero-mouse-glow-opacity: 0.08;
+
+  /* Hero Section Gradient Overlay - Cool blue for dark mode */
+  --hero-gradient-overlay: linear-gradient(135deg, oklch(0.65 0.18 262 / 0.015) 0%, transparent 40%, oklch(0.65 0.18 262 / 0.01) 100%);
 
   /* ===== HERO GLASSMORPHIC CARDS (Dark Mode) ===== */
   /* White/transparent glass cards - more vibrant on dark blue bg */

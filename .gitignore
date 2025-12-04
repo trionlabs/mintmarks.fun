@@ -47,7 +47,7 @@ coverage/
 # AI
 CLAUDE.md
 *.md 
-.txt    
+*.txt
 .gemini
 .claude
 .cursorrules
@@ -62,3 +62,5 @@ web-poc/public/wasm
 mintmarksfun_circuits.json
 
 .cursorignore
+.vercel
+vercel.json

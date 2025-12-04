@@ -147,6 +147,7 @@ export function TerminalProofView({
           style={{
             maxHeight: '180px',
             scrollBehavior: 'smooth',
+            overscrollBehavior: 'contain',
           }}
         >
           {logs.length === 0 ? (

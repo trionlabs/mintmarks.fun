@@ -26,48 +26,48 @@ const HOMEPAGE_SECTIONS = [
   { id: 'whats-possible', label: "What's Possible" },
 ]
 
-// Key for tracking first Gmail connection redirect
-const FIRST_GMAIL_REDIRECT_KEY = 'mintmarks_first_gmail_redirected'
+// Key for tracking first full connection redirect (Gmail + Wallet)
+const FIRST_FULL_CONNECT_REDIRECT_KEY = 'mintmarks_first_full_connect_redirected'
 
 export function Home() {
   const navigate = useNavigate()
   const { isAuthenticated: isGmailConnected, login: gmailLogin, isLoading: isAuthLoading } = useAuth()
   const { isConnected: isWalletConnected } = useWallet()
 
-  // Track previous Gmail connection state for detecting first connect
-  const wasGmailConnectedRef = useRef<boolean | null>(null)
+  // Track previous connection states for detecting first full connect
+  const wasFullyConnectedRef = useRef<boolean | null>(null)
 
   // Check if user is fully connected (both Gmail and Wallet)
   const isFullyConnected = isGmailConnected && isWalletConnected
 
-  // First Gmail connection redirect
+  // First full connection redirect (when both Gmail + Wallet are connected)
   useEffect(() => {
     // Skip if auth is still loading (initial mount)
     if (isAuthLoading) return
 
     // Initialize ref on first non-loading render
-    if (wasGmailConnectedRef.current === null) {
-      wasGmailConnectedRef.current = isGmailConnected
+    if (wasFullyConnectedRef.current === null) {
+      wasFullyConnectedRef.current = isFullyConnected
       return
     }
 
-    // Detect state transition: false → true (just connected)
-    const justConnected = !wasGmailConnectedRef.current && isGmailConnected
+    // Detect state transition: false → true (just became fully connected)
+    const justFullyConnected = !wasFullyConnectedRef.current && isFullyConnected
 
     // Update ref for next render
-    wasGmailConnectedRef.current = isGmailConnected
+    wasFullyConnectedRef.current = isFullyConnected
 
-    if (justConnected) {
-      // Check if this is the first ever Gmail connection
-      const hasRedirectedBefore = localStorage.getItem(FIRST_GMAIL_REDIRECT_KEY)
+    if (justFullyConnected) {
+      // Check if this is the first ever full connection
+      const hasRedirectedBefore = localStorage.getItem(FIRST_FULL_CONNECT_REDIRECT_KEY)
       
       if (!hasRedirectedBefore) {
         // First time! Set flag and redirect
-        localStorage.setItem(FIRST_GMAIL_REDIRECT_KEY, 'true')
+        localStorage.setItem(FIRST_FULL_CONNECT_REDIRECT_KEY, 'true')
         navigate('/create')
       }
     }
-  }, [isGmailConnected, isAuthLoading, navigate])
+  }, [isFullyConnected, isAuthLoading, navigate])
 
   // Mark type selection (standard or unique)
   const [markType, setMarkType] = useState<'standard' | 'unique'>('unique')
@@ -125,11 +125,11 @@ export function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-14 lg:py-0 lg:min-h-[calc(100vh-4rem)] relative z-10">
           {/* Grid: Full width on mobile, split on lg+ */}
           <div className="grid grid-cols-1 lg:grid-cols-12 lg:min-h-[calc(100vh-4rem)]">
-            {/* Left Column: Content - full width on mobile, constrained on desktop */}
+            {/* Left Column: Content - full width on mobile, wider on desktop for hero text */}
             <div
-              className="relative z-20 flex items-center lg:py-20 lg:col-span-5 xl:col-span-4"
+              className="relative z-20 flex items-center lg:py-20 lg:col-span-6 xl:col-span-5 overflow-visible"
             >
-              <div className="w-full text-center lg:text-left">
+              <div className="w-full text-center lg:text-left overflow-visible">
                 {/* Badge - centered on mobile */}
                 <div
                   className="glass-badge inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full mb-5 sm:mb-6 md:mb-8 transition-all duration-300 hero-animate-slide-up"
@@ -138,7 +138,7 @@ export function Home() {
                     className="h-3.5 w-3.5 sm:h-4 sm:w-4 glass-text-primary transition-all duration-300 hero-sparkle-icon"
                   />
                   <span className="text-xs sm:text-sm font-semibold tracking-wider glass-text-primary">
-                    Powered by{' '}
+                    Built with{' '}
                     <a
                       href="https://zk.email/"
                       target="_blank"
@@ -189,9 +189,9 @@ export function Home() {
                   {/* Main Value Proposition */}
                   <div className="space-y-3 sm:space-y-4 md:space-y-5">
                     {/* Main Title - Large and impactful */}
-                    <h1 className="text-[2rem] xs:text-4xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-extrabold leading-[1.05] tracking-tight hero-animate-slide-up hero-delay-200">
-                      <span className="glass-text-primary block">Turn E-mails into</span>
-                      <span className="glass-text-primary block">Private Onchain</span>
+                    <h1 className="text-[1.75rem] xs:text-3xl sm:text-4xl md:text-5xl lg:text-[2.5rem] xl:text-[2.75rem] 2xl:text-5xl font-extrabold leading-[1.1] tracking-tight hero-animate-slide-up hero-delay-200">
+                      <span className="glass-text-primary block">Turn e-mails</span>
+                      <span className="glass-text-primary block">into private Onchain</span>
                       <span 
                         className="block light:text-[var(--status-success)] dark:text-[var(--page-headline-accent)] dark:mix-blend-screen"
                       >Marks</span>
@@ -247,8 +247,8 @@ export function Home() {
               </div>
             </div>
 
-            {/* Right Column: Email Scatter - narrower on lg (7 cols), wider on xl (8 cols) */}
-            <div className="hidden lg:block relative lg:col-span-7 xl:col-span-8 overflow-visible">
+            {/* Right Column: Email Scatter - adjusted for wider left column */}
+            <div className="hidden lg:block relative lg:col-span-6 xl:col-span-7 overflow-visible">
               {/* Overflow container - cards can spill out - push more to right on lg */}
               <div 
                 className="absolute inset-0 lg:pl-12 xl:pl-8 overflow-visible z-10"

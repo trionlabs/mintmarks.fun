@@ -31,93 +31,86 @@ export function WhatYouCanDoSection() {
     {
       id: 'perks',
       icon: Gift,
-      title: 'Unlock Perks',
+      title: 'Unlock Unstoppable Perks',
       users: {
-        description: 'Access exclusive benefits, early access to events, and special rewards based on your verified Mark collection.',
+        description: 'Earn Web3 rewards with your Web2 actions. Your emails are now part of your wallet.',
         examples: [
-          '20% off Devcon tickets with previous attendance Mark',
-          'Access ETHGlobal hacker lounge (verified attendees)',
-          'Tesla owner benefits & referral program access',
-          '30% off Substack annual subscription renewal',
-          'Free merch for zkSync Era deployers',
-          'Priority access for Optimism RetroPGF voters',
-          'Concert VIP upgrade for verified ticket holders',
-          'Alumni discounts with university email proof'
+          'Claim airdrops for GitHub contributions (proven via email)',
+          'Get DeFi student loans with .edu email verification',
+          '30% discount if you prove you own a competitor product',
+          'Spotify Wrapped top 1% listeners exclusive merch',
+          'Free mints for verified Substack subscribers',
+          'Access VIP sales by proving early purchase history',
+          'Uber VIP status unlocking decentralized ride-share perks'
         ]
       },
       builders: {
-        description: 'Build token-gated experiences and exclusive benefits for Mark holders. Create unstoppable perks.',
+        description: 'Reward user history. Create targeted, proven, and sybil-resistant campaigns.',
         examples: [
-          'Gate Discord server by event attendance proof',
-          'Launch early access for newsletter subscribers',
-          'Build exclusive merch store for community members',
-          'Create tiered benefits by Mark collection size',
-          'Airdrop tokens to verified event participants',
-          'VIP content access for long-time supporters',
-          'Loyalty rewards program for repeat attendees',
-          'Referral bonuses for Mark holder advocates'
+          'Vampire Attack: Give perks to your competitor\'s users',
+          'Bootstrap liquidity from verified accredited investors',
+          'Gate beta access for active GitHub maintainers',
+          'Reward loyal customers based on 5+ years of receipts',
+          'Create "Proof of Fan" token drops for artists',
+          'Targeted discounts for verified university students',
+          'Sybil-resistant giveaways (1 person = 1 work email)'
         ]
       }
     },
     {
       id: 'communities',
       icon: Users,
-      title: 'Verifiable Communities',
+      title: 'Private & Verifiable Social',
       users: {
-        description: 'Join private groups where only verified Mark holders can participate. Build trust networks.',
+        description: 'Join exclusive groups where only verified members can participate. Anonymous yet proven identities.',
         examples: [
           'Luma event attendees-only Telegram group',
-          'EthCC speakers private networking forum',
-          'NFT project holders exclusive Discord channel',
-          'Gitcoin grant recipients collaboration network',
-          'Stanford alumni verified community portal',
-          'Y Combinator founders private group',
-          'Published authors peer review network',
-          'Verified journalists industry discussions'
+          'EthCC Speakers private forum (verified via acceptance email)',
+          'Private Discord for verified newsletter subscribers',
+          'Gitcoin Grantees collaboration network',
+          'Campus Discord exclusive to .edu email owners',
+          'Tesla Owners Club (verified via delivery receipt)',
+          'Inner Circle for top 1000 Substack subscribers'
         ]
       },
       builders: {
-        description: 'Create exclusive spaces for your audience. Build verifiable social gates and trust layers.',
+        description: 'Build trusted communities. Keep bots and imposters out.',
         examples: [
           'Launch Discord for verified podcast listeners',
           'Create subscriber-exclusive Telegram channel',
           'Build alumni network with email verification',
           'Gate forum access by event participation',
           'Verified customer feedback and beta groups',
-          'Token-holder governance discussion channels',
-          'Industry professional networking platforms',
-          'Geographic community groups with proof of location'
+          'Governance channels gated by contribution history',
         ]
       }
     },
     {
-      id: 'identity',
+      id: 'composability',
       icon: Shield,
-      title: 'Verifiable Credentials',
+      title: 'Unlock Composability',
       users: {
-        description: 'Build privacy-preserving credentials with ZK proofs. Prove your experience without revealing sensitive data.',
+        description: 'Bring your Web2 data to Web3. Leverage your credit score, reputation, and history on-chain.',
         examples: [
-          'Prove event attendance without sharing email',
-          'Verify newsletter subscription anonymously',
-          'Show purchase history without transaction details',
-          'Prove membership without revealing identity',
-          'Aggregate credentials into zkPassport',
-          'Build composable on-chain reputation',
-          'Verify work experience privately',
-          'Create portable trust across platforms'
+          'Bring your credit score on-chain without revealing details',
+          'Port your Uber rating to decentralized ride-sharing apps',
+          'Use your Airbnb host history to bootstrap reputation',
+          'Prove you are a unique human using old email history',
+          'Generate a zkPassport from your flight confirmations',
+          'Prove creditworthiness for DeFi loans using bank emails',
+          'Mint exclusive NFTs by proving Luma event attendance'
         ]
       },
       builders: {
-        description: 'Build credential systems powered by ZK-Email. Create privacy-first verification infrastructure.',
+        description: 'Use Web2 data as primitives. Reimagine identity, reputation, and credit systems.',
         examples: [
-          'Issue verifiable credentials via email receipts',
-          'Build zkPassport integrations for identity',
-          'Create sybil-resistant voting systems',
-          'Design privacy-preserving KYC alternatives',
-          'Launch credential aggregation platforms',
-          'Build composable reputation protocols',
-          'Create anonymous proof-of-personhood',
-          'Verify qualifications without data exposure'
+          'Build lending protocols using Web2 credit history',
+          'Bootstrap reputation systems using Airbnb/Uber data',
+          'Create instant KYC for apps using bank email verification',
+          'Issue soulbound tokens based on real-world achievements',
+          'Build recruiting platforms with verified employment history',
+          'Design sybil-resistant voting using account age proofs',
+          'Create universal trust scores aggregating Web2 + Web3'
         ]
       }
     }
@@ -132,7 +125,7 @@ export function WhatYouCanDoSection() {
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-black tracking-tighter leading-[0.9]">
               <span style={{ color: 'var(--page-text-primary)' }}>What's Possible with</span>
               <br />
-              <span 
+              <span
                 className="light:text-[var(--status-info)] dark:text-[var(--page-headline-accent)] dark:mix-blend-screen"
               >ZK-Email Marks</span>
             </h2>
@@ -142,7 +135,7 @@ export function WhatYouCanDoSection() {
           </div>
 
           {/* Perspective Toggle - Modern, Minimal, Prominent */}
-          <div 
+          <div
             className="flex items-center gap-1.5 rounded-full p-1 sm:p-1.5 border backdrop-blur-md flex-shrink-0 self-start lg:self-auto"
             style={{
               backgroundColor: 'var(--glass-bg-primary)',
@@ -154,23 +147,23 @@ export function WhatYouCanDoSection() {
               onClick={() => setActivePerspective('users')}
               className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-full transition-all duration-300 ease-out min-h-[44px]"
               style={{
-                backgroundColor: activePerspective === 'users' 
-                  ? 'var(--glass-bg-hover)' 
+                backgroundColor: activePerspective === 'users'
+                  ? 'var(--glass-bg-hover)'
                   : 'transparent',
-                color: activePerspective === 'users' 
-                  ? 'var(--page-text-primary)' 
+                color: activePerspective === 'users'
+                  ? 'var(--page-text-primary)'
                   : 'var(--page-text-muted)',
-                boxShadow: activePerspective === 'users' 
-                  ? 'var(--glass-shadow-hover)' 
+                boxShadow: activePerspective === 'users'
+                  ? 'var(--glass-shadow-hover)'
                   : 'none',
                 border: activePerspective === 'users'
                   ? '1px solid var(--glass-border-hover)'
                   : '1px solid transparent',
-                backdropFilter: activePerspective === 'users' 
-                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))' 
+                backdropFilter: activePerspective === 'users'
+                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))'
                   : 'none',
-                WebkitBackdropFilter: activePerspective === 'users' 
-                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))' 
+                WebkitBackdropFilter: activePerspective === 'users'
+                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))'
                   : 'none',
                 transform: activePerspective === 'users' ? 'scale(1.02)' : 'scale(1)',
                 fontWeight: activePerspective === 'users' ? '600' : '500'
@@ -183,23 +176,23 @@ export function WhatYouCanDoSection() {
               onClick={() => setActivePerspective('builders')}
               className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-full transition-all duration-300 ease-out min-h-[44px]"
               style={{
-                backgroundColor: activePerspective === 'builders' 
-                  ? 'var(--glass-bg-hover)' 
+                backgroundColor: activePerspective === 'builders'
+                  ? 'var(--glass-bg-hover)'
                   : 'transparent',
-                color: activePerspective === 'builders' 
-                  ? 'var(--page-text-primary)' 
+                color: activePerspective === 'builders'
+                  ? 'var(--page-text-primary)'
                   : 'var(--page-text-muted)',
-                boxShadow: activePerspective === 'builders' 
-                  ? 'var(--glass-shadow-hover)' 
+                boxShadow: activePerspective === 'builders'
+                  ? 'var(--glass-shadow-hover)'
                   : 'none',
                 border: activePerspective === 'builders'
                   ? '1px solid var(--glass-border-hover)'
                   : '1px solid transparent',
-                backdropFilter: activePerspective === 'builders' 
-                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))' 
+                backdropFilter: activePerspective === 'builders'
+                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))'
                   : 'none',
-                WebkitBackdropFilter: activePerspective === 'builders' 
-                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))' 
+                WebkitBackdropFilter: activePerspective === 'builders'
+                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))'
                   : 'none',
                 transform: activePerspective === 'builders' ? 'scale(1.02)' : 'scale(1)',
                 fontWeight: activePerspective === 'builders' ? '600' : '500'
@@ -212,7 +205,7 @@ export function WhatYouCanDoSection() {
         </div>
 
         <p className="text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl leading-relaxed font-light" style={{ color: 'var(--page-text-secondary)' }}>
-          {activePerspective === 'users' 
+          {activePerspective === 'users'
             ? 'Your Marks unlock new possibilities in the digital world.'
             : 'Build powerful experiences on top of verified credentials.'
           }
@@ -223,14 +216,14 @@ export function WhatYouCanDoSection() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
         {utilities.map((utility) => {
           const content = utility[activePerspective]
-          
+
           return (
             <div
               key={`${utility.id}-${activePerspective}`}
               className="glass-card-interactive rounded-xl lg:rounded-2xl overflow-hidden group"
             >
               <div className="p-4 sm:p-5 lg:p-6 flex flex-col min-h-[280px] sm:min-h-[300px] md:min-h-[320px] lg:min-h-[360px]">
-                
+
                 {/* Header - Compact */}
                 <div className="mb-3 sm:mb-4">
                   <div className="p-1.5 sm:p-2 rounded-lg glass-inset inline-flex mb-2 sm:mb-3 transition-all duration-300">
@@ -258,8 +251,8 @@ export function WhatYouCanDoSection() {
                       className="flex items-start gap-1.5 sm:gap-2 group/item cursor-default"
                       whileHover={{ x: 1, transition: { duration: 0.15 } }}
                     >
-                      <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 mt-0.5 flex-shrink-0 transition-colors duration-200" 
-                        style={{ color: 'var(--page-text-muted)' }} 
+                      <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 mt-0.5 flex-shrink-0 transition-colors duration-200"
+                        style={{ color: 'var(--page-text-muted)' }}
                       />
                       <span className="text-[11px] sm:text-xs leading-relaxed transition-colors duration-200 line-clamp-1" style={{ color: 'var(--page-text-secondary)' }}>
                         {example}
@@ -279,8 +272,8 @@ export function WhatYouCanDoSection() {
                         className="flex items-start gap-2.5 group/item cursor-default"
                         whileHover={{ x: 1, transition: { duration: 0.15 } }}
                       >
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 transition-colors duration-200" 
-                          style={{ color: 'var(--page-text-muted)' }} 
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 transition-colors duration-200"
+                          style={{ color: 'var(--page-text-muted)' }}
                         />
                         <span className="text-sm leading-relaxed transition-colors duration-200" style={{ color: 'var(--page-text-secondary)' }}>
                           {example}
@@ -298,8 +291,8 @@ export function WhatYouCanDoSection() {
                       className="flex items-center gap-1.5 mt-2 px-2 py-1.5 rounded-md transition-all duration-300 hover:bg-[var(--glass-bg-hover)] group/btn w-full min-h-[32px]"
                     >
                       <span className="text-[10px] sm:text-xs font-semibold tracking-wide" style={{ color: 'var(--page-text-muted)' }}>
-                        {expandedCards[utility.id] 
-                          ? 'Show Less' 
+                        {expandedCards[utility.id]
+                          ? 'Show Less'
                           : `+${content.examples.length - 3} more`
                         }
                       </span>
@@ -316,7 +309,7 @@ export function WhatYouCanDoSection() {
                 {/* Badge - Compact */}
                 <div className="mt-3 pt-3 border-t border-[var(--glass-border)]">
                   <div className="inline-flex items-center px-2 py-1 rounded-md border"
-                    style={{ 
+                    style={{
                       backgroundColor: 'var(--glass-bg-hover)',
                       borderColor: 'var(--glass-border-hover)'
                     }}
