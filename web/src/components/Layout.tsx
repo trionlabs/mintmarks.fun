@@ -168,31 +168,33 @@ export function Layout({ children }: LayoutProps) {
 
         <nav className={cn("relative h-full flex items-center justify-between", containerClass)}>
           {/* Logo - Icon + Text */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to="/" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
             <img
               src="/logo-icon.svg"
               alt="MintMarks"
-              className="h-6 w-6 sm:h-7 sm:w-7 transition-opacity group-hover:opacity-90"
+              className="h-5 w-5 sm:h-7 sm:w-7 transition-opacity group-hover:opacity-90"
               style={{
                 filter: theme === 'dark' 
                   ? 'brightness(0) invert(1)' 
                   : 'brightness(0)',
               }}
             />
+            {/* Mobile: short text, Desktop: full text */}
             <span
-              className="text-xl sm:text-2xl font-semibold"
+              className="text-lg sm:text-2xl font-semibold"
               style={{
                 color: 'var(--page-text-primary)',
                 textShadow: theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
                 fontFamily: "'Cute Font', ui-sans-serif, system-ui, sans-serif",
               }}
             >
-              MINTMARKS.FUN
+              <span className="sm:hidden">MARKS</span>
+              <span className="hidden sm:inline">MINTMARKS.FUN</span>
             </span>
           </Link>
 
           {/* Navigation Items + Auth */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-0.5 sm:gap-2">
             {/* Nav Links - Neutral colors */}
             {navItems.map((item) => {
               const isActive = location.pathname === item.path
@@ -201,7 +203,7 @@ export function Layout({ children }: LayoutProps) {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    'flex items-center gap-2 px-3 sm:px-4 py-2',
+                    'flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2',
                     'text-sm font-medium rounded-md',
                     'transition-all duration-300 backdrop-blur-sm',
                     'border border-transparent',
@@ -224,7 +226,7 @@ export function Layout({ children }: LayoutProps) {
             {/* Theme Toggle - Minimal */}
             <button
               onClick={toggleTheme}
-              className="p-2 opacity-50 hover:opacity-100 transition-opacity duration-200"
+              className="p-1.5 sm:p-2 opacity-50 hover:opacity-100 transition-opacity duration-200"
               aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {theme === 'dark' ? (
