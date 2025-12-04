@@ -47,6 +47,7 @@ export interface FilterCategory {
   label: string
   gmailQuery: string // Base Gmail query for this source
   subcategories: FilterSubcategory[]
+  subjectOnly?: boolean // If true, Gmail query keywords search only in subject
 }
 
 // ============================================

@@ -1,0 +1,345 @@
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Gift, Users, Shield, User, Code, ChevronDown, CheckCircle2 } from 'lucide-react'
+
+type Perspective = 'users' | 'builders'
+
+// Animation variants for list item animations
+const exampleVariants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0 }
+}
+
+const expandVariants = {
+  hidden: { opacity: 0, height: 0, x: -10 },
+  visible: { opacity: 1, height: 'auto', x: 0 },
+  exit: { opacity: 0, height: 0, x: -10 }
+}
+
+export function WhatYouCanDoSection() {
+  const [activePerspective, setActivePerspective] = useState<Perspective>('users')
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
+
+  const toggleExpand = (utilityId: string) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [utilityId]: !prev[utilityId]
+    }))
+  }
+
+  const utilities = [
+    {
+      id: 'perks',
+      icon: Gift,
+      title: 'Unlock Unstoppable Perks',
+      users: {
+        description: 'Earn Web3 rewards with your Web2 actions. Your emails are now part of your wallet.',
+        examples: [
+          'Claim airdrops for GitHub contributions (proven via email)',
+          'Get DeFi student loans with .edu email verification',
+          '30% discount if you prove you own a competitor product',
+          'Spotify Wrapped top 1% listeners exclusive merch',
+          'Free mints for verified Substack subscribers',
+          'Access VIP sales by proving early purchase history',
+          'Uber VIP status unlocking decentralized ride-share perks'
+        ]
+      },
+      builders: {
+        description: 'Reward user history. Create targeted, proven, and sybil-resistant campaigns.',
+        examples: [
+          'Vampire Attack: Give perks to your competitor\'s users',
+          'Bootstrap liquidity from verified accredited investors',
+          'Gate beta access for active GitHub maintainers',
+          'Reward loyal customers based on 5+ years of receipts',
+          'Create "Proof of Fan" token drops for artists',
+          'Targeted discounts for verified university students',
+          'Sybil-resistant giveaways (1 person = 1 work email)'
+        ]
+      }
+    },
+    {
+      id: 'communities',
+      icon: Users,
+      title: 'Private & Verifiable Social',
+      users: {
+        description: 'Join exclusive groups where only verified members can participate. Anonymous yet proven identities.',
+        examples: [
+          'Luma event attendees-only Telegram group',
+          'EthCC Speakers private forum (verified via acceptance email)',
+          'Private Discord for verified newsletter subscribers',
+          'Gitcoin Grantees collaboration network',
+          'Campus Discord exclusive to .edu email owners',
+          'Tesla Owners Club (verified via delivery receipt)',
+          'Inner Circle for top 1000 Substack subscribers'
+        ]
+      },
+      builders: {
+        description: 'Build trusted communities. Keep bots and imposters out.',
+        examples: [
+          'Launch Discord for verified podcast listeners',
+          'Create subscriber-exclusive Telegram channel',
+          'Build alumni network with email verification',
+          'Gate forum access by event participation',
+          'Verified customer feedback and beta groups',
+          'Governance channels gated by contribution history',
+        ]
+      }
+    },
+    {
+      id: 'composability',
+      icon: Shield,
+      title: 'Unlock Composability',
+      users: {
+        description: 'Bring your Web2 data to Web3. Leverage your credit score, reputation, and history on-chain.',
+        examples: [
+          'Bring your credit score on-chain without revealing details',
+          'Port your Uber rating to decentralized ride-sharing apps',
+          'Use your Airbnb host history to bootstrap reputation',
+          'Prove you are a unique human using old email history',
+          'Generate a zkPassport from your flight confirmations',
+          'Prove creditworthiness for DeFi loans using bank emails',
+          'Mint exclusive NFTs by proving Luma event attendance'
+        ]
+      },
+      builders: {
+        description: 'Use Web2 data as primitives. Reimagine identity, reputation, and credit systems.',
+        examples: [
+          'Build lending protocols using Web2 credit history',
+          'Bootstrap reputation systems using Airbnb/Uber data',
+          'Create instant KYC for apps using bank email verification',
+          'Issue soulbound tokens based on real-world achievements',
+          'Build recruiting platforms with verified employment history',
+          'Design sybil-resistant voting using account age proofs',
+          'Create universal trust scores aggregating Web2 + Web3'
+        ]
+      }
+    }
+  ]
+
+  return (
+    <section id="whats-possible" className="home-section relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 lg:py-24 xl:py-28">
+      {/* Section Header - Compact */}
+      <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-14">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6 mb-4">
+          <div className="flex-1 space-y-1 sm:space-y-2">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-black tracking-tighter leading-[0.9]">
+              <span style={{ color: 'var(--page-text-primary)' }}>What's Possible with</span>
+              <br />
+              <span
+                className="light:text-[var(--status-info)] dark:text-[var(--page-headline-accent)] dark:mix-blend-screen"
+              >ZK-Email Marks</span>
+            </h2>
+            <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-light tracking-wide" style={{ color: 'var(--page-text-muted)' }}>
+              Private. Verifiable. Composable.
+            </h3>
+          </div>
+
+          {/* Perspective Toggle - Modern, Minimal, Prominent */}
+          <div
+            className="flex items-center gap-1.5 rounded-full p-1 sm:p-1.5 border backdrop-blur-md flex-shrink-0 self-start lg:self-auto"
+            style={{
+              backgroundColor: 'var(--glass-bg-primary)',
+              borderColor: 'var(--glass-border-hover)',
+              boxShadow: 'var(--glass-shadow)'
+            }}
+          >
+            <button
+              onClick={() => setActivePerspective('users')}
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-full transition-all duration-300 ease-out min-h-[44px]"
+              style={{
+                backgroundColor: activePerspective === 'users'
+                  ? 'var(--glass-bg-hover)'
+                  : 'transparent',
+                color: activePerspective === 'users'
+                  ? 'var(--page-text-primary)'
+                  : 'var(--page-text-muted)',
+                boxShadow: activePerspective === 'users'
+                  ? 'var(--glass-shadow-hover)'
+                  : 'none',
+                border: activePerspective === 'users'
+                  ? '1px solid var(--glass-border-hover)'
+                  : '1px solid transparent',
+                backdropFilter: activePerspective === 'users'
+                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))'
+                  : 'none',
+                WebkitBackdropFilter: activePerspective === 'users'
+                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))'
+                  : 'none',
+                transform: activePerspective === 'users' ? 'scale(1.02)' : 'scale(1)',
+                fontWeight: activePerspective === 'users' ? '600' : '500'
+              }}
+            >
+              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="text-xs sm:text-sm">Users</span>
+            </button>
+            <button
+              onClick={() => setActivePerspective('builders')}
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-full transition-all duration-300 ease-out min-h-[44px]"
+              style={{
+                backgroundColor: activePerspective === 'builders'
+                  ? 'var(--glass-bg-hover)'
+                  : 'transparent',
+                color: activePerspective === 'builders'
+                  ? 'var(--page-text-primary)'
+                  : 'var(--page-text-muted)',
+                boxShadow: activePerspective === 'builders'
+                  ? 'var(--glass-shadow-hover)'
+                  : 'none',
+                border: activePerspective === 'builders'
+                  ? '1px solid var(--glass-border-hover)'
+                  : '1px solid transparent',
+                backdropFilter: activePerspective === 'builders'
+                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))'
+                  : 'none',
+                WebkitBackdropFilter: activePerspective === 'builders'
+                  ? 'blur(var(--glass-blur)) saturate(var(--glass-saturate))'
+                  : 'none',
+                transform: activePerspective === 'builders' ? 'scale(1.02)' : 'scale(1)',
+                fontWeight: activePerspective === 'builders' ? '600' : '500'
+              }}
+            >
+              <Code className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="text-xs sm:text-sm">Builders</span>
+            </button>
+          </div>
+        </div>
+
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl leading-relaxed font-light" style={{ color: 'var(--page-text-secondary)' }}>
+          {activePerspective === 'users'
+            ? 'Your Marks unlock new possibilities in the digital world.'
+            : 'Build powerful experiences on top of verified credentials.'
+          }
+        </p>
+      </div>
+
+      {/* 3-Column Grid - Compact */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+        {utilities.map((utility) => {
+          const content = utility[activePerspective]
+
+          return (
+            <div
+              key={`${utility.id}-${activePerspective}`}
+              className="glass-card-interactive rounded-xl lg:rounded-2xl overflow-hidden group"
+            >
+              <div className="p-4 sm:p-5 lg:p-6 flex flex-col min-h-[280px] sm:min-h-[300px] md:min-h-[320px] lg:min-h-[360px]">
+
+                {/* Header - Compact */}
+                <div className="mb-3 sm:mb-4">
+                  <div className="p-1.5 sm:p-2 rounded-lg glass-inset inline-flex mb-2 sm:mb-3 transition-all duration-300">
+                    <utility.icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--page-icon-primary)' }} />
+                  </div>
+                  <h3 className="text-lg sm:text-xl lg:text-xl font-bold tracking-tight leading-[1.1]" style={{ color: 'var(--page-text-primary)' }}>
+                    {utility.title}
+                  </h3>
+                </div>
+
+                {/* Description - Compact */}
+                <p className="text-xs sm:text-sm leading-relaxed mb-3 line-clamp-2" style={{ color: 'var(--page-text-secondary)' }}>
+                  {content.description}
+                </p>
+
+                {/* Examples - Compact (show 3 instead of 4) */}
+                <div className="space-y-1.5 sm:space-y-2 mb-auto">
+                  {content.examples.slice(0, 3).map((example, idx) => (
+                    <motion.div
+                      key={example}
+                      variants={exampleVariants}
+                      initial="hidden"
+                      animate="visible"
+                      transition={{ delay: 0.15 + idx * 0.04, duration: 0.3, ease: "easeOut" }}
+                      className="flex items-start gap-1.5 sm:gap-2 group/item cursor-default"
+                      whileHover={{ x: 1, transition: { duration: 0.15 } }}
+                    >
+                      <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 mt-0.5 flex-shrink-0 transition-colors duration-200"
+                        style={{ color: 'var(--page-text-muted)' }}
+                      />
+                      <span className="text-[11px] sm:text-xs leading-relaxed transition-colors duration-200 line-clamp-1" style={{ color: 'var(--page-text-secondary)' }}>
+                        {example}
+                      </span>
+                    </motion.div>
+                  ))}
+
+                  <AnimatePresence>
+                    {expandedCards[utility.id] && content.examples.slice(4).map((example, idx) => (
+                      <motion.div
+                        key={example}
+                        variants={expandVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        transition={{ delay: idx * 0.04, duration: 0.25, ease: "easeOut" }}
+                        className="flex items-start gap-2.5 group/item cursor-default"
+                        whileHover={{ x: 1, transition: { duration: 0.15 } }}
+                      >
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 transition-colors duration-200"
+                          style={{ color: 'var(--page-text-muted)' }}
+                        />
+                        <span className="text-sm leading-relaxed transition-colors duration-200" style={{ color: 'var(--page-text-secondary)' }}>
+                          {example}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+
+                  {content.examples.length > 3 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleExpand(utility.id)
+                      }}
+                      className="flex items-center gap-1.5 mt-2 px-2 py-1.5 rounded-md transition-all duration-300 hover:bg-[var(--glass-bg-hover)] group/btn w-full min-h-[32px]"
+                    >
+                      <span className="text-[10px] sm:text-xs font-semibold tracking-wide" style={{ color: 'var(--page-text-muted)' }}>
+                        {expandedCards[utility.id]
+                          ? 'Show Less'
+                          : `+${content.examples.length - 3} more`
+                        }
+                      </span>
+                      <motion.div
+                        animate={{ rotate: expandedCards[utility.id] ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" style={{ color: 'var(--page-text-muted)' }} />
+                      </motion.div>
+                    </button>
+                  )}
+                </div>
+
+                {/* Badge - Compact */}
+                <div className="mt-3 pt-3 border-t border-[var(--glass-border)]">
+                  <div className="inline-flex items-center px-2 py-1 rounded-md border"
+                    style={{
+                      backgroundColor: 'var(--glass-bg-hover)',
+                      borderColor: 'var(--glass-border-hover)'
+                    }}
+                  >
+                    <span className="text-[10px] font-bold tracking-wider uppercase" style={{ color: 'var(--page-text-primary)' }}>
+                      {activePerspective === 'users' ? 'For You' : 'Build It'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Bottom CTA - Compact */}
+      <div className="mt-6 sm:mt-8 md:mt-10 lg:mt-12 text-center">
+        <div className="glass-badge inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 rounded-lg backdrop-blur-xl">
+          <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 flex-shrink-0" style={{ color: 'var(--page-icon-primary)' }} />
+          <p className="text-xs sm:text-sm" style={{ color: 'var(--page-text-secondary)' }}>
+            <span className="font-semibold" style={{ color: 'var(--page-text-primary)' }}>
+              Email Marks are unstoppable.
+            </span>
+            {' '}
+            <span style={{ color: 'var(--page-text-muted)' }}>
+              Private. Composable.
+            </span>
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}

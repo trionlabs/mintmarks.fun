@@ -3,12 +3,41 @@
    Scrollbar, presets, and misc utilities
    ============================================ */
 
+/* 
+ * Smooth scrolling is handled by Lenis.
+ * CSS scroll-behavior is disabled to prevent conflicts.
+ * Lenis provides buttery-smooth momentum scrolling.
+ */
+
+/* Scroll snap points for homepage sections */
+.home-section {
+  scroll-snap-align: start;
+  scroll-margin-top: 4rem; /* Account for sticky header */
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Scrollbar utilities */
-.no-scrollbar {
+.no-scrollbar,
+.scrollbar-hide {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
-.no-scrollbar::-webkit-scrollbar {
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari, Opera */
 }
 
@@ -35,4 +64,7 @@
 .animate-fade-in {
   animation: fade-in 0.2s ease-in-out;
 }
+
+
+
 

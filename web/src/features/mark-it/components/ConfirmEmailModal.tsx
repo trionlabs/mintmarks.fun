@@ -78,7 +78,7 @@ export function ConfirmEmailModal({
             >
               <Info className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--page-text-muted)' }} />
               <span className="text-[10px] font-medium leading-tight" style={{ color: 'var(--page-text-secondary)' }}>
-                ZK-email proof → Mint on Base
+                Transform Your Email to On-chain, Verifiable NFTs with Privacy
               </span>
             </div>
           </div>

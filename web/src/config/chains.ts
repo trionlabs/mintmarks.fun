@@ -31,8 +31,8 @@ import { NETWORKS } from './contracts'
  * 3. Add case in getViemChain below
  */
 export const ACTIVE_NETWORK_IDS = [
-  NETWORKS.baseSepolia.chainId,      // 84532 - Base Sepolia (testnet)
-  NETWORKS.ethereumSepolia.chainId,  // 11155111 - Ethereum Sepolia (testnet)
+  NETWORKS.ethereumSepolia.chainId,  // 11155111 - Ethereum Sepolia (testnet) - DEFAULT
+  // NETWORKS.baseSepolia.chainId,   // 84532 - Base Sepolia (coming soon)
 ] as const
 
 export type ActiveNetworkId = typeof ACTIVE_NETWORK_IDS[number]

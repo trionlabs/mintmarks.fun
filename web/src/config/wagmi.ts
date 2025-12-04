@@ -3,6 +3,11 @@
  * Supports browser extension wallets only (no WalletConnect/mobile).
  * 
  * Multichain support: Base Sepolia, Base, Ethereum Sepolia, Ethereum
+ * 
+ * IMPORTANT: shimDisconnect is enabled for injected connector to prevent
+ * automatic reconnection when window.ethereum exists but user hasn't
+ * explicitly connected. This is critical for the CDP + external wallet
+ * dual-auth flow.
  */
 
 import { createConfig, createStorage, http } from 'wagmi'
@@ -20,6 +25,11 @@ const isBrowser = typeof window !== 'undefined'
  * - Base Sepolia (testnet)
  * - Ethereum (mainnet)
  * - Base (mainnet)
+ * 
+ * SECURITY: shimDisconnect ensures wallet connection state is properly
+ * tracked in localStorage. When user disconnects, they stay disconnected
+ * until they explicitly reconnect - preventing unwanted auto-connect
+ * when window.ethereum is present (e.g., MetaMask installed).
  */
 export const wagmiConfig = createConfig({
   chains: [baseSepolia, base, sepolia, mainnet],
@@ -31,7 +41,12 @@ export const wagmiConfig = createConfig({
     : undefined,
   connectors: [
     // Injected wallets: MetaMask, Rabby, etc.
-    injected(),
+    // shimDisconnect: true - Tracks disconnect state in localStorage
+    // This prevents auto-reconnect when window.ethereum exists but user
+    // hasn't explicitly connected their browser wallet.
+    injected({
+      shimDisconnect: true,
+    }),
     // Coinbase Wallet browser extension
     coinbaseWallet({ appName: 'MintMarks' }),
     // NO walletConnect - requires project ID, mobile focused

@@ -16,12 +16,15 @@ const buttonVariants = cva(
         // Default - Solid with subtle glass effect
         default: `
           bg-[var(--figma-cta1-bg)] text-[var(--figma-cta1-text)]
-          border-2 border-[var(--figma-cta1-border)]
+          border border-[var(--button-default-border)]
           backdrop-blur-sm
-          shadow-[0_4px_14px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]
-          hover:shadow-[0_6px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.15)]
-          hover:bg-[var(--figma-cta1-hover-bg)] hover:-translate-y-0.5
-          active:bg-[var(--figma-cta1-active-bg)] active:translate-y-0 active:shadow-[0_2px_8px_rgba(0,0,0,0.15)]
+          shadow-[var(--button-default-shadow)]
+          relative
+          hover:bg-[var(--figma-cta1-hover-bg)]
+          hover:border-[var(--button-default-border-hover)]
+          hover:-translate-y-0.5
+          hover:shadow-[var(--button-default-shadow-hover)]
+          active:bg-[var(--figma-cta1-active-bg)] active:translate-y-0 active:shadow-[var(--button-default-shadow-active)]
         `,
         // Outline - Pure blur, transparent background
         outline: `
@@ -35,16 +38,18 @@ const buttonVariants = cva(
           hover:-translate-y-0.5
           active:translate-y-0
         `,
-        // Ghost - Subtle glass on hover
+        // Ghost - Subtle glass on hover (consistent with navigation links)
         ghost: `
           bg-transparent
           border border-transparent
           text-[var(--button-ghost-text)]
-          hover:bg-[var(--glass-bg-tertiary)]
-          hover:backdrop-blur-md
-          hover:border-[var(--glass-border)]/50
+          backdrop-blur-sm
+          hover:bg-[var(--glass-bg-primary)]
+          hover:backdrop-blur-sm
+          hover:border-[var(--glass-border-hover)]/60
           hover:text-[var(--button-ghost-hover-text)]
-          rounded-lg
+          hover:shadow-sm
+          rounded-md
         `,
         // Destructive - Red glass
         destructive: `
@@ -64,9 +69,10 @@ const buttonVariants = cva(
           text-[var(--figma-cta3-text)]
           backdrop-blur-[32px]
           shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]
-          hover:bg-[rgba(255,255,255,0.12)]
-          hover:border-[rgba(255,255,255,0.2)]
+          hover:bg-[rgba(10,75,255,0.12)] dark:hover:bg-[rgba(255,255,255,0.12)]
+          hover:border-[rgba(10,75,255,0.3)] dark:hover:border-[rgba(255,255,255,0.2)]
           hover:-translate-y-0.5
+          hover:shadow-[0_4px_12px_rgba(10,75,255,0.15),inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.15)]
           active:translate-y-0
         `,
         // Link - No glass
@@ -131,9 +137,13 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
+    const isDefaultVariant = !variant || variant === 'default'
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          isDefaultVariant && 'btn-default-hover'
+        )}
         ref={ref}
         {...props}
       />

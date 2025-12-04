@@ -3,8 +3,10 @@
    Enhanced with hover states, transitions, and dark mode support
    ============================================ */
 
-/* Base Glass Backgrounds */
+/* Base Glass Backgrounds - Ultra Transparent with Blend Mode */
 @utility glass-primary {
+  position: relative;
+  z-index: 30;
   background: var(--glass-bg-primary);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -26,6 +28,28 @@
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glass with Soft Light Blend - Enhanced depth for light mode */
+@utility glass-blend-soft {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  mix-blend-mode: soft-light;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glass with Screen Blend - Enhanced depth for dark mode */
+@utility glass-blend-screen {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  mix-blend-mode: screen;
   transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -73,11 +97,151 @@
 /* Context7 Performance Optimization: Use filter drop-shadow instead of box-shadow for animations */
 /* drop-shadow is GPU-accelerated and processed by compositor */
 @utility glass-card-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
   &:hover {
     background: var(--glass-bg-hover);
-    filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.1));
-    transform: translateY(-2px);
+    box-shadow: var(--glass-shadow-hover);
     border-color: var(--glass-border-hover);
+  }
+}
+
+/* Glass card with all interactive states - replaces inline event handlers */
+/* Use with: className="glass-card-interactive" */
+@utility glass-card-interactive {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-hover);
+  }
+  
+  &:active {
+    box-shadow: var(--glass-shadow);
+  }
+}
+
+/* Email Card - Ultra transparent glass with hover lift effect */
+/* Alternative: Using CSS filters + gradient overlay instead of blend mode */
+@utility glass-email-card {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: all 0.2s ease;
+  position: relative;
+  will-change: backdrop-filter;
+  
+  /* Gradient overlay for depth (alternative to blend mode) */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+  }
+  
+  &:hover {
+    background: var(--glass-bg-hover);
+    backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+    -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-hover);
+    transform: translateY(-2px);
+    
+    &::after {
+      opacity: 0.5;
+    }
+  }
+}
+
+/* Light mode - subtle gradient overlay for depth with minimal border */
+:not(.dark) .glass-email-card::after {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  opacity: 0.3;
+}
+
+:not(.dark) .glass-email-card:hover::after {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* Dark mode - luminous gradient overlay with bright border */
+.dark .glass-email-card::after {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  opacity: 0.4;
+}
+
+.dark .glass-email-card:hover::after {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Email Icon Container - Glass border style */
+.glass-icon-container {
+  border: 1px solid var(--glass-border);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.glass-icon-container:hover,
+.glass-email-card:hover .glass-icon-container {
+  border-color: var(--glass-border-hover);
+}
+
+/* Dark mode icon container - brighter border */
+.dark .glass-icon-container {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass-icon-container:hover,
+.dark .glass-email-card:hover .glass-icon-container {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Dark mode email card overlay */
+@utility glass-email-card-dark {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.01) 0%,
+      rgba(255, 255, 255, 0.003) 50%,
+      rgba(255, 255, 255, 0.008) 100%
+    );
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+  
+  &:hover::before {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(255, 255, 255, 0.01) 50%,
+      rgba(255, 255, 255, 0.015) 100%
+    );
   }
 }
 
@@ -299,9 +463,58 @@
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
   box-shadow: 
-    inset 0 2px 4px rgba(0, 0, 0, 0.05),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 2px rgba(0, 0, 0, 0.02),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
   transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Icon colors inside glass-inset */
+  & svg,
+  & > * {
+    color: var(--page-text-secondary);
+  }
+  
+  &:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: 
+      inset 0 1px 2px rgba(0, 0, 0, 0.03),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+    transform: translateY(0);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 
+      inset 0 1px 2px rgba(0, 0, 0, 0.02),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Light mode - minimize inset shadows */
+:not(.dark) .glass-inset {
+  box-shadow: 
+    inset 0 0.5px 1px rgba(0, 0, 0, 0.01),
+    inset 0 -0.5px 0 rgba(255, 255, 255, 0.03);
+}
+
+:not(.dark) .glass-inset:hover {
+  box-shadow: 
+    inset 0 0.5px 1px rgba(0, 0, 0, 0.02),
+    inset 0 -0.5px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Dark mode enhancements for glass-inset */
+.dark .glass-inset {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.dark .glass-inset:hover {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 /* Glass Surface - For layered UI */
@@ -345,9 +558,9 @@
 
 /* Glass Overlay - For modals/dialogs */
 @utility glass-overlay {
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(8px) saturate(150%);
-  -webkit-backdrop-filter: blur(8px) saturate(150%);
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
 }
 
 /* Dark mode specific: Glass Overlay */
@@ -423,10 +636,10 @@
   color: var(--page-text-primary);
 }
 
-/* Light mode specific card shadows */
+/* Light mode specific card shadows - minimal */
 :root .card-figma,
 :root .card-figma-with-blur {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01), 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 /* ============================================
@@ -436,21 +649,23 @@
 
 /* Glass Modal/Dialog preset */
 @utility glass-modal {
-  background: var(--glass-bg-primary);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  /* Light mode: More opaque white for readability */
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(255, 255, 255, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
+/* Dark mode: More transparent for glass effect */
 .dark .glass-modal {
+  background: rgba(255, 255, 255, 0.03);
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(99, 150, 244, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
@@ -577,3 +792,202 @@
   -webkit-backdrop-filter: blur(32px) saturate(220%);
 }
 
+/* ============================================
+   STATS CARD - Minimal Modern Glass
+   Light: subtle bg, soft border, minimal shadow
+   No blue tint - neutral grays only
+   ============================================ */
+
+.stats-card {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  border-radius: 0.75rem;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.2s ease;
+}
+
+.stats-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-hover);
+}
+
+
+.dark .stats-card {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.dark .stats-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow-hover);
+}
+
+/* ============================================
+   NFT CARD - Minimal Modern Glass
+   Light: subtle bg, soft border, minimal shadow
+   No blue tint - neutral grays only
+   ============================================ */
+
+.nft-card {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.nft-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-hover);
+}
+
+
+/* Dark mode NFT card - Glass */
+.dark .nft-card {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.dark .nft-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow-hover);
+}
+
+/* NFT Card Icon Circle - Minimal Glass */
+.nft-card-icon-circle {
+  background: var(--glass-bg-secondary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  transition: all 0.2s ease;
+}
+
+.nft-card:hover .nft-card-icon-circle {
+  background: var(--glass-bg-primary);
+  border-color: var(--glass-border-hover);
+}
+
+/* ============================================
+   FEATURE CARD - Minimal Modern Glass
+   Light: subtle bg, soft border, minimal shadow
+   No blue tint - neutral grays only
+   ============================================ */
+
+.feature-card {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.feature-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-hover);
+}
+
+
+/* Dark mode feature card - Glass */
+.dark .feature-card {
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.dark .feature-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow-hover);
+}
+
+/* ============================================
+   ICON BOX - Glass for feature cards
+   Same style as dropdown icons for consistency
+   ============================================ */
+
+.glass-icon-box {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  background: var(--glass-bg-secondary);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  transition: all 0.2s ease;
+}
+
+.feature-card:hover .glass-icon-box {
+  background: var(--glass-bg-primary);
+  border-color: var(--glass-border-hover);
+}
+
+.dark .glass-icon-box {
+  background: var(--glass-bg-secondary);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: var(--glass-border);
+}
+
+/* Icon color - visible, theme-aware */
+.glass-icon-box svg {
+  color: var(--page-text-secondary);
+  opacity: 0.85;
+}
+
+.dark .glass-icon-box svg {
+  color: var(--page-text-secondary);
+  opacity: 0.85;
+}
+
+.dark .feature-card:hover .glass-icon-box {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.feature-card:hover .glass-icon-box svg,
+.dark .feature-card:hover .glass-icon-box svg {
+  opacity: 1;
+}
+
+/* ============================================
+   ICON CIRCLE - Glass effect for empty states
+   ============================================ */
+
+.glass-icon-circle {
+  background: var(--glass-bg-secondary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+}

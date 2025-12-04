@@ -175,9 +175,8 @@ export function CreateMark() {
         }
 
         setNextPageToken(result.nextPageToken)
-        setHasMore(
-          !!result.nextPageToken && result.emails.length === EMAILS_PER_PAGE
-        )
+        // If Gmail returns a nextPageToken, there are more emails to fetch
+        setHasMore(!!result.nextPageToken)
 
         if (isInitialLoad && result.emails.length === 0) {
           showToast('No event emails found matching your filters.', 'info')
@@ -335,7 +334,7 @@ export function CreateMark() {
               className="text-xs sm:text-sm font-semibold tracking-wide uppercase"
               style={{ color: 'var(--page-text-primary)', letterSpacing: '0.05em' }}
             >
-              Own Your Commitments
+              Private. On-chain
             </span>
           </div>
 
@@ -397,10 +396,11 @@ export function CreateMark() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
-            <div
-              className="w-20 h-20 rounded-full flex items-center justify-center bg-[var(--Controls-Idle)] border border-[var(--glass-border)] backdrop-blur-sm transition-all"
+<div
+              className="w-20 h-20 rounded-full flex items-center justify-center glass-inset transition-all"
+              style={{ color: 'var(--Controls-Selected)' }}
             >
-              <Mail className="h-10 w-10 text-[var(--Controls-Selected)]" />
+               <Mail className="h-10 w-10" />
             </div>
             <Button size="lg" onClick={gmailLogin} className="gap-2">
               <Mail className="h-5 w-5" />
@@ -498,13 +498,14 @@ export function CreateMark() {
           {!isLoading && emails.length === 0 && !error && (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center bg-[var(--Controls-Idle)] border border-[var(--glass-border)] backdrop-blur-sm transition-all"
+<div
+                  className="w-16 h-16 rounded-full flex items-center justify-center glass-inset transition-all"
+                  style={{ color: 'var(--Controls-Selected)' }}
                 >
-                  {hasActiveFilters ? (
-                    <FilterX className="h-8 w-8 text-[var(--Controls-Selected)]" />
+                   {hasActiveFilters ? (
+                    <FilterX className="h-8 w-8" />
                   ) : (
-                    <Mail className="h-8 w-8 text-[var(--Controls-Selected)]" />
+                    <Mail className="h-8 w-8" />
                   )}
                 </div>
                 <h3
@@ -570,7 +571,7 @@ export function CreateMark() {
                     <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                       {/* Email Icon */}
                       <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105"
+                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105 glass-icon-container"
                         style={{ background: SOURCE_COLORS[email.source].bg }}
                       >
                         <Mail

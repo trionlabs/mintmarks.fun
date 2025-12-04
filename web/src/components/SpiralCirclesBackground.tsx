@@ -90,8 +90,8 @@ interface SpiralCirclesBackgroundProps {
 }
 
 function SpiralCirclesBackgroundInner({ 
-  count = 20, 
-  speed = 1, 
+  count = 80, 
+  speed = 0.5, 
   paused = false 
 }: SpiralCirclesBackgroundProps) {
   const [isVisible, setIsVisible] = useState(true)
@@ -110,13 +110,13 @@ function SpiralCirclesBackgroundInner({
     const goldenAngle = 137.5 * (Math.PI / 180)
     return Array.from({ length: count }, (_, i) => {
       const angle = i * goldenAngle
-      const radius = Math.sqrt(i) * 10
+      const radius = Math.sqrt(i) * 15
       return {
         id: i,
         x: 50 + Math.cos(angle) * radius,
         y: 50 + Math.sin(angle) * radius,
         size: 24 + (i % 4) * 6, // 24-42px
-        opacity: 0.10 + (i % 5) * 0.025, // 0.10-0.20
+        opacity: 0.12 + (i % 5) * 0.03, // 0.12-0.24 (slightly more visible)
         Icon: ICONS[i % ICONS.length],
         delay: (i * 0.15) % 3, // Staggered animation
       }

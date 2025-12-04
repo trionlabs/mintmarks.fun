@@ -79,8 +79,8 @@ export const NETWORKS = {
 export type NetworkKey = keyof typeof NETWORKS;
 export type CdpNetwork = typeof NETWORKS[NetworkKey]['network'];
 
-// Current active network
-export const ACTIVE_NETWORK = NETWORKS.baseSepolia;
+// Current active network (default for new users)
+export const ACTIVE_NETWORK = NETWORKS.ethereumSepolia;
 
 // ============================================
 // TestMintmarks Contract (Base Sepolia)

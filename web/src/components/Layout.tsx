@@ -3,17 +3,45 @@
  * 
  * Provides the main layout structure with navigation header and footer.
  * Uses UnifiedAuthIndicator for combined Gmail + Wallet auth display.
+ * 
+ * NOTE: WalletOperationsModal has been removed.
+ * All wallet operations are now handled via the dropdown in UnifiedAuthIndicator.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sparkles, Moon, Sun, Plus, Bookmark, FlaskConical } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Moon, Sun, Plus, Bookmark, FlaskConical, X } from 'lucide-react'
+import { AnimatePresence, m } from 'framer-motion'
 import { useTheme } from '@/contexts/ThemeContext'
 import { UnifiedAuthIndicator } from '@/components/UnifiedAuthIndicator'
-import { WalletOperationsModal } from '@/components/WalletOperationsModal'
 import { SpiralCirclesBackground } from '@/components/SpiralCirclesBackground'
+import { ScrollingBanner } from '@/components/ScrollingBanner'
 import { cn } from '@/lib/utils'
+
+// ============================================
+// Constants
+// ============================================
+
+const SUPPORT_DISMISS_KEY = 'mintmarks-support-x-dismissed'
+const SUPPORT_DELAY_MS = 3000 // 3 seconds delay before showing
+const X_PROFILE_URL = 'https://x.com/mintmarksfun' // Update with actual handle
+
+// ============================================
+// X (Twitter) Logo Component
+// ============================================
+
+function XLogo({ className }: { className?: string }) {
+  return (
+    <svg 
+      viewBox="0 0 24 24" 
+      fill="currentColor" 
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+  )
+}
 
 // ============================================
 // Types
@@ -45,7 +73,14 @@ const navItems: NavItem[] = [
 export function Layout({ children }: LayoutProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
+  const [showSupportButton, setShowSupportButton] = useState(false)
+  const [isSupportDismissed, setIsSupportDismissed] = useState(() => {
+    // Check localStorage on initial render
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(SUPPORT_DISMISS_KEY) === 'true'
+    }
+    return false
+  })
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
 
@@ -58,21 +93,51 @@ export function Layout({ children }: LayoutProps) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Delayed appearance for support button (production only)
+  useEffect(() => {
+    // Only show in production and if not dismissed
+    if (import.meta.env.DEV || isSupportDismissed) return
+
+    const timer = setTimeout(() => {
+      setShowSupportButton(true)
+    }, SUPPORT_DELAY_MS)
+
+    return () => clearTimeout(timer)
+  }, [isSupportDismissed])
+
+  // Dismiss handler for support button
+  const handleDismissSupport = useCallback(() => {
+    setShowSupportButton(false)
+    localStorage.setItem(SUPPORT_DISMISS_KEY, 'true')
+    setIsSupportDismissed(true)
+  }, [])
+
   const showGradient = isScrolled || isHovered
   
-  // Home page uses wider layout, other pages use narrower
+  // Home page uses wider layout (optimized for MacBook), other pages use narrower
   const isHomePage = location.pathname === '/'
   const containerClass = isHomePage 
-    ? 'max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8' 
+    ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' 
     : 'max-w-5xl mx-auto px-4 sm:px-6'
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Linear Gradient Overlay - Brightens bottom */}
+      <div 
+        className="gradient-overlay"
+        aria-hidden="true"
+      />
+      
+      {/* Global Noise Texture Overlay - Modern High-Grain */}
+      <div 
+        className="noise-overlay"
+        aria-hidden="true"
+      />
+      
       {/* Animated Background - Global */}
       <SpiralCirclesBackground 
-        count={14} 
-        speed={0.8}
-        paused={isWalletModalOpen}
+        count={75} 
+        speed={0.4}
       />
       
       {/* Navigation */}
@@ -94,7 +159,7 @@ export function Layout({ children }: LayoutProps) {
           )}
           style={{
             background: theme === 'dark'
-              ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.03) 20%, transparent 100%)'
+              ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.03) 20%, transparent 100%)'
               : 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.04) 20%, transparent 100%)',
             backdropFilter: 'blur(32px)',
             WebkitBackdropFilter: 'blur(32px)',
@@ -138,10 +203,11 @@ export function Layout({ children }: LayoutProps) {
                   className={cn(
                     'flex items-center gap-2 px-3 sm:px-4 py-2',
                     'text-sm font-medium rounded-md',
-                    'transition-colors transition-opacity backdrop-blur-sm',
+                    'transition-all duration-300 backdrop-blur-sm',
+                    'border border-transparent',
                     isActive
-                      ? 'bg-[var(--glass-bg-hover)]'
-                      : 'opacity-70 hover:opacity-100 hover:bg-[var(--glass-bg-secondary)]'
+                      ? 'bg-[var(--glass-bg-hover)] opacity-100 border-[var(--glass-border)]/70'
+                      : 'opacity-70 hover:opacity-100 hover:bg-[var(--glass-bg-primary)] hover:border-[var(--glass-border-hover)]/60 hover:shadow-sm'
                   )}
                   style={{ 
                     color: 'var(--page-text-primary)',
@@ -155,28 +221,27 @@ export function Layout({ children }: LayoutProps) {
               )
             })}
 
-            {/* Theme Toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
+            {/* Theme Toggle - Minimal */}
+            <button
               onClick={toggleTheme}
-              className="ml-2"
+              className="p-2 opacity-50 hover:opacity-100 transition-opacity duration-200"
               aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {theme === 'dark' ? (
-                <Sun className="h-4 w-4" />
+                <Sun className="h-4 w-4" style={{ color: 'var(--page-text-primary)' }} />
               ) : (
-                <Moon className="h-4 w-4" />
+                <Moon className="h-4 w-4" style={{ color: 'var(--page-text-primary)' }} />
               )}
-            </Button>
+            </button>
 
-            {/* Unified Auth Indicator */}
-            <UnifiedAuthIndicator 
-              onWalletClick={() => setIsWalletModalOpen(true)}
-            />
+            {/* Unified Auth Indicator - All wallet operations via dropdown */}
+            <UnifiedAuthIndicator />
           </div>
         </nav>
       </header>
+
+      {/* Scrolling Banner */}
+      <ScrollingBanner />
 
       {/* Main Content */}
       <main className="flex-1">
@@ -184,22 +249,82 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-transparent py-4 sm:py-6">
-        <div className={cn("text-center", containerClass)}>
-          <p
-            className="text-xs sm:text-sm opacity-70"
-            style={{ color: 'var(--page-text-secondary)' }}
-          >
-            © {new Date().getFullYear()} mintmarks. Own Your Commitments.
-          </p>
+      <footer className="mt-auto border-t border-[var(--glass-border)] py-6 sm:py-8">
+        <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4", containerClass)}>
+          {/* Left: Main Message */}
+          <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+            <span
+              className="text-xs sm:text-sm font-medium"
+              style={{ color: 'var(--page-text-primary)' }}
+            >
+              mint emails as marks.
+            </span>
+            <span
+              className="text-xs opacity-60"
+              style={{ color: 'var(--page-text-muted)' }}
+            >
+              private. composable. verifiable.
+            </span>
+          </div>
+          
+          {/* Right: Built With & Copyright */}
+          <div className="flex items-center gap-3 text-xs flex-wrap justify-center sm:justify-end">
+            <div className="flex items-center gap-1.5">
+              <span
+                className="opacity-50"
+                style={{ color: 'var(--page-text-muted)' }}
+              >
+                built with
+              </span>
+              <a
+                href="https://zk.email/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium transition-opacity hover:opacity-80 underline underline-offset-2"
+                style={{ color: 'var(--page-text-secondary)' }}
+              >
+                zk-email
+              </a>
+              <span
+                className="opacity-40"
+                style={{ color: 'var(--page-text-muted)' }}
+              >
+                &
+              </span>
+              <a
+                href="https://zkpassport.id/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium transition-opacity hover:opacity-80 underline underline-offset-2"
+                style={{ color: 'var(--page-text-secondary)' }}
+              >
+                zk-passport
+              </a>
+              <span
+                className="opacity-40"
+                style={{ color: 'var(--page-text-muted)' }}
+              >
+                &
+              </span>
+              <a
+                href="https://noir-lang.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium transition-opacity hover:opacity-80 underline underline-offset-2"
+                style={{ color: 'var(--page-text-secondary)' }}
+              >
+                noir
+              </a>
+            </div>
+            <span
+              className="opacity-40"
+              style={{ color: 'var(--page-text-muted)' }}
+            >
+              © {new Date().getFullYear()}
+            </span>
+          </div>
         </div>
       </footer>
-
-      {/* Wallet Operations Modal */}
-      <WalletOperationsModal
-        open={isWalletModalOpen}
-        onOpenChange={setIsWalletModalOpen}
-      />
 
       {/* Floating Test Button - Development Only */}
       {import.meta.env.DEV && (
@@ -226,6 +351,69 @@ export function Layout({ children }: LayoutProps) {
           <span className="text-sm font-medium hidden sm:inline">Test</span>
         </Link>
       )}
+
+      {/* Floating Support Button - Production Only */}
+      <AnimatePresence>
+        {showSupportButton && !isSupportDismissed && (
+          <m.div
+            initial={{ opacity: 0, x: -20, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -20, scale: 0.9 }}
+            transition={{ 
+              type: 'spring', 
+              stiffness: 300, 
+              damping: 25,
+              duration: 0.4 
+            }}
+            className="fixed bottom-6 left-6 z-50 group"
+          >
+            {/* Main Button */}
+            <a
+              href={X_PROFILE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                'flex items-center gap-2 pl-4 pr-3 py-3',
+                'rounded-full shadow-lg border',
+                'backdrop-blur-[32px]',
+                'transition-all duration-200',
+                'hover:scale-[1.02] active:scale-[0.98]',
+                'group/link'
+              )}
+              style={{
+                background: 'var(--glass-bg-primary)',
+                borderColor: 'var(--glass-border)',
+                color: 'var(--page-text-primary)',
+              }}
+              aria-label="Support us on X (Twitter)"
+            >
+              <XLogo className="h-4 w-4 flex-shrink-0" />
+              <span className="text-sm font-medium hidden sm:inline whitespace-nowrap">
+                Support us on X
+              </span>
+              
+              {/* Dismiss Button - Always visible on mobile, hover on desktop */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  handleDismissSupport()
+                }}
+                className={cn(
+                  'ml-1 p-1 rounded-full',
+                  'transition-all duration-200',
+                  'opacity-60 sm:opacity-0 sm:group-hover:opacity-60',
+                  'hover:!opacity-100 hover:bg-[var(--glass-bg-hover)]',
+                  'focus:outline-none focus:ring-1 focus:ring-[var(--glass-border-hover)]'
+                )}
+                aria-label="Dismiss"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </a>
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -36,10 +36,9 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        // Enhanced overlay with heavy blur
+        // Glass overlay - uses theme variables
         "fixed inset-0 z-50",
-        "bg-black/10 dark:bg-black/40",
-        "backdrop-blur-xl backdrop-saturate-150",
+        "glass-overlay",
         // Animations
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
@@ -67,16 +66,8 @@ function DialogContent({
           // Position & Layout
           "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] sm:max-w-lg",
           "translate-x-[-50%] translate-y-[-50%] gap-4 p-6",
-          // Enhanced Glassmorphic Effect - heavy blur + transparency
-          "bg-[var(--glass-bg-primary)]",
-          "[backdrop-filter:blur(var(--glass-blur-heavy))_saturate(var(--glass-saturate))]",
-          "[-webkit-backdrop-filter:blur(var(--glass-blur-heavy))_saturate(var(--glass-saturate))]",
-          "border border-[var(--glass-border)]",
-          "ring-1 ring-white/10 dark:ring-white/5",
-          "rounded-2xl",
-          // Enhanced Shadow with inner glow
-          "shadow-[0_16px_64px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)]",
-          "dark:shadow-[0_16px_64px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)]",
+          // Glass Modal - uses theme preset
+          "glass-modal",
           // Animations
           "duration-200",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
@@ -84,9 +75,6 @@ function DialogContent({
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           className
         )}
-        style={{
-          isolation: 'isolate',
-        }}
         {...props}
       >
         {children}
@@ -96,14 +84,10 @@ function DialogContent({
             className={cn(
               "absolute top-4 right-4 w-8 h-8 rounded-lg",
               "flex items-center justify-center",
-              // Minimal close button
-              "bg-transparent",
-              "border border-[var(--glass-border)]",
+              // Glass button style
+              "glass-button",
               "text-[var(--page-text-muted)]",
-              "transition-all duration-200",
               "hover:text-[var(--page-text-primary)]",
-              "hover:border-[var(--glass-border-hover)]",
-              "hover:bg-[var(--glass-bg-hover)]",
               "focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden",
               "disabled:pointer-events-none"
             )}
@@ -147,7 +131,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-semibold", className)}
+      className={cn("text-lg leading-none font-semibold glass-text-primary", className)}
       {...props}
     />
   )
@@ -160,7 +144,7 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-sm glass-text-secondary", className)}
       {...props}
     />
   )

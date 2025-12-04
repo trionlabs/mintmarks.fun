@@ -17,7 +17,6 @@ import {
   Bookmark,
   Sparkles,
   Share2,
-  Fingerprint,
   Wallet,
   ChevronDown,
 } from 'lucide-react'
@@ -26,126 +25,46 @@ import { useWallet, ConnectWalletModal } from '@/wallet'
 import { useMyMarks, type TimelineGroup } from '@/hooks/useMyMarks'
 import { getEnabledNetworks, getTransactionUrl } from '@/config/networks'
 import type { NetworkId, MintmarkNFT } from '@/types/nft'
+import { StatsCards, NFTCard } from '@/components/cards'
 
 // ============================================
-// NFT Card - Visual Badge Style with Hover
+// NFT Card Wrapper - Uses reusable NFTCard
 // ============================================
 
-function NFTCard({ nft }: { nft: MintmarkNFT }) {
-  const [isHovered, setIsHovered] = useState(false)
-
-  // Format date nicely (full format like "Jan 15, 2024")
-  const formatDate = (dateStr: string) => {
-    try {
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }).format(new Date(dateStr))
-    } catch {
-      return dateStr
-    }
+/** Format date nicely (full format like "Jan 15, 2024") */
+function formatDate(dateStr: string): string {
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date(dateStr))
+  } catch {
+    return dateStr
   }
+}
 
-  // Truncate token ID
-  const shortTokenId = nft.tokenId.length > 8
-    ? `${nft.tokenId.slice(0, 4)}…${nft.tokenId.slice(-4)}`
-    : nft.tokenId
+/** Truncate token ID for display */
+function shortenTokenId(tokenId: string): string {
+  return tokenId.length > 8
+    ? `${tokenId.slice(0, 4)}…${tokenId.slice(-4)}`
+    : tokenId
+}
 
-  // Get source label (uppercase)
-  const sourceLabel = nft.source?.toUpperCase() || 'MARK'
-
+/** NFT Card instance for MyMarks page */
+function MarkCard({ nft }: { nft: MintmarkNFT }) {
   return (
-    <a
+    <NFTCard
+      source={nft.source?.toUpperCase() || 'MARK'}
+      title={nft.eventName}
+      date={formatDate(nft.mintedAt)}
+      tokenId={shortenTokenId(nft.tokenId)}
+      imageUrl={nft.imageUri}
+      isSvgImage={nft.imageUri?.startsWith('data:image/svg+xml')}
       href={getTransactionUrl(nft.network, nft.txHash)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block h-full group"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
-      <div
-        className="glass-card glass-card-hover relative rounded-xl p-4 overflow-hidden h-full flex flex-col"
-      >
-        {/* Content */}
-        <div className="relative z-10 flex flex-col items-center">
-          {/* Circular Image/Icon */}
-          <div
-            className="w-28 h-28 rounded-full flex items-center justify-center mb-2 overflow-hidden flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
-            style={{ background: 'var(--glass-bg-secondary)' }}
-          >
-            {nft.imageUri ? (
-              nft.imageUri.startsWith('data:image/svg+xml') ? (
-                <img
-                  src={nft.imageUri}
-                  alt={nft.eventName}
-                  className="w-full h-full object-contain p-1.5"
-                  loading="lazy"
-                />
-              ) : (
-                <img
-                  src={nft.imageUri}
-                  alt={nft.eventName}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              )
-            ) : (
-              <Bookmark
-                className="h-10 w-10"
-                style={{ color: 'var(--Controls-Selected)' }}
-              />
-            )}
-          </div>
-
-          {/* Source Label (small, uppercase) */}
-          <p
-            className="text-[9px] font-medium uppercase tracking-wider glass-text-muted"
-          >
-            {sourceLabel}
-          </p>
-
-          {/* Event Name - compact */}
-          <h3
-            className="font-semibold text-center text-[13px] leading-tight line-clamp-2 glass-text-primary"
-          >
-            {nft.eventName}
-          </h3>
-
-          {/* Bottom Section - Date + Token ID / Share */}
-          <div className="w-full mt-2 relative min-h-[28px] flex items-center justify-center">
-            {/* Normal State - Date + Token ID side by side */}
-            <div
-              className="absolute inset-0 flex items-center justify-center gap-2 transition-opacity duration-200"
-              style={{
-                opacity: isHovered ? 0 : 1,
-                pointerEvents: isHovered ? 'none' : 'auto',
-              }}
-            >
-              <span className="text-xs glass-text-muted">
-                {formatDate(nft.mintedAt)}
-              </span>
-              <span className="glass-text-muted">•</span>
-              <div className="flex items-center gap-1 glass-text-muted">
-                <Fingerprint className="w-3 h-3" />
-                <span className="text-xs font-mono">#{shortTokenId}</span>
-              </div>
-            </div>
-
-            {/* Hover State - Share Button (takes Date+ID's place) */}
-            <div
-              className="absolute inset-0 flex items-center justify-center transition-opacity duration-200"
-              style={{
-                opacity: isHovered ? 1 : 0,
-                pointerEvents: isHovered ? 'auto' : 'none',
-              }}
-            >
-              <ShareNFTButton nft={nft} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </a>
+      <ShareNFTButton nft={nft} />
+    </NFTCard>
   )
 }
 
@@ -197,7 +116,7 @@ function TimelineYearSection({ year, months }: { year: number; months: TimelineG
             {/* NFT Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 items-stretch">
               {monthGroup.nfts.map((nft) => (
-                <NFTCard key={nft.id} nft={nft} />
+                <MarkCard key={nft.id} nft={nft} />
               ))}
             </div>
           </div>
@@ -330,76 +249,20 @@ function ShareNFTButton({ nft }: { nft: MintmarkNFT }) {
   }
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="outline"
+      size="sm"
       onClick={handleShare}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
-      style={{
-        background: 'var(--primary)',
-        color: 'var(--primary-foreground)',
-      }}
       title="Share on X (Twitter)"
+      className="gap-1.5 py-1.5 px-3 text-xs"
     >
       <Share2 className="h-3.5 w-3.5" />
       Share
-    </button>
+    </Button>
   )
 }
 
-// ============================================
-// Stats Cards (like in the HTML)
-// ============================================
-
-function StatsCards({ stats, showAll = true }: { stats: { total: number; thisMonth: number; mostActiveMonth: string | null; mostActiveCount?: number }, showAll?: boolean }) {
-  return (
-    <div className="flex flex-row gap-2.5 sm:gap-3">
-      {/* TOTAL MARKS */}
-      <div className="glass-card rounded-xl p-4 sm:p-5 md:p-6 min-w-[110px] sm:min-w-[120px]">
-        <div className="text-center">
-          <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wider glass-text-muted">
-            {showAll ? 'Total Marks' : 'Total Marks Created'}
-          </p>
-          <p className="text-2xl sm:text-3xl font-bold glass-text-primary">
-            {stats.total}
-          </p>
-        </div>
-      </div>
-
-      {/* THIS MONTH - Only show if showAll is true */}
-      {showAll && (
-        <div className="glass-card rounded-xl p-4 sm:p-5 md:p-6 min-w-[110px] sm:min-w-[120px]">
-          <div className="text-center">
-            <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wider glass-text-muted">
-              This Month
-            </p>
-            <p className="text-2xl sm:text-3xl font-bold glass-text-primary">
-              {stats.thisMonth}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* MOST ACTIVE - Only show if showAll is true */}
-      {showAll && (
-        <div className="glass-card rounded-xl p-4 sm:p-5 md:p-6 min-w-[130px] sm:min-w-[140px]">
-          <div className="text-center">
-            <p className="text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium uppercase tracking-wider glass-text-muted">
-              Most Active
-            </p>
-            <p className="text-base sm:text-lg font-bold leading-tight glass-text-primary">
-              {stats.mostActiveMonth || '—'}
-            </p>
-            {stats.mostActiveCount !== undefined && stats.mostActiveCount > 0 && (
-              <p className="text-[10px] sm:text-xs mt-1 glass-text-muted">
-                {stats.mostActiveCount} mark{stats.mostActiveCount !== 1 ? 's' : ''}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+// StatsCards is now imported from @/components/cards
 
 // ============================================
 // Network Dropdown (Minimal, Hydration-safe)
@@ -530,7 +393,7 @@ export function MyMarks() {
         >
           <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: 'var(--page-text-primary)' }} aria-hidden="true" />
           <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase" style={{ color: 'var(--page-text-primary)', letterSpacing: '0.05em' }}>
-            {isConnected || isDemo ? 'Your Collection' : 'Community Collection'}
+            {isConnected || isDemo ? 'unlimited possibilities' : 'Community Collection'}
           </span>
         </div>
 
@@ -540,7 +403,7 @@ export function MyMarks() {
           style={{ color: 'var(--page-text-primary)' }}
         >
           Marks of Your Life.
-          <span className="block mt-3 sm:mt-4" style={{ color: 'var(--Controls-Selected)' }}>
+          <span className="block mt-3 sm:mt-4 hero-gradient-text">
             Collected.
           </span>
         </h1>

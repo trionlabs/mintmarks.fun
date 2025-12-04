@@ -348,6 +348,7 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       onResult(({ verified }: { verified: boolean; uniqueIdentifier?: string }) => {
         if (verified) {
           // Use ref to ensure passport proof is included
+          // IMPORTANT: Do NOT call mint() or confirmMint() here - transaction must be user-initiated
           // Set to 'ready-to-mint' so user sees the button and must click to start minting
           updateState({
             passportSubStep: 'complete',
@@ -357,6 +358,7 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
             // Always include passport proof from ref
             passportProof: passportProofRef.current,
           })
+          console.log('[MarkIt] Passport verified - waiting for user to click "Mint Mark" button')
         } else {
           updateState({
             error: 'Passport verification failed',
@@ -810,7 +812,10 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
 
   // NOTE: Mint is NOT automatic - user must click "Mint NFT" button
   // The button is shown when mintSubStep === 'ready-to-mint'
-  // When clicked, it calls mint() which prepares the transaction
+  // When clicked, it calls confirmMint() which then calls mint() to prepare the transaction
+  // 
+  // SAFEGUARD: No useEffect should automatically call mint() or confirmMint()
+  // Transaction must ALWAYS be user-initiated via button click
 
   // Cleanup on unmount
   useEffect(() => {

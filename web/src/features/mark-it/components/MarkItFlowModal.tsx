@@ -17,6 +17,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -38,6 +39,8 @@ import {
   Smartphone,
   Mail,
   Wallet,
+  X,
+  AlertTriangle,
 } from 'lucide-react'
 
 interface MarkItFlowModalProps {
@@ -124,19 +127,31 @@ export function MarkItFlowModal({
   onOpenChange,
 }: MarkItFlowModalProps) {
   const { isConnected, address } = useWallet()
+  const [showCloseConfirmation, setShowCloseConfirmation] = useState(false)
 
   // Handle close - only allow if not in middle of processing
   const canClose = state.step === 'wallet' || state.step === 'success' || state.error !== null
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen && !canClose) {
-      // Don't allow closing during processing
+      // Show confirmation dialog instead of closing directly
+      setShowCloseConfirmation(true)
       return
     }
     if (!newOpen) {
       actions.cancel()
     }
     onOpenChange(newOpen)
+  }
+
+  const handleConfirmClose = () => {
+    actions.cancel()
+    setShowCloseConfirmation(false)
+    onOpenChange(false)
+  }
+
+  const handleCancelClose = () => {
+    setShowCloseConfirmation(false)
   }
 
   // Check if email proof is blocking next step
@@ -183,7 +198,7 @@ export function MarkItFlowModal({
       <DialogContent
         className="sm:max-w-lg max-h-[90vh] flex flex-col overflow-hidden p-0 gap-0 border shadow-none"
         style={{ borderColor: 'var(--border)' }}
-        showCloseButton={canClose}
+        showCloseButton={false}
       >
         {/* Header Section - Glassmorphic */}
         <div 
@@ -206,20 +221,21 @@ export function MarkItFlowModal({
                 </DialogDescription>
               </div>
               
-              {/* Badges Container */}
+              {/* Close Button Container */}
               <div className="flex flex-col items-end gap-2">
-                {/* Network Badge - Outline style */}
-                <div
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider border backdrop-blur-sm transition-colors"
+                {/* Close Button */}
+                <button
+                  onClick={() => handleOpenChange(false)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:pointer-events-none disabled:opacity-50"
                   style={{
-                    background: 'transparent',
-                    color: 'var(--page-text-secondary)',
-                    borderColor: 'var(--glass-border)',
+                    background: 'var(--glass-bg-secondary)',
+                    border: '1px solid var(--glass-border)',
+                    color: 'var(--page-text-muted)',
                   }}
+                  aria-label="Close dialog"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  {MINT_NETWORKS[state.selectedNetwork].shortName}
-                </div>
+                  <X className="w-4 h-4" />
+                </button>
 
                 {/* Demo Mode Badge - Outline style */}
                 {state.isDemo && (
@@ -278,6 +294,7 @@ export function MarkItFlowModal({
           className="flex-1 overflow-y-auto px-8 py-8 min-h-[240px]"
           style={{
             background: 'transparent',
+            overscrollBehavior: 'contain',
           }}
         >
           <div className="flex flex-col h-full justify-center max-w-md mx-auto w-full">
@@ -291,7 +308,14 @@ export function MarkItFlowModal({
 
             {/* Proof Blocking Alert */}
             {isProofBlocking && (
-              <div className="mb-6 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center gap-3 text-sm text-yellow-500 animate-pulse">
+              <div 
+                className="mb-6 p-3 rounded-lg flex items-center gap-3 text-sm animate-pulse"
+                style={{
+                  background: 'var(--status-pending-bg)',
+                  border: '1px solid var(--status-pending-border)',
+                  color: 'var(--status-pending)',
+                }}
+              >
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="font-medium">Generating proof... please wait</span>
               </div>
@@ -365,6 +389,59 @@ export function MarkItFlowModal({
           </div>
         )}
       </DialogContent>
+
+      {/* Close Confirmation Dialog */}
+      <Dialog open={showCloseConfirmation} onOpenChange={setShowCloseConfirmation}>
+        <DialogContent className="sm:max-w-md" showCloseButton={false}>
+          <DialogHeader className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 glass-secondary"
+              >
+                <AlertTriangle className="h-6 w-6 glass-text-muted" />
+              </div>
+              <div className="flex-1">
+                <DialogTitle className="text-lg font-bold tracking-tight">
+                  Are you sure you want to close?
+                </DialogTitle>
+                <DialogDescription className="mt-1.5 leading-relaxed">
+                  Closing this dialog will cancel the current process and you'll need to start from the beginning.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="mt-4 p-4 rounded-lg glass-inset">
+            <p className="text-sm font-medium mb-1.5 glass-text-secondary">
+              What will be lost:
+            </p>
+            <ul className="text-xs space-y-1.5 list-disc list-inside glass-text-muted">
+              <li>Current progress in the minting flow</li>
+              <li>Email proof generation (if in progress)</li>
+              <li>Passport verification session (if active)</li>
+              <li>Transaction preparation (if started)</li>
+            </ul>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-3 mt-6">
+            <Button
+              variant="outline"
+              onClick={handleCancelClose}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmClose}
+              className="flex-1 gap-2"
+            >
+              <X className="h-4 w-4" />
+              Close & Restart
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   )
 }

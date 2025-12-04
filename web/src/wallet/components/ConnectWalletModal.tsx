@@ -58,6 +58,62 @@ export function ConnectWalletModal({ trigger }: ConnectWalletModalProps) {
     }
   }, [open])
 
+  // ============================================
+  // Modal Dismiss Detection
+  // ============================================
+  // SignInModal doesn't have onClose callback.
+  // Detect dismiss and reset state.
+  
+  const isWalletConnected = isCdpConnected || isExternalConnected
+  
+  // Reset when wallet connects
+  useEffect(() => {
+    if (isWalletConnected && isConnecting) {
+      setIsConnecting(false)
+      setShowCdpModal(false)
+    }
+  }, [isWalletConnected, isConnecting])
+  
+  // Detect click outside CDP modal
+  useEffect(() => {
+    if (!showCdpModal) return
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (target.closest('[role="dialog"]') === null) {
+        setTimeout(() => {
+          if (!isCdpConnected) {
+            setShowCdpModal(false)
+            setIsConnecting(false)
+          }
+        }, 100)
+      }
+    }
+    
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside)
+    }, 200)
+    
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [showCdpModal, isCdpConnected])
+  
+  // Fallback timeout
+  useEffect(() => {
+    if (!showCdpModal || !isConnecting) return
+    
+    const fallbackTimer = setTimeout(() => {
+      if (!isCdpConnected && !isExternalConnected) {
+        setShowCdpModal(false)
+        setIsConnecting(false)
+      }
+    }, 30000)
+    
+    return () => clearTimeout(fallbackTimer)
+  }, [showCdpModal, isConnecting, isCdpConnected, isExternalConnected])
+
   /**
    * Opens RainbowKit modal for external wallet connection.
    */

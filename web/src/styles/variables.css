@@ -8,99 +8,157 @@
 
 :root {
   /* Core Theme Colors */
-  /* Light Mode: "Porcelain+" - Slightly darker than pure porcelain, closer to Slate-100/Gray-100 mix */
-  --background: #F1F5F9;
-  --foreground: oklch(0.2126 0.0231 246.3010);
-  --card: oklch(1.0000 0 0);
-  --card-foreground: oklch(0.2126 0.0231 246.3010);
-  --popover: oklch(1.0000 0 0);
-  --popover-foreground: oklch(0.2126 0.0231 246.3010);
-  --primary: oklch(0.6396 0.1928 262.1643);
+  /* Light Mode: "Porcelain" - Soft, muted off-white with subtle warmth */
+  --background: oklch(0.965 0.006 70);  /* Softer, slight warm cream undertone */
+  --foreground: oklch(0.25 0.02 250);
+  --card: oklch(0.98 0.004 70);  /* Slightly warmer than pure white */
+  --card-foreground: oklch(0.25 0.02 250);
+  --popover: oklch(0.98 0.004 70);
+  --popover-foreground: oklch(0.25 0.02 250);
+  --primary: oklch(0.62 0.28 262);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0.01 246);
-  --secondary-foreground: oklch(0.205 0.02 246);
-  --muted: oklch(0.97 0.01 246);
-  --muted-foreground: oklch(0.556 0.02 246);
-  --accent: oklch(0.97 0.01 246);
-  --accent-foreground: oklch(0.205 0.02 246);
-  --destructive: oklch(0.577 0.245 27.325);
+  --secondary: oklch(0.955 0.008 70);  /* Soft warm gray */
+  --secondary-foreground: oklch(0.25 0.02 250);
+  --muted: oklch(0.95 0.008 70);  /* Muted porcelain */
+  --muted-foreground: oklch(0.50 0.015 250);
+  --accent: oklch(0.955 0.008 70);
+  --accent-foreground: oklch(0.25 0.02 250);
+  --destructive: oklch(0.58 0.30 28);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.9324 0.0168 230.9139);
-  --input: oklch(0.9324 0.0168 230.9139);
-  --ring: oklch(0.6396 0.1928 262.1643);
+  --border: oklch(0.92 0.01 70);  /* Warm soft border */
+  --input: oklch(0.92 0.01 70);
+  --ring: oklch(0.68 0.22 262);
   --radius: 0.625rem;
 
-  /* Page Content Colors */
-  --page-text-primary: oklch(0.15 0.02 246);
-  --page-text-secondary: oklch(0.4 0.02 246);
-  --page-text-muted: oklch(0.55 0.02 246);
-  --page-badge-bg: rgba(255, 255, 255, 0.85);
-  --page-badge-border: rgba(255, 255, 255, 0.5);
-  --page-border-color: rgba(255, 255, 255, 0.4);
-  --page-content-bg: rgba(247, 249, 252, 0.8);
-  --page-content-border: rgba(240, 244, 249, 0.5);
+  /* Page Content Colors - Soft porcelain palette */
+  --page-text-primary: oklch(0.30 0.015 250); /* Soft charcoal, easy on eyes */
+  --page-text-secondary: oklch(0.48 0.012 250); /* Muted secondary */
+  --page-text-muted: oklch(0.58 0.01 250); /* Gentle muted */
+  --page-icon-primary: oklch(0.45 0.025 262); /* Subtle icon color */
+  --page-headline-accent: oklch(0.48 0.07 270); /* Soft dusty blue-purple */
+  --page-badge-accent: oklch(0.52 0.09 262); /* Muted blue-purple for badges */
+  --page-badge-bg: rgba(245, 243, 240, 0.6); /* Warm cream tint */
+  --page-badge-border: rgba(0, 0, 0, 0.04);
+  
+  /* Card-specific badge colors (Light Mode) - Ultra soft, subtle colors with transparency */
+  --card-badge-verify: oklch(0.62 0.06 155 / 0.85); /* Very soft mint green - minimal chroma, slight transparency */
+  --card-badge-verify-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-generate: oklch(0.60 0.06 280 / 0.85); /* Very soft lavender purple - minimal chroma, slight transparency */
+  --card-badge-generate-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-mint: oklch(0.58 0.06 250 / 0.85); /* Very soft sky blue - minimal chroma, slight transparency */
+  --card-badge-mint-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-dkim: oklch(0.62 0.06 155 / 0.85); /* Very soft mint green - minimal chroma, slight transparency */
+  --card-badge-dkim-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-zk-proof: oklch(0.60 0.06 280 / 0.85); /* Very soft lavender - minimal chroma, slight transparency */
+  --card-badge-zk-proof-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-nullifier: oklch(0.64 0.06 60 / 0.85); /* Very soft peach/amber - minimal chroma, slight transparency */
+  --card-badge-nullifier-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --card-badge-blockchain: oklch(0.58 0.06 250 / 0.85); /* Very soft sky blue - minimal chroma, slight transparency */
+  --card-badge-blockchain-border: oklch(1 0 0 / 0.3); /* Softer white border */
+  --page-border-color: rgba(0, 0, 0, 0.05);
+  --page-content-bg: rgba(255, 255, 255, 0.08);
+  --page-content-border: rgba(0, 0, 0, 0.04);
 
-  /* Glassmorphic System - Light Mode (Enhanced transparency + blur) */
-  --glass-bg-primary: rgba(255, 255, 255, 0.35);
-  --glass-bg-secondary: rgba(255, 255, 255, 0.25);
-  --glass-bg-tertiary: rgba(255, 255, 255, 0.15);
-  --glass-bg-hover: rgba(255, 255, 255, 0.45);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-border-hover: rgba(255, 255, 255, 0.6);
-  --glass-blur: 40px;
-  --glass-blur-heavy: 64px;
-  --glass-saturate: 180%;
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  --glass-shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  /* Glassmorphic System - Light Mode: Soft porcelain glass */
+  /* Background: Warm-tinted transparent glass */
+  --glass-bg-primary: rgba(252, 250, 247, 0.4);
+  --glass-bg-secondary: rgba(252, 250, 247, 0.25);
+  --glass-bg-tertiary: rgba(252, 250, 247, 0.15);
+  --glass-bg-hover: rgba(255, 253, 250, 0.6);
+  /* Border: Warm soft edge */
+  --glass-border: rgba(120, 100, 80, 0.06);
+  --glass-border-hover: rgba(120, 100, 80, 0.1);
+  /* Blur: Soft diffusion */
+  --glass-blur: 8px;
+  --glass-blur-heavy: 12px;
+  --glass-saturate: 110%;
+  /* Shadow: Subtle warm shadows */
+  --glass-shadow: 0 1px 3px rgba(100, 80, 60, 0.03), 0 2px 6px rgba(100, 80, 60, 0.02);
+  --glass-shadow-hover: 0 4px 12px rgba(100, 80, 60, 0.05), 0 8px 20px rgba(100, 80, 60, 0.03);
 
   /* Figma Card System */
-  --figma-card-stroke: rgba(255, 255, 255, 0.3);
-  --figma-card-blur: 16px;
+  --figma-card-stroke: rgba(255, 255, 255, 0.08);
+  --figma-card-blur: 12px;
   --figma-card-radius: 12px;
-  --figma-ultra-dark: rgba(255, 255, 255, 0.85);
+  --figma-ultra-dark: rgba(255, 255, 255, 0.12);
 
-  /* Simple Card Shadows */
-  --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+  /* Simple Card Shadows - Soft warm shadows */
+  --card-shadow: 0 1px 3px rgba(100, 80, 60, 0.04), 0 2px 8px rgba(100, 80, 60, 0.03);
+  --card-shadow-hover: 0 2px 6px rgba(100, 80, 60, 0.05), 0 6px 20px rgba(100, 80, 60, 0.06);
 
-  /* CTA Button Tokens (Light Mode) */
-  --figma-cta1-bg: #1E1D1F;
-  --figma-cta1-border: #F7F9FC;
-  --figma-cta1-text: #F7F9FC;
-  --figma-cta1-hover-bg: #7B797D;
-  --figma-cta1-hover-border: #F7F9FC;
-  --figma-cta1-hover-text: #F7F9FC;
-  --figma-cta1-active-bg: #7B797D;
+  /* CTA Button Tokens (Light Mode) - Soft porcelain palette */
+  --figma-cta1-bg: oklch(0.18 0.01 250);
+  --figma-cta1-border: oklch(0.96 0.005 70);
+  --figma-cta1-text: oklch(0.96 0.005 70);
+  --figma-cta1-hover-bg: oklch(0.28 0.015 250);
+  --figma-cta1-hover-border: oklch(0.98 0.004 70);
+  --figma-cta1-hover-text: oklch(0.98 0.004 70);
+  --figma-cta1-active-bg: oklch(0.35 0.015 250);
 
-  /* Outline Button (cta2) */
-  --figma-cta2-bg: #F7FBFF;
-  --figma-cta2-border: #FFFFFF;
-  --figma-cta2-text: rgba(30, 29, 31, 0.92);
+  /* Outline Button (cta2) - Soft porcelain */
+  --figma-cta2-bg: oklch(0.98 0.004 70);
+  --figma-cta2-border: oklch(0.92 0.008 70);
+  --figma-cta2-text: oklch(0.22 0.01 250 / 0.9);
 
-  /* Secondary Button (cta3) */
-  --figma-cta3-bg: rgba(10, 75, 255, 0.08);
-  --figma-cta3-border: rgba(10, 75, 255, 0.2);
-  --figma-cta3-text: #0A4BFF;
+  /* Secondary Button (cta3) - OKLCH Format */
+  --figma-cta3-bg: oklch(0.55 0.25 262 / 0.08);
+  --figma-cta3-border: oklch(0.55 0.25 262 / 0.2);
+  --figma-cta3-text: oklch(0.5 0.25 262);
 
   /* CTA Outline Card */
-  --cta-outline-card-border: rgba(100, 116, 139, 0.25);
-  --cta-outline-card-bg: rgba(255, 255, 255, 0.85);
-  --cta-outline-card-blur: 16px;
+  --cta-outline-card-border: rgba(100, 116, 139, 0.08);
+  --cta-outline-card-bg: rgba(255, 255, 255, 0.02);
+  --cta-outline-card-blur: 6px;
   --cta-outline-card-blend: normal;
 
-  /* Background Animation Colors */
-  --bg-animation-gradient-start: #F0F4F9;
-  --bg-animation-gradient-mid: #F7F9FC;
-  --bg-animation-gradient-end: #F0F4F9;
-  --bg-animation-bar-color-light: rgba(247, 249, 252, 0.6);
-  --bg-animation-bar-color-mid: rgba(240, 244, 249, 0.5);
-  --bg-animation-bar-color-dark: rgba(240, 244, 249, 0.5);
-  --bg-animation-line-color: rgba(230, 244, 249, 0.15);
+  /* Background Animation Colors - Soft Porcelain */
+  --bg-animation-gradient-start: oklch(0.96 0.006 70);
+  --bg-animation-gradient-mid: oklch(0.965 0.005 70);
+  --bg-animation-gradient-end: oklch(0.96 0.006 70);
+  --bg-animation-bar-color-light: rgba(250, 248, 245, 0.7);
+  --bg-animation-bar-color-mid: rgba(248, 246, 242, 0.6);
+  --bg-animation-bar-color-dark: rgba(245, 243, 238, 0.5);
+  --bg-animation-line-color: rgba(240, 238, 232, 0.2);
 
-  /* Controls */
-  --Controls-Selected: #6396F4;
-  --Controls-Idle: rgba(99, 150, 244, 0.1);
-  --controls-selected-light: rgba(99, 150, 244, 0.4);
+  /* Controls - Soft blue-gray */
+  --Controls-Selected: oklch(0.48 0.05 250);
+  --Controls-Idle: oklch(0.48 0.05 250 / 0.15);
+  --controls-selected-light: oklch(0.48 0.05 250 / 0.4);
+
+  /* Status Colors - Consistent across app */
+  --status-success: oklch(0.72 0.20 155);
+  --status-success-bg: oklch(0.72 0.20 155 / 0.12);
+  --status-success-border: oklch(0.72 0.20 155 / 0.3);
+  
+  --status-pending: oklch(0.72 0.12 85);
+  --status-pending-bg: oklch(0.72 0.12 85 / 0.12);
+  --status-pending-border: oklch(0.72 0.12 85 / 0.3);
+  
+  --status-info: oklch(0.65 0.10 250);
+  --status-info-bg: oklch(0.65 0.10 250 / 0.12);
+  --status-info-border: oklch(0.65 0.10 250 / 0.3);
+  
+  --status-error: oklch(0.60 0.22 25);
+  --status-error-bg: oklch(0.60 0.22 25 / 0.12);
+  --status-error-border: oklch(0.60 0.22 25 / 0.3);
+
+  /* Badge Status Colors - For email/event badges */
+  --status-confirmed: oklch(0.65 0.10 250);
+  --status-confirmed-bg: oklch(0.65 0.10 250 / 0.12);
+  --status-confirmed-border: oklch(0.65 0.10 250 / 0.3);
+  
+  --status-attended: oklch(0.68 0.15 280);
+  --status-attended-bg: oklch(0.68 0.15 280 / 0.12);
+  --status-attended-border: oklch(0.68 0.15 280 / 0.3);
+  
+  --status-minted: oklch(0.72 0.20 155);
+  --status-minted-bg: oklch(0.72 0.20 155 / 0.12);
+  --status-minted-border: oklch(0.72 0.20 155 / 0.3);
+  
+  /* Noir Badge - Light Mode */
+  --badge-noir: oklch(0.68 0.15 280);
+  --badge-noir-bg: oklch(0.68 0.15 280 / 0.12);
+  --badge-noir-border: oklch(0.68 0.15 280 / 0.3);
 
   /* ===== AUTH INDICATOR ===== */
   /* Container */
@@ -122,6 +180,8 @@
   --wallet-icon-connected-glow: 0 0 12px rgba(34, 197, 94, 0.25);
   --wallet-icon-disconnected-bg: rgba(107, 114, 128, 0.1);
   --wallet-icon-disconnected-color: rgb(107, 114, 128);
+  --wallet-icon-warning-bg: rgba(245, 158, 11, 0.15);
+  --wallet-icon-warning-color: rgb(245, 158, 11);
   --wallet-icon-error-bg: rgba(239, 68, 68, 0.15);
   --wallet-icon-error-color: rgb(239, 68, 68);
 
@@ -132,7 +192,7 @@
 
   /* ===== HERO ANIMATION ===== */
   /* Email Card */
-  --hero-card-bg: rgba(255, 255, 255, 0.8);
+  --hero-card-bg: rgba(255, 255, 255, 0.15);
   --hero-card-border: rgba(99, 150, 244, 0.1);
   --hero-card-border-hover: rgba(99, 150, 244, 0.18);
   --hero-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
@@ -146,21 +206,24 @@
   /* Grid Background */
   --hero-grid-color: rgba(99, 150, 244, 0.025);
 
-  /* Container Background */
-  --hero-container-bg: linear-gradient(145deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.95));
+  /* Container Background - Soft porcelain */
+  --hero-container-bg: linear-gradient(145deg, rgba(252, 250, 247, 0.98), rgba(248, 246, 242, 0.95));
 
   /* Mint Success States */
-  --mint-success: rgb(34, 197, 94);
-  --mint-success-light: rgb(52, 211, 153);
-  --mint-success-bg: rgba(34, 197, 94, 0.12);
-  --mint-success-border: rgba(34, 197, 94, 0.3);
-  --mint-success-shadow: 0 4px 24px rgba(34, 197, 94, 0.15);
-  --mint-success-glow: 0 4px 16px rgba(34, 197, 94, 0.4);
-  --mint-success-gradient: linear-gradient(135deg, rgb(34, 197, 94), rgb(16, 185, 129));
+  --mint-success: oklch(0.72 0.24 152);
+  --mint-success-light: oklch(0.78 0.22 155);
+  --mint-success-bg: rgba(16, 220, 110, 0.15);
+  --mint-success-border: rgba(16, 220, 110, 0.4);
+  --mint-success-shadow: 0 4px 24px rgba(16, 220, 110, 0.20);
+  --mint-success-glow: 0 4px 16px rgba(16, 220, 110, 0.5);
+  --mint-success-gradient: linear-gradient(135deg, oklch(0.72 0.24 152), oklch(0.68 0.22 165));
 
   /* Ambient Glow */
   --hero-ambient-opacity: 0.02;
   --hero-mouse-glow-opacity: 0.03;
+
+  /* Hero Section Gradient Overlay - Subtle warmth */
+  --hero-gradient-overlay: linear-gradient(135deg, oklch(0.92 0.015 70 / 0.3) 0%, transparent 50%, oklch(0.65 0.12 262 / 0.02) 100%);
 
   /* ===== HERO GLASSMORPHIC CARDS (Light Mode) ===== */
   /* White/transparent glass cards on colored backgrounds */
@@ -172,9 +235,9 @@
   --hero-glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   --hero-glass-blur: 24px;
 
-  /* Hero Page Background */
-  --hero-page-bg: linear-gradient(135deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%);
-  --hero-page-bg-secondary: linear-gradient(180deg, #1e40af 0%, #1d4ed8 100%);
+  /* Hero Page Background - OKLCH Format */
+  --hero-page-bg: linear-gradient(135deg, oklch(0.5 0.2 262) 0%, oklch(0.45 0.18 262) 50%, oklch(0.4 0.16 262) 100%);
+  --hero-page-bg-secondary: linear-gradient(180deg, oklch(0.45 0.18 262) 0%, oklch(0.5 0.2 262) 100%);
 
   /* Hero Text Colors (on dark bg) */
   --hero-text-primary: rgba(255, 255, 255, 1);
@@ -274,18 +337,19 @@
 
   /* ===== BUTTON COMPONENT TOKENS ===== */
 
-  /* Outline Button */
-  --button-outline-bg: rgba(255, 255, 255, 0.8);
-  --button-outline-border: oklch(0.9324 0.0168 230.9139);
-  --button-outline-text: oklch(0.205 0.02 246);
-  --button-outline-hover-bg: oklch(0.99 0.01 246);
-  --button-outline-hover-border: oklch(0.88 0.02 230);
+  /* Outline Button - Soft porcelain glass */
+  --button-outline-bg: rgba(252, 250, 247, 0.5);
+  --button-outline-border: rgba(120, 100, 80, 0.1);
+  --button-outline-text: oklch(0.28 0.015 250);
+  --button-outline-hover-bg: rgba(255, 253, 250, 0.7);
+  --button-outline-hover-border: rgba(120, 100, 80, 0.15);
+  --button-outline-hover-text: oklch(0.18 0.015 250);
 
-  /* Ghost Button */
+  /* Ghost Button - Soft porcelain */
   --button-ghost-bg: transparent;
-  --button-ghost-text: oklch(0.35 0.02 246);
-  --button-ghost-hover-bg: oklch(0.98 0.01 246);
-  --button-ghost-hover-text: oklch(0.15 0.02 246);
+  --button-ghost-text: oklch(0.38 0.015 250);
+  --button-ghost-hover-bg: oklch(0.96 0.006 70);
+  --button-ghost-hover-text: oklch(0.20 0.015 250);
 
   /* Destructive Button */
   --button-destructive-bg: oklch(0.577 0.245 27.325);
@@ -297,17 +361,23 @@
   /* Link Button */
   --button-link-text: oklch(0.6 0.19 262);
   --button-link-hover-text: oklch(0.55 0.19 262);
-}
 
-.dark {
-  /* Core Theme Colors - Enhanced for Glassmorphic */
-  --background: oklch(0.10 0.005 0);
+  /* Default Button (Primary CTA) - Soft warm shadows */
+  --button-default-border: oklch(0.72 0.015 70);
+  --button-default-border-hover: oklch(0.62 0.015 70);
+  --button-default-shadow: 0 4px 14px rgba(80, 60, 40, 0.12), inset 0 1px 0 rgba(255, 253, 250, 0.15);
+  --button-default-shadow-hover: 0 6px 20px rgba(80, 60, 40, 0.18), inset 0 1px 2px rgba(255, 253, 250, 0.18);
+  --button-default-shadow-active: 0 2px 8px rgba(80, 60, 40, 0.12);
+}
+html.dark, .dark {
+  /* Core Theme Colors - Slightly lighter dark for grain visibility */
+  --background: oklch(0.14 0.008 260);
   --foreground: oklch(0.95 0.005 236);
   --card: oklch(0.12 0.015 246);
   --card-foreground: oklch(0.95 0.005 236);
   --popover: oklch(0.12 0.015 246);
   --popover-foreground: oklch(0.95 0.005 236);
-  --primary: oklch(0.7 0.15 262);
+  --primary: oklch(0.70 0.26 262);
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.22 0.015 246);
   --secondary-foreground: oklch(0.95 0 0);
@@ -315,35 +385,57 @@
   --muted-foreground: oklch(0.72 0.01 246);
   --accent: oklch(0.22 0.015 246);
   --accent-foreground: oklch(0.95 0 0);
-  --destructive: oklch(0.55 0.2 25);
+  --destructive: oklch(0.60 0.28 28);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.28 0.015 248);
   --input: oklch(0.28 0.015 248);
-  --ring: oklch(0.65 0.18 262);
+  --ring: oklch(0.72 0.20 262);
 
-  /* Page Content Colors - Minimal */
+  /* Page Content Colors - Minimal, white-only */
   --page-text-primary: rgba(255, 255, 255, 0.95);
   --page-text-secondary: rgba(255, 255, 255, 0.7);
   --page-text-muted: rgba(255, 255, 255, 0.5);
+  --page-icon-primary: rgba(255, 255, 255, 0.6); /* Soft white icons in dark mode - reduced opacity */
+  --page-headline-accent: rgba(255, 255, 255, 0.98); /* Pure white, no color */
+  --page-badge-accent: rgba(255, 255, 255, 0.92); /* Soft white for badges */
   --page-badge-bg: rgba(255, 255, 255, 0.05);
   --page-badge-border: rgba(255, 255, 255, 0.1);
+  
+  /* Card-specific badge colors (Dark Mode) - Soft, transparent white tones */
+  --card-badge-verify: oklch(0.75 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-verify-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-generate: oklch(0.73 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-generate-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-mint: oklch(0.75 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-mint-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-dkim: oklch(0.75 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-dkim-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-zk-proof: oklch(0.73 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-zk-proof-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-nullifier: oklch(0.74 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-nullifier-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
+  --card-badge-blockchain: oklch(0.75 0 0 / 0.5); /* Soft, transparent white - reduced lightness and opacity */
+  --card-badge-blockchain-border: oklch(1 0 0 / 0.2); /* Subtle transparent white border */
   --page-border-color: rgba(255, 255, 255, 0.12);
   --page-content-bg: rgba(255, 255, 255, 0.03);
   --page-content-border: rgba(255, 255, 255, 0.08);
 
-  /* Glassmorphic System - Dark Mode: Enhanced transparency + heavy blur */
-  /* Idle: darker, subtle | Hover: brighter, more visible */
-  --glass-bg-primary: rgba(255, 255, 255, 0.08);
-  --glass-bg-secondary: rgba(255, 255, 255, 0.05);
-  --glass-bg-tertiary: rgba(255, 255, 255, 0.03);
-  --glass-bg-hover: rgba(255, 255, 255, 0.12);
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --glass-border-hover: rgba(255, 255, 255, 0.25);
-  --glass-blur: 40px;
-  --glass-blur-heavy: 64px;
-  --glass-saturate: 180%;
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  --glass-shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  /* Glassmorphic System - Dark Mode: Ultra Glass-like Effect */
+  /* Background: More transparent for dark mode */
+  --glass-bg-primary: rgba(255, 255, 255, 0.03);
+  --glass-bg-secondary: rgba(255, 255, 255, 0.02);
+  --glass-bg-tertiary: rgba(255, 255, 255, 0.01);
+  --glass-bg-hover: rgba(255, 255, 255, 0.08);
+  /* Border: Very subtle, glass-like edge */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.12);
+  /* Blur: Reduced for less blur effect */
+  --glass-blur: 8px;
+  --glass-blur-heavy: 12px;
+  --glass-saturate: 130%;
+  /* Shadow: Minimal depth with subtle glass glow */
+  --glass-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  --glass-shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   /* Figma Card System */
   --figma-card-stroke: rgba(168, 168, 168, 0.71);
@@ -389,10 +481,45 @@
   --bg-animation-bar-color-dark: rgba(99, 150, 244, 0.04);
   --bg-animation-line-color: rgba(99, 150, 244, 0.08);
 
-  /* Controls */
-  --Controls-Selected: #6396F4;
-  --Controls-Idle: rgba(99, 150, 244, 0.2);
-  --controls-selected-light: rgba(99, 150, 244, 0.5);
+  /* Controls - Neutral/Glassmorphic (not blue) - Dark Mode */
+  --Controls-Selected: oklch(0.75 0.06 250);
+  --Controls-Idle: oklch(0.75 0.06 250 / 0.25);
+  --controls-selected-light: oklch(0.75 0.06 250 / 0.55);
+
+  /* Status Colors - Dark Mode (white-only, minimal) */
+  --status-success: rgba(255, 255, 255, 0.85);
+  --status-success-bg: rgba(255, 255, 255, 0.08);
+  --status-success-border: rgba(255, 255, 255, 0.15);
+  
+  --status-pending: rgba(255, 255, 255, 0.85);
+  --status-pending-bg: rgba(255, 255, 255, 0.08);
+  --status-pending-border: rgba(255, 255, 255, 0.15);
+  
+  --status-info: rgba(255, 255, 255, 0.85);
+  --status-info-bg: rgba(255, 255, 255, 0.08);
+  --status-info-border: rgba(255, 255, 255, 0.15);
+  
+  --status-error: rgba(255, 255, 255, 0.85);
+  --status-error-bg: rgba(255, 255, 255, 0.08);
+  --status-error-border: rgba(255, 255, 255, 0.15);
+
+  /* Badge Status Colors - Dark Mode (white-only) */
+  --status-confirmed: rgba(255, 255, 255, 0.85);
+  --status-confirmed-bg: rgba(255, 255, 255, 0.08);
+  --status-confirmed-border: rgba(255, 255, 255, 0.15);
+  
+  --status-attended: rgba(255, 255, 255, 0.85);
+  --status-attended-bg: rgba(255, 255, 255, 0.08);
+  --status-attended-border: rgba(255, 255, 255, 0.15);
+  
+  --status-minted: rgba(255, 255, 255, 0.85);
+  --status-minted-bg: rgba(255, 255, 255, 0.08);
+  --status-minted-border: rgba(255, 255, 255, 0.15);
+  
+  /* Noir Badge - Dark Mode (white-only) */
+  --badge-noir: rgba(255, 255, 255, 0.85);
+  --badge-noir-bg: rgba(255, 255, 255, 0.08);
+  --badge-noir-border: rgba(255, 255, 255, 0.15);
 
   /* ===== AUTH INDICATOR (Dark Mode) ===== */
   /* Container - inherits from glass vars, no override needed */
@@ -410,6 +537,8 @@
   --wallet-icon-connected-glow: 0 0 14px rgba(34, 197, 94, 0.35);
   --wallet-icon-disconnected-bg: rgba(156, 163, 175, 0.15);
   --wallet-icon-disconnected-color: rgb(156, 163, 175);
+  --wallet-icon-warning-bg: rgba(251, 191, 36, 0.2);
+  --wallet-icon-warning-color: rgb(251, 191, 36);
   --wallet-icon-error-bg: rgba(239, 68, 68, 0.2);
   --wallet-icon-error-color: rgb(248, 113, 113);
 
@@ -435,17 +564,20 @@
       rgba(18, 28, 50, 0.96));
 
   /* Mint Success States - Vibrant for dark */
-  --mint-success: oklch(0.8 0.18 150);
-  --mint-success-light: oklch(0.85 0.15 150);
-  --mint-success-bg: rgba(34, 197, 94, 0.18);
-  --mint-success-border: rgba(34, 197, 94, 0.4);
-  --mint-success-shadow: 0 4px 28px rgba(34, 197, 94, 0.25);
-  --mint-success-glow: 0 0 24px rgba(34, 197, 94, 0.5);
-  --mint-success-gradient: linear-gradient(135deg, oklch(0.75 0.2 150), oklch(0.7 0.18 165));
+  --mint-success: oklch(0.78 0.26 152);
+  --mint-success-light: oklch(0.82 0.24 155);
+  --mint-success-bg: rgba(16, 220, 110, 0.22);
+  --mint-success-border: rgba(16, 220, 110, 0.5);
+  --mint-success-shadow: 0 4px 28px rgba(16, 220, 110, 0.30);
+  --mint-success-glow: 0 0 24px rgba(16, 220, 110, 0.6);
+  --mint-success-gradient: linear-gradient(135deg, oklch(0.78 0.26 152), oklch(0.72 0.24 165));
 
   /* Ambient Glow - Stronger presence */
   --hero-ambient-opacity: 0.06;
   --hero-mouse-glow-opacity: 0.08;
+
+  /* Hero Section Gradient Overlay - Cool blue for dark mode */
+  --hero-gradient-overlay: linear-gradient(135deg, oklch(0.65 0.18 262 / 0.015) 0%, transparent 40%, oklch(0.65 0.18 262 / 0.01) 100%);
 
   /* ===== HERO GLASSMORPHIC CARDS (Dark Mode) ===== */
   /* White/transparent glass cards - more vibrant on dark blue bg */
@@ -457,9 +589,9 @@
   --hero-glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
   --hero-glass-blur: 24px;
 
-  /* Hero Page Background - Vibrant Blue */
-  --hero-page-bg: linear-gradient(135deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%);
-  --hero-page-bg-secondary: linear-gradient(180deg, #1e40af 0%, #1d4ed8 100%);
+  /* Hero Page Background - OKLCH Format */
+  --hero-page-bg: linear-gradient(135deg, oklch(0.5 0.2 262) 0%, oklch(0.45 0.18 262) 50%, oklch(0.4 0.16 262) 100%);
+  --hero-page-bg-secondary: linear-gradient(180deg, oklch(0.45 0.18 262) 0%, oklch(0.5 0.2 262) 100%);
 
   /* Hero Text Colors */
   --hero-text-primary: rgba(255, 255, 255, 1);
@@ -556,4 +688,11 @@
   /* Link Button */
   --button-link-text: oklch(0.7 0.15 262);
   --button-link-hover-text: oklch(0.75 0.15 262);
+
+  /* Default Button (Primary CTA) - Dark Mode */
+  --button-default-border: rgba(255, 255, 255, 0.15);
+  --button-default-border-hover: rgba(255, 255, 255, 0.25);
+  --button-default-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --button-default-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --button-default-shadow-active: 0 2px 8px rgba(0, 0, 0, 0.25);
 }

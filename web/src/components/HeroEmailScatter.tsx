@@ -1,17 +1,14 @@
 /**
- * @fileoverview Hero Email Scatter Animation (Optimized)
+ * @fileoverview Hero Email Scatter Animation
  * 
- * Performance optimizations:
- * - CSS animations for floating (instead of framer-motion)
- * - Intersection Observer to pause when not visible
- * - Throttled mouse tracking
- * - Reduced re-renders with refs
- * - Lazy initial render
+ * Minimal, modern design with smooth CSS animations
+ * - No heavy framer-motion animations
+ * - CSS-only transitions for performance
+ * - Transparent background
  */
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { m, AnimatePresence } from 'framer-motion'
-import { Mail, Sparkles } from 'lucide-react'
+import { Mail, Sparkles, Share2, MessageCircle, Gift, Users } from 'lucide-react'
 
 // ============================================
 // Types
@@ -31,11 +28,68 @@ interface ActiveEmail extends EmailData {
 }
 
 // ============================================
-// Constants (moved outside component)
+// Constants
 // ============================================
 
+// Post-mint action types
+type PostMintActionType = 'share' | 'telegram' | 'discord' | 'claim'
+type ActionState = 'idle' | 'loading' | 'success'
+
+interface PostMintAction {
+  type: PostMintActionType
+  label: string
+  successLabel: string
+}
+
+// Each brand gets EXACTLY ONE contextually relevant action
+const BRAND_ACTION: Record<string, PostMintAction> = {
+  // Ownership flex → Share
+  Tesla: { type: 'telegram', label: 'Join Owners Club', successLabel: 'Joined' },
+  Coinbase: { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  Stripe: { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  PayPal: { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  
+  // Event attendance → Community or POAP
+  Luma: { type: 'discord', label: 'Join Event DC', successLabel: 'Joined' },
+  Devcon: { type: 'claim', label: 'Claim POAP', successLabel: 'Claimed' },
+  'ETH Denver': { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  Apple: { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  
+  // Achievements → Share (Wrapped style)
+  Spotify: { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  YouTube: { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  GitHub: { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  Netflix: { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  X: { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  LinkedIn: { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  Substack: { type: 'share', label: 'Share on X', successLabel: 'Posted' },
+  
+  // Community/Perks
+  Figma: { type: 'discord', label: 'Join DC', successLabel: 'Joined' },
+  Airbnb: { type: 'claim', label: 'Claim Discount', successLabel: 'Claimed' },
+  Binance: { type: 'telegram', label: 'Join TG', successLabel: 'Joined' },
+}
+
+// Default action
+const DEFAULT_ACTION: PostMintAction = { type: 'share', label: 'Share on X', successLabel: 'Posted' }
+
+// Get THE action for a brand (single action)
+const getActionForBrand = (sender: string): PostMintAction => {
+  return BRAND_ACTION[sender] || DEFAULT_ACTION
+}
+
+// Get icon for action type
+const getActionIcon = (type: PostMintActionType) => {
+  switch (type) {
+    case 'share': return Share2
+    case 'telegram': return MessageCircle
+    case 'discord': return Users
+    case 'claim': return Gift
+    default: return Share2
+  }
+}
+
 const EMAIL_TEMPLATES = [
-  // Achievements & Milestones
   { sender: "Substack", subject: "You hit 1K subscribers! 🎉" },
   { sender: "Spotify", subject: "Top 0.01% listener" },
   { sender: "Stripe", subject: "You earned $10K!" },
@@ -44,405 +98,221 @@ const EMAIL_TEMPLATES = [
   { sender: "LinkedIn", subject: "Profile views: 1,000" },
   { sender: "YouTube", subject: "Silver Play Button 🥈" },
   { sender: "X", subject: "10K followers!" },
-  
-  // Events & Tickets
   { sender: "Luma", subject: "You're approved!" },
   { sender: "Devcon", subject: "Ticket confirmed ✓" },
   { sender: "ETH Denver", subject: "Speaker Invitation!" },
   { sender: "Apple", subject: "WWDC Invitation" },
-  
-  // Transactions & Finance
   { sender: "Coinbase", subject: "You purchased BTC (2014)!" },
   { sender: "Binance", subject: "Position liquidated 💀" },
   { sender: "PayPal", subject: "Money received" },
-  { sender: "Venmo", subject: "Payment complete" },
-  
-  // Services & Subscriptions
   { sender: "Netflix", subject: "LOTR: 100 rewatches! 👀" },
-  { sender: "Uber", subject: "Your ride is arriving" },
-  { sender: "Amazon", subject: "Order shipped 📦" },
   { sender: "Tesla", subject: "You're a Tesla owner!" },
   { sender: "Figma", subject: "You're a Figma Pro!" },
-  { sender: "Cursor", subject: "You're a Cursor Pro!" },
 ] as const
 
-const MAX_VISIBLE_EMAILS_DESKTOP = 9 // 3x3 grid
-const MAX_VISIBLE_EMAILS_TABLET = 6 // 2x3 grid (iPad)
-const MAX_VISIBLE_EMAILS_MOBILE = 4 // 2x2 grid
-const SPARKLE_COUNT = 5
-const EMAIL_LIFETIME = 16000 // Good rotation speed
-const SPAWN_INTERVAL = 2000 // 2s between spawns
-// Generate random initial spawn delays for more organic feel
-const generateRandomDelays = (count: number, baseInterval: number, variance: number = 0.3) => {
-  const delays: number[] = []
-  for (let i = 0; i < count; i++) {
-    const randomVariance = (Math.random() - 0.5) * variance
-    const delay = i * baseInterval * (1 + randomVariance)
-    delays.push(Math.max(0, Math.round(delay)))
-  }
-  return delays.sort((a, b) => a - b) // Sort to ensure order
-}
+// ============================================
+// Grid Configuration
+// ============================================
+// Mobile (< 640px):  2×2 = 4 cards
+// Tablet (640-1024): 3×2 = 6 cards  
+// Desktop (1024+):   3×3 = 9 cards
+// ============================================
 
-const INITIAL_SPAWN_DELAYS_DESKTOP = generateRandomDelays(9, 250, 0.4) // Random delays for 9 slots
-const INITIAL_SPAWN_DELAYS_TABLET = generateRandomDelays(6, 200, 0.4) // Random delays for 6 slots
-const INITIAL_SPAWN_DELAYS_MOBILE = generateRandomDelays(4, 300, 0.4) // Random delays for 4 slots
+const MAX_EMAILS = { mobile: 4, tablet: 6, desktop: 9 }
+const EMAIL_LIFETIME = 14000
+const SPAWN_INTERVAL = 2200
 
-// Desktop grid positions - 3x3 matrix with good spacing
-// Cards are ~210px wide, container is ~600px = 35% per card
-const GRID_SLOTS_DESKTOP = [
-  // Top row - staggered heights for natural feel
-  { x: 0, y: 2 },
-  { x: 33, y: 6 },
-  { x: 66, y: 3 },
-  // Middle row
-  { x: 2, y: 36 },
-  { x: 35, y: 40 },
-  { x: 64, y: 38 },
-  // Bottom row
-  { x: 0, y: 68 },
-  { x: 33, y: 72 },
-  { x: 64, y: 70 },
-] as const
+// Grid positions (x, y as percentages)
+const GRID_SLOTS = {
+  // Desktop: 3 columns × 3 rows = 9 cards
+  desktop: [
+    // Row 1
+    { x: 2, y: 12 },  { x: 35, y: 14 }, { x: 68, y: 12 },
+    // Row 2
+    { x: 0, y: 40 },  { x: 33, y: 42 }, { x: 66, y: 40 },
+    // Row 3
+    { x: 2, y: 68 },  { x: 35, y: 70 }, { x: 68, y: 68 },
+  ],
+  // Tablet/iPad: 2 columns × 3 rows = 6 cards (centered)
+  tablet: [
+    // Row 1
+    { x: 8, y: 8 },   { x: 54, y: 10 },
+    // Row 2
+    { x: 6, y: 38 },  { x: 52, y: 40 },
+    // Row 3
+    { x: 8, y: 68 },  { x: 54, y: 70 },
+  ],
+  // Mobile: 2 columns × 2 rows = 4 cards
+  mobile: [
+    // Row 1
+    { x: 2, y: 3 },   { x: 51, y: 5 },
+    // Row 2
+    { x: 2, y: 50 },  { x: 51, y: 52 },
+  ],
+} as const
 
-// Tablet (iPad) grid positions - 2x3 grid
-// Cards are ~200px wide (iPad için daha geniş), container is ~600px
-const GRID_SLOTS_TABLET = [
-  // Top row - daha geniş spacing
-  { x: 3, y: 8 },
-  { x: 52, y: 10 },
-  // Middle row
-  { x: 1, y: 45 },
-  { x: 50, y: 47 },
-  // Bottom row
-  { x: 3, y: 82 },
-  { x: 52, y: 84 },
-] as const
-
-// Mobile grid positions - 2x2 grid with larger cards
-// Cards are ~180px wide, container is ~380px
-// Optimized for mobile screens with bigger cards and better readability
-const GRID_SLOTS_MOBILE = [
-  // Top row - daha geniş spacing için ayarlandı
-  { x: 3, y: 8 },
-  { x: 52, y: 10 },
-  // Bottom row
-  { x: 5, y: 55 },
-  { x: 54, y: 58 },
-] as const
-
-// Add small random offset for natural look (±2%)
-const getRandomizedSlot = (baseSlot: { x: number; y: number }) => ({
-  x: baseSlot.x + (Math.random() * 4 - 2),
-  y: baseSlot.y + (Math.random() * 4 - 2),
-})
-
-// Screen size type
 type ScreenSize = 'mobile' | 'tablet' | 'desktop'
 
-// Get screen size based on width
-const getScreenSize = (width: number): ScreenSize => {
-  if (width < 640) return 'mobile'      // < sm breakpoint
-  if (width < 1024) return 'tablet'     // sm to lg breakpoint (iPad)
-  return 'desktop'                      // >= lg breakpoint
-}
-
-// Get grid slots based on screen size
-const getGridSlots = (screenSize: ScreenSize) => {
-  switch (screenSize) {
-    case 'mobile':
-      return GRID_SLOTS_MOBILE
-    case 'tablet':
-      return GRID_SLOTS_TABLET
-    case 'desktop':
-      return GRID_SLOTS_DESKTOP
-  }
-}
-
-// Get max emails based on screen size
-const getMaxEmails = (screenSize: ScreenSize) => {
-  switch (screenSize) {
-    case 'mobile':
-      return MAX_VISIBLE_EMAILS_MOBILE
-    case 'tablet':
-      return MAX_VISIBLE_EMAILS_TABLET
-    case 'desktop':
-      return MAX_VISIBLE_EMAILS_DESKTOP
-  }
-}
-
-// Get initial spawn delays based on screen size
-const getInitialSpawnDelays = (screenSize: ScreenSize) => {
-  switch (screenSize) {
-    case 'mobile':
-      return INITIAL_SPAWN_DELAYS_MOBILE
-    case 'tablet':
-      return INITIAL_SPAWN_DELAYS_TABLET
-    case 'desktop':
-      return INITIAL_SPAWN_DELAYS_DESKTOP
-  }
-}
-
-// Animation variants - optimized for hardware acceleration
-// Only using opacity + transform (GPU accelerated properties)
-const emailVariants = {
-  enter: { 
-    opacity: 0, 
-    y: -15,
-  },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.5 }
-  },
-  exit: { 
-    opacity: 0,
-    transition: { duration: 0.3 }
-  }
-}
-
-const mintBadgeVariants = {
-  hidden: { opacity: 0, scale: 0.6, y: 8 },
-  visible: { 
-    opacity: 1, 
-    scale: 1, 
-    y: 0,
-    transition: { type: "spring" as const, stiffness: 400, damping: 12 }
-  }
-}
+const getScreenSize = (w: number): ScreenSize => 
+  w < 640 ? 'mobile' : w < 1024 ? 'tablet' : 'desktop'
 
 // ============================================
-// Utility Functions
-// ============================================
-
-const generateMintAddress = (id: number): string => {
-  const hex = id.toString(16).padStart(8, '0')
-  return `0x${hex.slice(0, 4)}...${hex.slice(-4)}`
-}
-
-const getNextAvailableSlot = (existingEmails: ActiveEmail[], screenSize: ScreenSize) => {
-  const occupiedSlots = new Set<number>()
-  const gridSlots = getGridSlots(screenSize)
-  
-  existingEmails.forEach(email => {
-    gridSlots.forEach((slot, idx) => {
-      // Check if this slot area is already taken (with some tolerance for random offset)
-      const tolerance = screenSize === 'mobile' ? 15 : screenSize === 'tablet' ? 18 : 20
-      if (Math.abs(slot.x - email.x) < tolerance && Math.abs(slot.y - email.startY) < tolerance) {
-        occupiedSlots.add(idx)
-      }
-    })
-  })
-  
-  // Get all available slots
-  const availableSlots: number[] = []
-  for (let i = 0; i < gridSlots.length; i++) {
-    if (!occupiedSlots.has(i)) {
-      availableSlots.push(i)
-    }
-  }
-  
-  // Random selection from available slots
-  if (availableSlots.length === 0) return null
-  
-  const randomIndex = availableSlots[Math.floor(Math.random() * availableSlots.length)]
-  return getRandomizedSlot(gridSlots[randomIndex])
-}
-
-// Throttle function for mouse move
-function throttle<T extends unknown[]>(fn: (...args: T) => void, ms: number) {
-  let lastCall = 0
-  return (...args: T) => {
-    const now = Date.now()
-    if (now - lastCall >= ms) {
-      lastCall = now
-      fn(...args)
-    }
-  }
-}
-
-// ============================================
-// Email Card Component (Optimized)
+// Email Card Component
 // ============================================
 
 interface EmailCardProps {
   email: ActiveEmail
   onMint: (id: number) => void
+  isExiting: boolean
 }
 
-const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProps) {
+const EmailCard = React.memo(function EmailCard({ email, onMint, isExiting }: EmailCardProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const mintAddress = useMemo(() => generateMintAddress(email.id), [email.id])
-
-  const handleClick = useCallback(() => {
-    if (!email.isMinted) onMint(email.id)
-  }, [email.id, email.isMinted, onMint])
+  const [actionState, setActionState] = useState<ActionState>('idle')
+  const [showConfetti, setShowConfetti] = useState(false)
+  
+  // Get THE single action for this brand
+  const action = useMemo(() => getActionForBrand(email.sender), [email.sender])
+  const Icon = getActionIcon(action.type)
+  
+  // Trigger confetti when minted
+  useEffect(() => {
+    if (email.isMinted) {
+      setShowConfetti(true)
+      const timer = setTimeout(() => setShowConfetti(false), 800)
+      return () => clearTimeout(timer)
+    }
+  }, [email.isMinted])
+  
+  // Handle action click - simulates the action with loading state
+  const handleActionClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    
+    // Don't do anything if already loading or success
+    if (actionState !== 'idle') return
+    
+    // Set loading state
+    setActionState('loading')
+    
+    // Simulate action completion after a brief delay
+    setTimeout(() => {
+      setActionState('success')
+    }, 350 + Math.random() * 150) // 350-500ms for snappy feel
+  }, [actionState])
 
   return (
-    <m.div
-      variants={emailVariants}
-      initial="enter"
-      animate="visible"
-      exit="exit"
-      layout
-      layoutDependency={email.isMinted}
-      className="w-[200px] sm:w-[230px] md:w-[260px] lg:w-[250px] rounded-2xl"
+    <div
+      className={`
+        hero-email-card
+        absolute w-[46%] sm:w-[200px] lg:w-[250px]
+        rounded-xl sm:rounded-2xl transition-all duration-300 ease-out
+        ${!email.isMinted ? 'cursor-pointer' : ''}
+        ${isExiting ? 'hero-card-exit' : 'hero-card-enter'}
+        ${email.isMinted ? 'is-minted' : ''}
+        ${isHovered ? 'is-hovered' : ''}
+      `}
       style={{ 
-        position: 'absolute', 
         left: `${email.x}%`, 
         top: `${email.startY}%`,
-        pointerEvents: 'auto',
-        zIndex: isHovered ? 50 : 10,
-        // GLASSMORPHIC STYLES ON WRAPPER - backdrop-filter must be on same element as transform
-        // OPTIMIZED: Reduced blur for better performance
-        background: email.isMinted 
-          ? 'rgba(34, 197, 94, 0.08)'
-          : isHovered
-            ? 'rgba(99, 150, 244, 0.15)'
-            : 'rgba(255, 255, 255, 0.08)',
-        backdropFilter: isHovered ? 'blur(32px) saturate(180%)' : 'blur(24px) saturate(160%)',
-        WebkitBackdropFilter: isHovered ? 'blur(32px) saturate(180%)' : 'blur(24px) saturate(160%)',
-        willChange: isHovered ? 'transform, backdrop-filter' : 'transform',
-        border: `1px solid var(${
-          email.isMinted 
-            ? '--mint-success-border' 
-            : isHovered 
-              ? '--hero-card-border-hover' 
-              : '--glass-border'
-        })`,
-        boxShadow: email.isMinted 
-          ? 'var(--mint-success-shadow)' 
-          : isHovered
-            ? 'var(--glass-shadow-hover)'
-            : 'var(--glass-shadow)',
+        zIndex: isHovered || email.isMinted ? 50 : 10,
+        transform: isHovered && !email.isMinted ? 'translateY(-2px) scale(1.01)' : 'translateY(0) scale(1)',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => !email.isMinted && onMint(email.id)}
     >
-      {/* Minted Badge */}
-      <AnimatePresence>
-        {email.isMinted && (
-          <m.div
-            variants={mintBadgeVariants}
-            initial="hidden"
-            animate="visible"
-            className="absolute -top-9 sm:-top-11 left-1/2 -translate-x-1/2 z-20"
-          >
-            {/* Sparkles - CSS animation instead of framer-motion */}
-            <div className="sparkle-container">
-              {Array.from({ length: SPARKLE_COUNT }).map((_, i) => (
-                <div
-                  key={i}
-                  className="sparkle"
-                  style={{ 
-                    '--angle': `${(i / SPARKLE_COUNT) * 360}deg`,
-                    '--delay': `${i * 50}ms`,
-                  } as React.CSSProperties}
-                />
-              ))}
-            </div>
-            
+      {/* Mini Confetti - appears on mint */}
+      {showConfetti && (
+        <div className="hero-confetti-container">
+          {[...Array(6)].map((_, i) => (
             <div 
-              className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 md:px-3 md:py-1.5 lg:px-3 lg:py-1.5 rounded-full flex items-center gap-1.5 sm:gap-1.5"
-              style={{
-                background: 'var(--mint-success-gradient)',
-                boxShadow: 'var(--mint-success-glow)',
-              }}
-            >
-              <Sparkles className="w-3 h-3 sm:w-3 sm:h-3 md:w-3 md:h-3 lg:w-3 lg:h-3 text-white" />
-              <span className="text-[10px] sm:text-[10px] md:text-[10px] lg:text-[10px] font-bold text-white uppercase tracking-wide">
-                Minted
-              </span>
-            </div>
-            <div 
-              className="text-[8px] sm:text-[8px] md:text-[8px] lg:text-[8px] font-mono text-center mt-1 sm:mt-1"
-              style={{ color: 'var(--page-text-secondary)' }}
-            >
-              {mintAddress}
-            </div>
-          </m.div>
-        )}
-      </AnimatePresence>
-
-      {/* Card Content - styles moved to wrapper m.div for backdrop-filter to work */}
-      <div 
-        onClick={handleClick}
-        className="relative p-4 sm:p-5 md:p-5 lg:p-4 transition-all duration-200"
-        style={{
-          cursor: email.isMinted ? 'default' : 'pointer',
-          width: '100%',
-          maxWidth: '100%',
-        }}
-      >
-        {/* Glow effect */}
-        {email.isMinted && (
-          <div 
-            className="absolute inset-0 rounded-xl pointer-events-none"
-            style={{ background: 'radial-gradient(circle, var(--mint-success-bg), transparent 70%)' }}
-          />
-        )}
-
-        {/* Content */}
-        <div className="flex items-start gap-3 sm:gap-3.5 md:gap-3.5 lg:gap-3 relative z-10">
-          <div 
-            className="p-2.5 sm:p-2.5 md:p-2.5 lg:p-2 rounded-md sm:rounded-lg shrink-0 transition-colors duration-200 mt-0.5 sm:mt-0 border"
-            style={{ 
-              backgroundColor: email.isMinted 
-                ? 'var(--mint-success-bg)'
-                : isHovered
-                  ? 'var(--glass-bg-hover)'
-                  : 'var(--glass-bg-secondary)',
-              borderColor: email.isMinted 
-                ? 'var(--mint-success-border)'
-                : 'var(--glass-border)'
-            }}
-          >
-            <Mail 
-              className="h-5 w-5 sm:h-5 sm:w-5 md:h-5 md:w-5 lg:h-4 lg:w-4 transition-colors duration-200"
-              style={{ 
-                color: email.isMinted 
-                  ? 'var(--mint-success)'
-                  : isHovered
-                    ? 'var(--page-text-primary)'
-                    : 'var(--page-text-muted)' 
-              }} 
+              key={i} 
+              className={`hero-confetti hero-confetti-${i + 1}`}
+              style={{ '--delay': `${i * 50}ms` } as React.CSSProperties}
             />
+          ))}
+        </div>
+      )}
+      
+      {/* Minted Badge - compact */}
+      {email.isMinted && (
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 hero-badge-enter">
+          <div className="hero-minted-badge px-2 py-0.5 rounded-full flex items-center gap-1">
+            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="text-[8px] font-semibold text-white uppercase tracking-wider">
+              Minted
+            </span>
           </div>
-          <div className="overflow-hidden min-w-0 flex-1 pr-2">
-            <div 
-              className="text-[11px] sm:text-[11px] md:text-[11px] lg:text-[10px] font-medium uppercase tracking-wider mb-2 sm:mb-1.5 md:mb-1.5 lg:mb-1 transition-colors duration-200 break-words"
-              style={{ 
-                color: email.isMinted 
-                  ? 'var(--mint-success)'
-                  : isHovered
-                    ? 'var(--page-text-primary)'
-                    : 'var(--page-text-muted)' 
-              }}
-            >
+        </div>
+      )}
+
+      {/* Card Content */}
+      <div className="p-3 sm:p-4 md:p-[18px]">
+        <div className="flex items-start gap-2.5 sm:gap-3">
+          <div className="hero-icon-box p-2 sm:p-2.5 rounded-lg sm:rounded-xl shrink-0 transition-colors">
+            <Mail className="hero-icon h-3.5 w-3.5 sm:h-4 sm:w-4 transition-colors" />
+          </div>
+          
+          <div className="min-w-0 flex-1">
+            <div className="hero-sender text-[9px] sm:text-[10px] font-medium uppercase tracking-wider mb-1 sm:mb-1.5 transition-colors">
               {email.sender}
             </div>
-            <div 
-              className="text-[15px] sm:text-[16px] md:text-[16px] lg:text-[15px] font-medium leading-relaxed sm:leading-relaxed md:leading-relaxed lg:leading-snug break-words"
-              style={{ color: 'var(--page-text-primary)' }}
-            >
+            <div className="hero-subject text-[13px] sm:text-[14px] md:text-[15px] font-medium leading-snug">
               {email.subject}
             </div>
+            
+            {/* Single Post-Mint Action - shown when minted */}
+            {email.isMinted && (
+              <div className="hero-actions-enter mt-3">
+                <button
+                  onClick={handleActionClick}
+                  disabled={actionState !== 'idle'}
+                  className={`
+                    hero-action-btn 
+                    ${actionState === 'success' ? 'hero-action-success' : `hero-action-${action.type}`}
+                    ${actionState === 'loading' ? 'hero-action-loading' : ''}
+                    flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold tracking-wide 
+                    transition-all duration-200
+                    ${actionState === 'idle' ? 'hover:scale-105 active:scale-95 cursor-pointer' : 'cursor-default'}
+                  `}
+                >
+                  {actionState === 'loading' ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      <span className="opacity-80">...</span>
+                    </>
+                  ) : actionState === 'success' ? (
+                    <>
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span>{action.successLabel}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{action.label}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Mark It hint - Absolute positioned to prevent card expansion */}
+          {/* Mark It Button - with blur background */}
           {isHovered && !email.isMinted && (
-            <div className="absolute top-2 right-2 flex items-center gap-1 sm:gap-1 animate-fade-in z-20">
-              <Sparkles className="w-3 h-3 sm:w-3 sm:h-3 md:w-3 md:h-3 lg:w-3 lg:h-3" style={{ color: 'var(--page-text-secondary)' }} />
-              <span 
-                className="text-[9px] sm:text-[9px] md:text-[9px] lg:text-[9px] font-semibold uppercase tracking-wide whitespace-nowrap"
-                style={{ color: 'var(--page-text-secondary)' }}
-              >
+            <div className="hero-mark-btn absolute top-3 right-3 px-2.5 py-1.5 rounded-lg hero-fade-in flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3" />
+              <span className="text-[9px] font-semibold uppercase tracking-wide">
                 Mark It
               </span>
             </div>
           )}
         </div>
       </div>
-    </m.div>
+    </div>
   )
 })
 
@@ -453,226 +323,481 @@ const EmailCard = React.memo(function EmailCard({ email, onMint }: EmailCardProp
 export const HeroEmailScatter: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [emails, setEmails] = useState<ActiveEmail[]>([])
+  const [exitingIds, setExitingIds] = useState<Set<number>>(new Set())
   const [isVisible, setIsVisible] = useState(false)
-  const [mousePos, setMousePos] = useState({ x: 50, y: 50 })
-  const [screenSize, setScreenSize] = useState<ScreenSize>('desktop')
+  // Initialize with correct screen size (lazy init for SSR safety)
+  const [screenSize, setScreenSize] = useState<ScreenSize>(() => {
+    if (typeof window !== 'undefined') {
+      return getScreenSize(window.innerWidth)
+    }
+    return 'mobile' // Default to mobile for SSR
+  })
   
   const emailIdRef = useRef(0)
-  const intervalsRef = useRef<{ spawn?: NodeJS.Timeout; cleanup?: NodeJS.Timeout }>({})
+  const spawnTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cleanupIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Detect screen size (mobile, tablet, desktop)
+  // Screen size detection - also clears emails on size change
   useEffect(() => {
-    const checkScreenSize = () => {
-      setScreenSize(getScreenSize(window.innerWidth))
+    const check = () => {
+      const newSize = getScreenSize(window.innerWidth)
+      setScreenSize(prev => {
+        if (prev !== newSize) {
+          // Clear emails when screen size changes to prevent layout issues
+          setEmails([])
+          emailIdRef.current = 0
+        }
+        return newSize
+      })
     }
-    checkScreenSize()
-    window.addEventListener('resize', checkScreenSize)
-    return () => window.removeEventListener('resize', checkScreenSize)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
   }, [])
 
-  // Intersection Observer - pause when not visible
+  // Intersection Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),
       { threshold: 0.1 }
     )
-    
-    if (containerRef.current) {
-      observer.observe(containerRef.current)
-    }
-    
+    if (containerRef.current) observer.observe(containerRef.current)
     return () => observer.disconnect()
   }, [])
 
-  // Spawn email function - random slot and template selection
+  // Get available slot
+  const getAvailableSlot = useCallback((existing: ActiveEmail[]) => {
+    const slots = GRID_SLOTS[screenSize]
+    const occupied = new Set<number>()
+    
+    existing.forEach(email => {
+      // Find the closest slot to this email
+      let closestSlotIdx = -1
+      let minDistance = Infinity
+      
+      slots.forEach((slot, idx) => {
+        // Calculate distance accounting for random offset (±1.5)
+        const xDiff = Math.abs(slot.x - email.x)
+        const yDiff = Math.abs(slot.y - email.startY)
+        const distance = Math.sqrt(xDiff * xDiff + yDiff * yDiff)
+        
+        // If email is within reasonable range of slot (accounting for ±1.5 offset)
+        // Threshold: 8 units (slot center ±1.5 offset + small margin)
+        if (distance < 8 && distance < minDistance) {
+          minDistance = distance
+          closestSlotIdx = idx
+        }
+      })
+      
+      // Mark the closest slot as occupied
+      if (closestSlotIdx >= 0) {
+        occupied.add(closestSlotIdx)
+      }
+    })
+    
+    const available = slots.map((_, i) => i).filter(i => !occupied.has(i))
+    if (!available.length) return null
+    
+    const idx = available[Math.floor(Math.random() * available.length)]
+    const slot = slots[idx]
+    return {
+      x: slot.x + (Math.random() * 3 - 1.5),
+      y: slot.y + (Math.random() * 3 - 1.5),
+    }
+  }, [screenSize])
+
+  // Spawn email
   const spawnEmail = useCallback(() => {
     setEmails(prev => {
-      const activeEmails = prev.filter(e => Date.now() - e.createdAt < EMAIL_LIFETIME)
-      const maxEmails = getMaxEmails(screenSize)
-      if (activeEmails.length >= maxEmails) return activeEmails
+      const active = prev.filter(e => !exitingIds.has(e.id))
+      if (active.length >= MAX_EMAILS[screenSize]) return prev
       
-      const position = getNextAvailableSlot(activeEmails, screenSize)
-      if (!position) return activeEmails
+      const pos = getAvailableSlot(active)
+      if (!pos) return prev
 
-      // Random template selection instead of sequential
-      const randomTemplateIndex = Math.floor(Math.random() * EMAIL_TEMPLATES.length)
-      const template = EMAIL_TEMPLATES[randomTemplateIndex]
+      const template = EMAIL_TEMPLATES[Math.floor(Math.random() * EMAIL_TEMPLATES.length)]
       
-      return [...activeEmails, {
+      return [...prev, {
         id: emailIdRef.current++,
         sender: template.sender,
         subject: template.subject,
-        x: position.x,
-        startY: position.y,
+        x: pos.x,
+        startY: pos.y,
         createdAt: Date.now(),
         isMinted: false,
       }]
     })
-  }, [screenSize])
+  }, [screenSize, getAvailableSlot, exitingIds])
 
   // Handle mint
   const handleMint = useCallback((id: number) => {
     setEmails(prev => prev.map(e => e.id === id ? { ...e, isMinted: true } : e))
   }, [])
 
-  // Spawn and cleanup intervals - only when visible
+  // Spawn and cleanup
   useEffect(() => {
-    if (!isVisible) {
-      // Clear intervals when not visible
-      if (intervalsRef.current.spawn) clearInterval(intervalsRef.current.spawn)
-      if (intervalsRef.current.cleanup) clearInterval(intervalsRef.current.cleanup)
-      return
+    if (!isVisible) return
+
+    // Initial spawn burst
+    const initialCount = MAX_EMAILS[screenSize]
+    for (let i = 0; i < initialCount; i++) {
+      setTimeout(spawnEmail, i * 180)
     }
 
-    // Initial spawn with random staggered delays based on screen size
-    const initialDelays = getInitialSpawnDelays(screenSize)
-    const timers = initialDelays.map(delay => setTimeout(spawnEmail, delay))
-    
-    // Continue spawning with random intervals (1.5s - 2.5s) for more organic feel
-    const scheduleNextSpawn = () => {
-      const randomDelay = SPAWN_INTERVAL + (Math.random() - 0.5) * 1000 // 1500-2500ms
-      intervalsRef.current.spawn = setTimeout(() => {
+    // Continuous spawning
+    const scheduleSpawn = () => {
+      const delay = SPAWN_INTERVAL + (Math.random() - 0.5) * 600
+      spawnTimeoutRef.current = setTimeout(() => {
         spawnEmail()
-        scheduleNextSpawn() // Schedule next spawn recursively
-      }, randomDelay) as unknown as NodeJS.Timeout
+        scheduleSpawn()
+      }, delay)
     }
-    scheduleNextSpawn()
-    
-    // Cleanup old emails
-    // OPTIMIZED: Less frequent cleanup to reduce CPU usage
-    intervalsRef.current.cleanup = setInterval(() => {
-      setEmails(prev => prev.filter(e => Date.now() - e.createdAt < EMAIL_LIFETIME))
-    }, 3000) // OPTIMIZED: Increased from 2000ms to 3000ms
-    
-    return () => {
-      timers.forEach(clearTimeout)
-      if (intervalsRef.current.spawn) clearTimeout(intervalsRef.current.spawn)
-      if (intervalsRef.current.cleanup) clearInterval(intervalsRef.current.cleanup)
-    }
-  }, [isVisible, screenSize, spawnEmail])
+    scheduleSpawn()
 
-  // Throttled mouse tracking - only when visible and desktop
-  // OPTIMIZED: Increased throttle to reduce CPU usage
-  useEffect(() => {
-    if (!isVisible || screenSize !== 'desktop') return
-
-    const handleMouseMove = throttle((e: MouseEvent) => {
-      setMousePos({
-        x: 30 + (e.clientX / window.innerWidth) * 40,
-        y: 30 + (e.clientY / window.innerHeight) * 40,
+    // Cleanup old emails with exit animation
+    cleanupIntervalRef.current = setInterval(() => {
+      const now = Date.now()
+      setEmails(prev => {
+        const toExit = prev.filter(e => now - e.createdAt > EMAIL_LIFETIME && !exitingIds.has(e.id))
+        if (toExit.length) {
+          setExitingIds(ids => {
+            const newIds = new Set(ids)
+            toExit.forEach(e => newIds.add(e.id))
+            return newIds
+          })
+          // Remove after animation
+          setTimeout(() => {
+            setEmails(p => p.filter(e => !toExit.some(t => t.id === e.id)))
+            setExitingIds(ids => {
+              const newIds = new Set(ids)
+              toExit.forEach(e => newIds.delete(e.id))
+              return newIds
+            })
+          }, 280)
+        }
+        return prev
       })
-    }, 100) // OPTIMIZED: Throttle to 10fps (was 20fps) for better performance
+    }, 2500)
 
-    window.addEventListener("mousemove", handleMouseMove, { passive: true })
-    return () => window.removeEventListener("mousemove", handleMouseMove)
-  }, [isVisible, screenSize])
-
-  const isMobile = screenSize === 'mobile'
-  const isTablet = screenSize === 'tablet'
-  const isDesktop = screenSize === 'desktop'
+    return () => {
+      if (spawnTimeoutRef.current) clearTimeout(spawnTimeoutRef.current)
+      if (cleanupIntervalRef.current) clearInterval(cleanupIntervalRef.current)
+    }
+  }, [isVisible, screenSize, spawnEmail, exitingIds])
 
   return (
     <div 
       ref={containerRef}
-      className={`relative h-full ${
-        isMobile 
-          ? 'min-h-[360px] overflow-hidden' 
-          : isTablet
-            ? 'min-h-[500px] overflow-hidden'
-            : 'min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-[700px] overflow-visible'
-      }`}
+      className="relative h-full w-full overflow-visible"
       style={{ background: 'transparent' }}
     >
-      {/* Grid Background */}
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-30"
-        style={{
-          backgroundImage: `
-            linear-gradient(var(--glass-border) 1px, transparent 1px),
-            linear-gradient(90deg, var(--glass-border) 1px, transparent 1px)
-          `,
-          backgroundSize: isMobile ? '40px 40px' : isTablet ? '50px 50px' : '60px 60px',
-        }}
-      />
-      
-      {/* Mouse-following spotlight (desktop only) */}
-      {isDesktop && (
-        <div
-          className="absolute inset-0 pointer-events-none z-0 transition-all duration-300 mix-blend-overlay"
-          style={{
-            background: `radial-gradient(500px circle at ${mousePos.x}% ${mousePos.y}%, rgba(255, 255, 255, 0.03), transparent 60%)`,
-          }}
-        />
-      )}
-      
-      {/* Ambient glow */}
-      <div 
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[100px] sm:blur-[120px] pointer-events-none z-0 ${
-          isMobile 
-            ? 'w-[200px] h-[200px]' 
-            : isTablet
-              ? 'w-[300px] h-[300px]'
-              : 'w-[250px] h-[250px] sm:w-[300px] sm:h-[300px] md:w-[400px] md:h-[400px]'
-        }`}
-        style={{ 
-          backgroundColor: 'var(--page-text-primary)', 
-          opacity: 0.03
-        }}
-      />
-
       {/* Email Cards */}
       <div className="absolute inset-0 z-10">
-        <AnimatePresence mode="popLayout">
-          {emails.map(email => (
-            <EmailCard 
-              key={email.id}
-              email={email} 
-              onMint={handleMint}
-            />
-          ))}
-        </AnimatePresence>
+        {emails.map(email => (
+          <EmailCard 
+            key={email.id}
+            email={email} 
+            onMint={handleMint}
+            isExiting={exitingIds.has(email.id)}
+          />
+        ))}
       </div>
 
-      {/* CSS for sparkle animations only */}
+      {/* CSS Styles - Using CSS Variables & OKLCH */}
       <style>{`
-        .sparkle-container {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 0;
-          height: 0;
+        /* ========== CARD BASE ========== */
+        .hero-email-card {
+          background: oklch(100% 0 0 / 0.72);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid var(--glass-border);
+          box-shadow: 0 1px 2px oklch(0% 0 0 / 0.015);
+        }
+        .hero-email-card.is-hovered {
+          background: oklch(100% 0 0 / 0.82);
+          box-shadow: 0 2px 6px oklch(0% 0 0 / 0.03);
+        }
+        .hero-email-card.is-minted {
+          /* Keep neutral background, just add subtle green accent */
+          border-color: var(--mint-success);
+          box-shadow: 0 0 0 1px var(--mint-success-border), 0 2px 8px oklch(0.65 0.2 145 / 0.12);
         }
         
-        .sparkle {
+        /* ========== DARK MODE ========== */
+        .dark .hero-email-card {
+          background: oklch(100% 0 0 / 0.035);
+          border-color: var(--glass-border);
+          box-shadow: 0 1px 3px oklch(0% 0 0 / 0.12);
+        }
+        .dark .hero-email-card.is-hovered {
+          background: oklch(100% 0 0 / 0.055);
+          box-shadow: 0 2px 8px oklch(0% 0 0 / 0.18);
+        }
+        .dark .hero-email-card.is-minted {
+          /* Keep dark neutral background, subtle green glow */
+          border-color: var(--mint-success);
+          box-shadow: 0 0 0 1px var(--mint-success-border), 0 2px 12px oklch(0.65 0.2 145 / 0.15);
+        }
+        
+        /* ========== ICON BOX ========== */
+        .hero-icon-box {
+          background: oklch(0% 0 0 / 0.02);
+          border: 1px solid oklch(0% 0 0 / 0.03);
+        }
+        .hero-email-card.is-minted .hero-icon-box {
+          background: oklch(0.65 0.15 145 / 0.1);
+          border-color: oklch(0.65 0.15 145 / 0.2);
+        }
+        .dark .hero-icon-box {
+          background: oklch(100% 0 0 / 0.04);
+          border-color: oklch(100% 0 0 / 0.05);
+        }
+        .dark .hero-email-card.is-minted .hero-icon-box {
+          background: oklch(0.65 0.15 145 / 0.12);
+          border-color: oklch(0.65 0.15 145 / 0.2);
+        }
+        
+        /* ========== ICON ========== */
+        .hero-icon {
+          color: var(--page-text-muted);
+        }
+        .hero-email-card.is-minted .hero-icon {
+          color: var(--mint-success);
+        }
+        
+        /* ========== TEXT ========== */
+        .hero-sender {
+          color: var(--page-text-muted);
+        }
+        .hero-email-card.is-minted .hero-sender {
+          color: var(--mint-success);
+        }
+        
+        .hero-subject {
+          color: var(--page-text-primary);
+        }
+        
+        /* ========== MINTED BADGE ========== */
+        .hero-minted-badge {
+          background: var(--mint-success-gradient);
+          box-shadow: var(--mint-success-shadow);
+        }
+        
+        /* ========== MARK IT BUTTON ========== */
+        .hero-mark-btn {
+          background: oklch(0% 0 0 / 0.82);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid oklch(100% 0 0 / 0.06);
+          box-shadow: 0 1px 3px oklch(0% 0 0 / 0.08);
+          color: oklch(100% 0 0);
+        }
+        .hero-mark-btn svg {
+          color: oklch(100% 0 0 / 0.9);
+        }
+        .dark .hero-mark-btn {
+          background: oklch(100% 0 0 / 0.9);
+          border-color: oklch(0% 0 0 / 0.03);
+          box-shadow: 0 1px 3px oklch(0% 0 0 / 0.06);
+          color: oklch(0% 0 0 / 0.9);
+        }
+        .dark .hero-mark-btn svg {
+          color: oklch(0% 0 0 / 0.8);
+        }
+        
+        /* ========== ANIMATIONS ========== */
+        .hero-card-enter {
+          animation: heroCardEnter 0.35s ease-out forwards;
+        }
+        .hero-card-exit {
+          animation: heroCardExit 0.28s ease-in forwards;
+        }
+        .hero-badge-enter {
+          animation: heroBadgeEnter 0.3s ease-out forwards;
+        }
+        .hero-fade-in {
+          animation: heroFadeIn 0.15s ease-out forwards;
+        }
+        
+        @keyframes heroCardEnter {
+          from {
+            opacity: 0;
+            transform: translateY(-6px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        
+        @keyframes heroCardExit {
+          from {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+          to {
+            opacity: 0;
+            transform: translateY(3px) scale(0.99);
+          }
+        }
+        
+        @keyframes heroBadgeEnter {
+          from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(3px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0) scale(1);
+          }
+        }
+        
+        @keyframes heroFadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* ========== MINI CONFETTI ========== */
+        .hero-confetti-container {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          overflow: visible;
+          z-index: 30;
+        }
+        
+        .hero-confetti {
           position: absolute;
           width: 6px;
           height: 6px;
-          background: var(--mint-success-light);
-          border-radius: 50%;
-          animation: sparkle-burst 0.6s ease-out forwards;
-          animation-delay: var(--delay);
-          opacity: 0;
+          border-radius: 1px;
+          animation: heroConfettiBurst 0.7s ease-out forwards;
+          animation-delay: var(--delay, 0ms);
         }
         
-        @keyframes sparkle-burst {
+        /* Position each confetti piece differently */
+        .hero-confetti-1 { left: 20%; top: 30%; background: oklch(0.75 0.18 145); }
+        .hero-confetti-2 { left: 80%; top: 25%; background: oklch(0.70 0.15 210); border-radius: 50%; }
+        .hero-confetti-3 { left: 50%; top: 20%; background: oklch(0.80 0.18 85); }
+        .hero-confetti-4 { left: 30%; top: 40%; background: oklch(0.72 0.16 275); border-radius: 50%; }
+        .hero-confetti-5 { left: 70%; top: 35%; background: oklch(0.75 0.18 145); }
+        .hero-confetti-6 { left: 45%; top: 45%; background: oklch(0.80 0.15 30); border-radius: 50%; }
+        
+        @keyframes heroConfettiBurst {
           0% {
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0);
-          }
-          50% {
             opacity: 1;
-            transform: translate(-50%, -50%) 
-                       translateX(calc(cos(var(--angle)) * 35px))
-                       translateY(calc(sin(var(--angle)) * 35px))
-                       scale(1);
+            transform: translate(0, 0) scale(0) rotate(0deg);
+          }
+          30% {
+            opacity: 1;
+            transform: translate(var(--tx, -10px), var(--ty, -20px)) scale(1.2) rotate(90deg);
           }
           100% {
             opacity: 0;
-            transform: translate(-50%, -50%) 
-                       translateX(calc(cos(var(--angle)) * 35px))
-                       translateY(calc(sin(var(--angle)) * 35px))
-                       scale(0);
+            transform: translate(var(--tx2, -15px), var(--ty2, 10px)) scale(0.5) rotate(180deg);
           }
+        }
+        
+        .hero-confetti-1 { --tx: -25px; --ty: -30px; --tx2: -30px; --ty2: 5px; }
+        .hero-confetti-2 { --tx: 25px; --ty: -35px; --tx2: 35px; --ty2: 10px; }
+        .hero-confetti-3 { --tx: 5px; --ty: -40px; --tx2: 8px; --ty2: -10px; }
+        .hero-confetti-4 { --tx: -20px; --ty: -15px; --tx2: -25px; --ty2: 15px; }
+        .hero-confetti-5 { --tx: 20px; --ty: -20px; --tx2: 28px; --ty2: 8px; }
+        .hero-confetti-6 { --tx: 0px; --ty: -25px; --tx2: 5px; --ty2: 5px; }
+        
+        /* ========== POST-MINT ACTION ========== */
+        .hero-actions-enter {
+          animation: heroActionsEnter 0.35s ease-out forwards;
+        }
+        
+        @keyframes heroActionsEnter {
+          from {
+            opacity: 0;
+            transform: translateY(4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .hero-action-btn {
+          background: oklch(0% 0 0 / 0.06);
+          border: 1px solid oklch(0% 0 0 / 0.08);
+          color: var(--page-text-secondary);
+        }
+        .hero-action-btn:hover:not(:disabled) {
+          background: oklch(0% 0 0 / 0.10);
+        }
+        
+        /* Loading state - subtle pulse */
+        .hero-action-loading {
+          opacity: 0.85;
+        }
+        
+        /* Success state - universal green with pop animation */
+        .hero-action-success {
+          background: var(--mint-success) !important;
+          border-color: var(--mint-success-border) !important;
+          color: oklch(0.98 0 0) !important;
+          animation: heroActionSuccess 0.35s ease-out forwards;
+        }
+        
+        @keyframes heroActionSuccess {
+          0% { transform: scale(1); }
+          40% { transform: scale(1.1); }
+          100% { transform: scale(1); }
+        }
+        
+        /* Share on X - Theme neutral glassmorphic */
+        .hero-action-share {
+          background: var(--glass-bg-primary);
+          border-color: var(--glass-border);
+          color: var(--page-text-primary);
+        }
+        .hero-action-share:hover:not(:disabled) {
+          background: var(--glass-bg-hover);
+          border-color: var(--glass-border-hover);
+        }
+        
+        /* Telegram - Primary theme color */
+        .hero-action-telegram {
+          background: var(--primary);
+          border-color: var(--primary);
+          color: var(--primary-foreground);
+        }
+        .hero-action-telegram:hover:not(:disabled) {
+          background: var(--ring);
+          border-color: var(--ring);
+        }
+        
+        /* Discord - Secondary theme color */
+        .hero-action-discord {
+          background: var(--secondary);
+          border-color: var(--border);
+          color: var(--secondary-foreground);
+        }
+        .hero-action-discord:hover:not(:disabled) {
+          background: var(--accent);
+          border-color: var(--border);
+        }
+        
+        /* Claim/POAP - Accent/warm tone */
+        .hero-action-claim {
+          background: var(--status-pending-bg);
+          border-color: var(--status-pending-border);
+          color: var(--status-pending);
+        }
+        .hero-action-claim:hover:not(:disabled) {
+          background: var(--status-pending);
+          border-color: var(--status-pending);
+          color: var(--primary-foreground);
+        }
+        
+        /* Dark mode success - keep green */
+        .dark .hero-action-success {
+          background: var(--mint-success) !important;
+          color: oklch(0.98 0 0) !important;
         }
       `}</style>
     </div>

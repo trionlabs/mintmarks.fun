@@ -84,8 +84,8 @@ const LUMA_SUBCATEGORIES: FilterSubcategory[] = [
   {
     id: 'attended',
     label: 'Attended',
-    keywords: ['thanks for joining', 'thank for joining', 'thank you for joining', 'thanks for attending', 'hope you enjoyed'],
-    gmailKeywords: ['thanks for joining', 'thank for joining'],
+    keywords: ['thanks for joining', 'thank you for joining', 'thank for joining'],
+    gmailKeywords: ['thanks for joining', 'thank you for joining'],
   },
 ]
 
@@ -126,8 +126,8 @@ const EVENTBRITE_SUBCATEGORIES: FilterSubcategory[] = [
   {
     id: 'attended',
     label: 'Attended',
-    keywords: ['thanks for attending', 'thank you for attending', 'hope you enjoyed'],
-    gmailKeywords: ['thanks for attending'],
+    keywords: ['thanks for joining', 'thank for joining'],
+    gmailKeywords: ['thanks for joining', 'thank for joining'],
   },
 ]
 
@@ -166,8 +166,9 @@ export const EMAIL_FILTER_CATEGORIES: FilterCategory[] = [
   {
     id: 'luma',
     label: 'Luma',
-    gmailQuery: 'from:(lu.ma OR luma.co OR luma-mail.com)',
+    gmailQuery: 'from:(lu.ma OR luma.com OR luma.co OR luma-mail.com)',
     subcategories: LUMA_SUBCATEGORIES,
+    subjectOnly: true, // Search keywords only in subject, not body
   },
   {
     id: 'substack',
@@ -220,7 +221,8 @@ export function getCategoryBySource(source: EmailSource): FilterCategory | undef
  * Examples:
  * - No filters: 'from:(lu.ma OR luma.co OR substack.com OR eventbrite.com OR amazon.com)'
  * - Luma only: 'from:(lu.ma OR luma.co OR luma-mail.com)'
- * - Luma + Confirmed: 'from:(lu.ma OR luma.co OR luma-mail.com) (confirmed OR registered)'
+ * - Luma + Attended: 'from:(lu.ma OR luma.co OR luma-mail.com) subject:(thanks for joining)'
+ * - Substack + Confirmed: 'from:substack.com (subscribed OR welcome)'
  */
 export function buildGmailQuery(filters: ActiveFilters): string {
   const { sources, statuses } = filters
@@ -246,22 +248,49 @@ export function buildGmailQuery(filters: ActiveFilters): string {
 
   // Add status keywords if selected
   if (statuses.length > 0) {
-    const statusKeywords: string[] = []
+    // Separate keywords for subjectOnly and non-subjectOnly categories
+    const subjectOnlyKeywords: string[] = []
+    const bodyKeywords: string[] = []
 
     for (const status of statuses) {
       for (const category of selectedCategories) {
         const subcategory = category.subcategories.find((sub) => sub.id === status)
         if (subcategory) {
-          statusKeywords.push(...subcategory.gmailKeywords)
+          if (category.subjectOnly) {
+            subjectOnlyKeywords.push(...subcategory.gmailKeywords)
+          } else {
+            bodyKeywords.push(...subcategory.gmailKeywords)
+          }
         }
       }
     }
 
     // Remove duplicates
-    const uniqueKeywords = [...new Set(statusKeywords)]
+    const uniqueSubjectKeywords = [...new Set(subjectOnlyKeywords)]
+    const uniqueBodyKeywords = [...new Set(bodyKeywords)]
 
-    if (uniqueKeywords.length > 0) {
-      query += ` (${uniqueKeywords.join(' OR ')})`
+    // Helper to quote multi-word phrases for Gmail search
+    const quoteIfNeeded = (keyword: string) => 
+      keyword.includes(' ') ? `"${keyword}"` : keyword
+
+    // Build keyword query parts
+    const keywordParts: string[] = []
+
+    if (uniqueSubjectKeywords.length > 0) {
+      // Use subject: operator for subjectOnly categories (like Luma)
+      // Quote multi-word phrases for exact match
+      const quotedKeywords = uniqueSubjectKeywords.map(quoteIfNeeded)
+      keywordParts.push(`subject:(${quotedKeywords.join(' OR ')})`)
+    }
+
+    if (uniqueBodyKeywords.length > 0) {
+      // Search entire email for non-subjectOnly categories
+      const quotedKeywords = uniqueBodyKeywords.map(quoteIfNeeded)
+      keywordParts.push(`(${quotedKeywords.join(' OR ')})`)
+    }
+
+    if (keywordParts.length > 0) {
+      query += ` (${keywordParts.join(' OR ')})`
     }
   }
 
@@ -280,14 +309,15 @@ export function getDefaultGmailQuery(): string {
 // ============================================
 
 /**
- * Detect registration status from email subject and snippet
+ * Detect registration status from email subject only
  */
 export function detectRegistrationStatus(
   subject: string | null,
-  snippet: string,
+  _snippet: string,
   source: EmailSource
 ): RegistrationStatus {
-  const text = `${subject ?? ''} ${snippet}`.toLowerCase()
+  // Only check subject, ignore snippet to avoid false positives from email body
+  const text = (subject ?? '').toLowerCase()
 
   const category = getCategoryBySource(source)
   if (!category) return 'unknown'
