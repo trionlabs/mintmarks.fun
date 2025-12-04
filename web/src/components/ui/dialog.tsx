@@ -36,14 +36,19 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        // Glass overlay - uses theme variables
+        // Glass overlay - inline styles for Vercel compatibility
         "fixed inset-0 z-50",
-        "glass-overlay",
+        // Dark mode background handled via CSS variable
+        "bg-black/15 dark:bg-black/50",
         // Animations
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         className
       )}
+      style={{
+        backdropFilter: 'blur(12px) saturate(150%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(150%)',
+      }}
       {...props}
     />
   )
@@ -66,8 +71,15 @@ function DialogContent({
           // Position & Layout
           "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] sm:max-w-lg",
           "translate-x-[-50%] translate-y-[-50%] gap-4 p-6",
-          // Glass Modal - uses theme preset
-          "glass-modal",
+          // Border radius
+          "rounded-xl",
+          // Glass Modal background - Tailwind classes for theme support
+          "bg-white/92 dark:bg-white/[0.03]",
+          // Border
+          "border border-black/6 dark:border-white/8",
+          // Shadow - light and dark variants
+          "shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.5)]",
+          "dark:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.05),inset_0_1px_0_rgba(255,255,255,0.05)]",
           // Animations
           "duration-200",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
@@ -75,6 +87,11 @@ function DialogContent({
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           className
         )}
+        // Glass Modal backdrop filter - inline for Vercel compatibility
+        style={{
+          backdropFilter: 'blur(24px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+        }}
         {...props}
       >
         {children}
@@ -84,13 +101,25 @@ function DialogContent({
             className={cn(
               "absolute top-4 right-4 w-8 h-8 rounded-lg",
               "flex items-center justify-center",
-              // Glass button style
-              "glass-button",
-              "text-[var(--page-text-muted)]",
-              "hover:text-[var(--page-text-primary)]",
+              "transition-all duration-200",
+              // Glass button background
+              "bg-white/40 dark:bg-white/[0.03]",
+              // Border
+              "border border-black/6 dark:border-white/8",
+              // Shadow
+              "shadow-[0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.12)]",
+              // Text colors
+              "text-black/50 dark:text-white/50",
+              "hover:text-black/90 dark:hover:text-white/90",
+              "hover:bg-white/60 dark:hover:bg-white/8",
+              "hover:-translate-y-px",
               "focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden",
               "disabled:pointer-events-none"
             )}
+            style={{
+              backdropFilter: 'blur(8px) saturate(110%)',
+              WebkitBackdropFilter: 'blur(8px) saturate(110%)',
+            }}
           >
             <XIcon className="w-4 h-4 pointer-events-none shrink-0" />
             <span className="sr-only">Close</span>
@@ -131,7 +160,11 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-semibold glass-text-primary", className)}
+      className={cn(
+        "text-lg leading-none font-semibold",
+        "text-black/[0.85] dark:text-white/95",
+        className
+      )}
       {...props}
     />
   )
@@ -144,7 +177,11 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-sm glass-text-secondary", className)}
+      className={cn(
+        "text-sm",
+        "text-black/60 dark:text-white/70",
+        className
+      )}
       {...props}
     />
   )

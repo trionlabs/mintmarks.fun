@@ -619,7 +619,6 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
     }
 
     // Get network client for waiting on receipt
-    const selectedNetwork = MINT_NETWORKS[state.selectedNetwork]
     const networkClient = createNetworkClient(state.selectedNetwork)
 
     try {
