@@ -19,7 +19,7 @@ remappings = [
     "@verifier/=../circuits/solidity-verifier/",
 ]
 
-# Deployment profile: use via-ir for optimizer stack safety
+# Deployment profile: use via-ir for optimizer stack safety (for Mintmarks)
 [profile.deploy]
 src = "src"
 test = "none"
@@ -29,6 +29,18 @@ solc = "0.8.28"
 optimizer = true
 optimizer_runs = 200
 via_ir = true
+remappings = [
+    "@verifier/=../circuits/solidity-verifier/",
+]
+
+# Verifier deployment profile: optimizer OFF (UltraHonkVerifier needs this)
+[profile.deploy-verifier]
+src = "../circuits/solidity-verifier"
+test = "none"
+out = "out"
+libs = ["lib"]
+solc = "0.8.28"
+optimizer = false
 remappings = [
     "@verifier/=../circuits/solidity-verifier/",
 ]

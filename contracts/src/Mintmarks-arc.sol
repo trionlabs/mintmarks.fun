@@ -4,7 +4,6 @@ pragma solidity ^0.8.28;
 import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {
     IZKPassportVerifier,
     IZKPassportHelper,
@@ -12,7 +11,7 @@ import {
     BoundData
 } from "./interfaces/IZKPassportVerifier.sol";
 
-
+/// @notice Interface for the DKIM email proof verifier (UltraHonk circuit)
 interface IEmailVerifier {
     function verify(bytes calldata proof, bytes32[] calldata publicInputs) external view returns (bool);
 }
@@ -25,9 +24,6 @@ interface IEmailVerifier {
 ///      2. Passport-verified: Proves attendance + unique personhood (mintWithPassport)
 ///      Tokens are non-transferable (soulbound) - only minting is allowed.
 contract Mintmarks is ERC1155, Ownable {
-    using Strings for uint256;
-    using Strings for int256;
-
     /*//////////////////////////////////////////////////////////////
                             PUBLIC INPUTS LAYOUT
     //////////////////////////////////////////////////////////////*/
@@ -55,13 +51,9 @@ contract Mintmarks is ERC1155, Ownable {
     /// @dev All passport proofs use the same scope for stable passportId (1:1 wallet-passport binding)
     string public constant SCOPE = "mintmarks";
 
-    /// @notice Known Luma DKIM public key hashes (user.luma-mail.com)
-    /// @dev Poseidon hash of the RSA-2048 DKIM public keys used by Luma
-    /// @dev Luma rotates DKIM keys periodically - add new ones via setAllowedPubkeyHash()
+    /// @notice Known Luma DKIM public key hash (user.luma-mail.com)
+    /// @dev Poseidon hash of the RSA-2048 DKIM public key used by Luma
     bytes32 public constant LUMA_PUBKEY_HASH = 0x2262a82e42989fff21ac1f474de8440bbd7ddec5e868dd699efdf4439184dcf0;
-    
-    /// @notice Secondary Luma DKIM public key hash (rotated key as of Dec 2024)
-    bytes32 public constant LUMA_PUBKEY_HASH_2 = 0x14867ad1414e10a18a36e0db535e47f1a11a4d3d97f7eb3eb2ad6c09d8772e33;
 
     /*//////////////////////////////////////////////////////////////
                             STATE VARIABLES
@@ -200,12 +192,9 @@ contract Mintmarks is ERC1155, Ownable {
         EMAIL_VERIFIER = IEmailVerifier(_emailVerifier);
         PASSPORT_VERIFIER = IZKPassportVerifier(_passportVerifier);
 
-        // Add known Luma DKIM pubkey hashes to allowed list
+        // Add known Luma DKIM pubkey hash to allowed list
         allowedPubkeyHashes[LUMA_PUBKEY_HASH] = true;
         emit PubkeyHashUpdated(LUMA_PUBKEY_HASH, true);
-        
-        allowedPubkeyHashes[LUMA_PUBKEY_HASH_2] = true;
-        emit PubkeyHashUpdated(LUMA_PUBKEY_HASH_2, true);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -485,127 +474,40 @@ contract Mintmarks is ERC1155, Ownable {
         return string(eventName);
     }
 
-    /*//////////////////////////////////////////////////////////////
-                        SVG GENERATION - GRADIENT FLUX
-    //////////////////////////////////////////////////////////////*/
+    /// @dev Generates an SVG image for a token
+    /// @param eventName The event name to display in the SVG
+    /// @param verified Whether the mint was passport verified
+    /// @return The SVG markup as a string
+    function _generateSVG(string memory eventName, bool verified) internal pure returns (string memory) {
+        string memory verificationText = verified
+            ? "Passport Verified"
+            : "Email Verified";
 
-    /// @dev Returns monocolor palette based on seed (3-char hex optimized)
-    function _getPalette(uint256 seed) internal pure returns (
-        string memory light,
-        string memory dark,
-        string memory accent
-    ) {
-        uint256 idx = seed % 10;
-        if (idx == 0) return ("#cef", "#013", "#8bf");     // Ice
-        if (idx == 1) return ("#cff", "#022", "#8ff");     // Glacier
-        if (idx == 2) return ("#ecf", "#102", "#b8f");     // Amethyst
-        if (idx == 3) return ("#fce", "#201", "#f8b");     // Rose
-        if (idx == 4) return ("#fec", "#210", "#fb8");     // Amber
-        if (idx == 5) return ("#cfe", "#021", "#8fb");     // Emerald
-        if (idx == 6) return ("#fcc", "#200", "#f88");     // Coral
-        if (idx == 7) return ("#cdf", "#012", "#89f");     // Sapphire
-        if (idx == 8) return ("#eee", "#111", "#999");     // Noir
-        return         ("#fed", "#110", "#db9");           // Sand
-    }
+        string memory badgeColor = verified
+            ? "#4ade80"  // Green for passport verified
+            : "#fbbf24"; // Yellow for email only
 
-    /// @dev Converts signed integer to string
-    function _itoa(int256 v) internal pure returns (string memory) {
-        if (v >= 0) return uint256(v).toString();
-        return string(abi.encodePacked("-", uint256(-v).toString()));
-    }
-
-    /// @dev Simple sine approximation using quadratic (-100 to 100 scaled)
-    /// @param t Position 0-100 (maps to 0-2π)
-    function _sin100(uint256 t) internal pure returns (int256) {
-        // Normalize to 0-100 range
-        t = t % 100;
-        // Map to quadratic approximation: peak at 25, trough at 75
-        if (t <= 50) {
-            // Rising then falling: 0->100->0
-            int256 x = int256(t) - 25;
-            return 100 - (x * x * 4) / 25;
-        } else {
-            // Falling then rising: 0->-100->0
-            int256 x = int256(t) - 75;
-            return -100 + (x * x * 4) / 25;
-        }
-    }
-
-    /// @dev Generates SVG defs (gradient + scrim)
-    function _svgDefs(string memory light, string memory dark, bytes1 h) internal pure returns (string memory) {
-        return string(abi.encodePacked(
-            '<defs><linearGradient id="f', h, '"><stop stop-color="', light,
-            '" stop-opacity="0"/><stop offset=".5" stop-color="', light,
-            '"/><stop offset="1" stop-color="', light, '" stop-opacity="0"/></linearGradient>',
-            '<linearGradient id="s" y2="1"><stop stop-color="', dark,
-            '" stop-opacity="0"/><stop offset="1" stop-color="', dark, '" stop-opacity=".9"/></linearGradient></defs>'
-        ));
-    }
-
-    /// @dev Generates 5 flux strips (ultra-minimal)
-    function _svgFlux(uint256 seed, bytes1 h) internal pure returns (string memory) {
-        uint256 freq = (seed % 3) + 1;
-        uint256 phase = (seed >> 8) % 100;
-        int256 amp = int256(60 + (seed >> 16) % 80);
-
-        return string(abi.encodePacked(
-            '<rect x="', _itoa(-200 + (_sin100((0 * freq * 20 + phase) % 100) * amp) / 100), '" y="0" width="800" height="80" fill="url(#f', h, ')"/>',
-            '<rect x="', _itoa(-200 + (_sin100((1 * freq * 20 + phase) % 100) * amp) / 100), '" y="80" width="800" height="80" fill="url(#f', h, ')"/>',
-            '<rect x="', _itoa(-200 + (_sin100((2 * freq * 20 + phase) % 100) * amp) / 100), '" y="160" width="800" height="80" fill="url(#f', h, ')"/>',
-            '<rect x="', _itoa(-200 + (_sin100((3 * freq * 20 + phase) % 100) * amp) / 100), '" y="240" width="800" height="80" fill="url(#f', h, ')"/>',
-            '<rect x="', _itoa(-200 + (_sin100((4 * freq * 20 + phase) % 100) * amp) / 100), '" y="320" width="800" height="80" fill="url(#f', h, ')"/>'
-        ));
-    }
-
-    /// @dev Generates verified frame (Piano Black style)
-    function _svgFrame(string memory accent) internal pure returns (string memory) {
-        return string(abi.encodePacked(
-            '<rect x="12" y="12" width="376" height="376" fill="none" stroke="#050505" stroke-width="24"/>',
-            '<rect x="24" y="24" width="352" height="352" fill="none" stroke="', accent, '" stroke-width="1.5" opacity=".8"/>'
-        ));
-    }
-
-    /// @dev Generates text overlays
-    function _svgText(
-        string memory eventName,
-        uint256 tokenId,
-        string memory light,
-        string memory accent,
-        bool v
-    ) internal pure returns (string memory) {
-        string memory r = v ? "366" : "370";
-        string memory t = v ? "39" : "35";
-        string memory b = v ? "366" : "370";
-        string memory l = v ? "34" : "30";
-
-        return string(abi.encodePacked(
-            '<text x="', r, '" y="', t, '" text-anchor="end" fill="', light,
-            '" font-size="8" opacity=".7">MINTMARKS</text>',
-            '<text x="', l, '" y="', b, '" fill="#fff" font-size="16" font-weight="600">', eventName, '</text>',
-            '<text x="', r, '" y="', b, '" text-anchor="end" fill="', accent,
-            '" font-size="12">#', tokenId.toString(), '</text>'
-        ));
-    }
-
-    /// @dev Generates an SVG image with Gradient Flux style
-    /// @param eventName The event name to display
-    /// @param verified Whether passport verified
-    /// @param tokenId The token ID for visual seed
-    function _generateSVG(string memory eventName, bool verified, uint256 tokenId) internal pure returns (string memory) {
-        uint256 seed = uint256(keccak256(abi.encodePacked(eventName)));
-        (string memory light, string memory dark, string memory accent) = _getPalette(seed);
-        bytes1 h = bytes("0123456789abcdef")[seed % 16];
-
-        return string(abi.encodePacked(
-            '<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">',
-            _svgDefs(light, dark, h),
-            '<rect width="400" height="400" fill="', dark, '"/>',
-            _svgFlux(seed, h),
-            verified ? _svgFrame(accent) : "",
-            '<rect y="300" width="400" height="100" fill="url(#s)"/>',
-            _svgText(eventName, tokenId, light, accent, verified),
-            '</svg>'
-        ));
+        return string(
+            abi.encodePacked(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">',
+                '<defs>',
+                '<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">',
+                '<stop offset="0%" style="stop-color:#1a1a2e"/>',
+                '<stop offset="100%" style="stop-color:#16213e"/>',
+                '</linearGradient>',
+                '</defs>',
+                '<rect width="400" height="400" fill="url(#bg)"/>',
+                '<rect x="20" y="20" width="360" height="360" rx="20" fill="none" stroke="#e94560" stroke-width="2"/>',
+                '<text x="200" y="80" text-anchor="middle" fill="#e94560" font-family="Arial,sans-serif" font-size="24" font-weight="bold">MINTMARKS</text>',
+                '<line x1="60" y1="100" x2="340" y2="100" stroke="#e94560" stroke-width="1" opacity="0.5"/>',
+                '<text x="200" y="200" text-anchor="middle" fill="#ffffff" font-family="Arial,sans-serif" font-size="20">',
+                eventName,
+                '</text>',
+                '<text x="200" y="330" text-anchor="middle" fill="', badgeColor, '" font-family="Arial,sans-serif" font-size="12">', verificationText, '</text>',
+                '<text x="200" y="355" text-anchor="middle" fill="#e94560" font-family="Arial,sans-serif" font-size="10" font-weight="bold">SOULBOUND</text>',
+                '</svg>'
+            )
+        );
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -648,8 +550,8 @@ contract Mintmarks is ERC1155, Ownable {
             return "";
         }
 
-        // Generate SVG with generic "Verified" since uri is per-token, not per-user
-        string memory svg = _generateSVG(eventName, true, tokenId);
+        // Generate SVG with generic "Verified Attendance" since uri is per-token, not per-user
+        string memory svg = _generateSVG(eventName, true);
         string memory imageURI = string(
             abi.encodePacked("data:image/svg+xml;base64,", Base64.encode(bytes(svg)))
         );
@@ -688,7 +590,7 @@ contract Mintmarks is ERC1155, Ownable {
         }
 
         bool verified = isPassportVerified[user][tokenId];
-        string memory svg = _generateSVG(eventName, verified, tokenId);
+        string memory svg = _generateSVG(eventName, verified);
         string memory imageURI = string(
             abi.encodePacked("data:image/svg+xml;base64,", Base64.encode(bytes(svg)))
         );
