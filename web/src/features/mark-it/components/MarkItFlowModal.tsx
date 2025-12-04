@@ -81,7 +81,9 @@ function NetworkBalance({ networkId }: { networkId: MintNetworkId }) {
         const formatted = parseFloat(balanceEth).toFixed(4)
         setBalance(formatted)
       } catch (error) {
-        console.error('[NetworkBalance] Failed to fetch balance:', error)
+        if (import.meta.env.DEV) {
+          console.error('[NetworkBalance] Failed to fetch balance:', error)
+        }
         setBalance(null)
       } finally {
         setIsLoading(false)

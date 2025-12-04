@@ -193,7 +193,9 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
     } catch (error) {
       if ((error as Error).name === 'AbortError') return
 
-      console.error('[useAuthStatus] Balance fetch failed:', error)
+      if (import.meta.env.DEV) {
+        console.error('[useAuthStatus] Balance fetch failed:', error)
+      }
       setBalanceError({
         type: 'balance',
         message: 'Failed to load balance',
@@ -224,7 +226,9 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
     if (isGmailConnected && walletLoading && !isWalletConnected) {
       timeoutRef.current = setTimeout(() => {
         setConnectionTimeout(true)
-        console.warn('[useAuthStatus] Wallet connection timeout')
+        if (import.meta.env.DEV) {
+          console.warn('[useAuthStatus] Wallet connection timeout')
+        }
       }, CONNECTION_TIMEOUT_MS)
     } else {
       // Clear timeout timer (but don't reset flag - it will reset when wallet connects)
@@ -347,7 +351,9 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
 
       showToast('Logged out successfully', 'success')
     } catch (error) {
-      console.error('[useAuthStatus] Logout failed:', error)
+      if (import.meta.env.DEV) {
+        console.error('[useAuthStatus] Logout failed:', error)
+      }
       showToast('Failed to logout completely', 'error')
     } finally {
       setIsLoggingOut(false)
@@ -361,9 +367,10 @@ export function useAuthStatus(options: UseAuthStatusOptions = {}): AuthStatus {
   useEffect(() => {
     const handleAuthLogout = () => {
       if (isWalletConnected) {
-        console.log('[useAuthStatus] Detected auth:logout event, disconnecting wallet...')
         walletDisconnect().catch(err => {
-          console.error('[useAuthStatus] Failed to disconnect wallet on auth:logout:', err)
+          if (import.meta.env.DEV) {
+            console.error('[useAuthStatus] Failed to disconnect wallet on auth:logout:', err)
+          }
         })
       }
     }

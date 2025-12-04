@@ -231,7 +231,9 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       updateState({ emailProof: result })
 
     } catch (error) {
-      console.error('[MarkIt] Email proof generation failed:', error)
+      if (import.meta.env.DEV) {
+        console.error('[MarkIt] Email proof generation failed:', error)
+      }
       const errorMsg = error instanceof Error ? error.message : 'Failed to generate email proof'
       addTerminalLog(`❌ Error: ${errorMsg}`, 'error')
       updateState({ emailProofStatus: 'error' })
@@ -358,7 +360,6 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
             // Always include passport proof from ref
             passportProof: passportProofRef.current,
           })
-          console.log('[MarkIt] Passport verified - waiting for user to click "Mint Mark" button')
         } else {
           updateState({
             error: 'Passport verification failed',
@@ -367,7 +368,9 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
         }
       })
     } catch (error) {
-      console.error('[MarkIt] Passport verification failed:', error)
+      if (import.meta.env.DEV) {
+        console.error('[MarkIt] Passport verification failed:', error)
+      }
       passportVerificationStartedRef.current = false
       updateState({
         error: error instanceof Error ? error.message : 'Failed to start passport verification',
@@ -393,22 +396,21 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
     const passportProof = state.passportProof || passportProofRef.current
     
     if (!state.emailProof || !passportProof || !address) {
-      console.log('[MarkIt] mint() missing data:', {
-        hasEmailProof: !!state.emailProof,
-        hasPassportProof: !!passportProof,
-        hasPassportProofInState: !!state.passportProof,
-        hasPassportProofInRef: !!passportProofRef.current,
-        hasAddress: !!address,
-      })
+      if (import.meta.env.DEV) {
+        console.log('[MarkIt] mint() missing data:', {
+          hasEmailProof: !!state.emailProof,
+          hasPassportProof: !!passportProof,
+          hasPassportProofInState: !!state.passportProof,
+          hasPassportProofInRef: !!passportProofRef.current,
+          hasAddress: !!address,
+        })
+      }
       updateState({ error: 'Missing required data for minting' })
       return
     }
-    
-    console.log('[MarkIt] mint() starting with passport proof from:', state.passportProof ? 'state' : 'ref')
 
     // Get selected network configuration
     const selectedNetwork = MINT_NETWORKS[state.selectedNetwork]
-    console.log('[MarkIt] Selected network:', selectedNetwork.name, selectedNetwork.chainId)
 
     try {
       if (state.isDemo) {
@@ -449,8 +451,6 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
         functionName: 'emailNullifierUsed',
         args: [state.emailProof.publicInputs[1] as `0x${string}`],
       })
-      
-      console.log('[MarkIt] Nullifier used:', isUsed)
 
       if (isUsed) {
         updateState({
@@ -481,12 +481,11 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       }
 
       // Simulate the transaction first to catch errors early
-      console.log('[MarkIt] Simulating transaction on', selectedNetwork.name)
       try {
         await networkClient.simulateContract({
           address: mintmarksAddress,
           abi: MINTMARKS_ABI,
-          functionName: 'mint',
+          functionName: 'mintWithPassport',
           args: [
             state.emailProof.proof as `0x${string}`,
             state.emailProof.publicInputs as `0x${string}`[],
@@ -494,9 +493,10 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
           ],
           account: address,
         })
-        console.log('[MarkIt] Simulation successful!')
       } catch (simError) {
-        console.error('[MarkIt] Simulation failed:', simError)
+        if (import.meta.env.DEV) {
+          console.error('[MarkIt] Simulation failed:', simError)
+        }
         
         // Try to decode the error
         let errorMessage = 'Transaction simulation failed'
@@ -513,7 +513,9 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
                 data: (revertError as { data: `0x${string}` }).data,
               })
               errorMessage = `Contract error: ${decoded.errorName}`
-              console.error('[MarkIt] Decoded error:', decoded)
+              if (import.meta.env.DEV) {
+                console.error('[MarkIt] Decoded error:', decoded)
+              }
             } catch {
               // Couldn't decode, use generic message
             }
@@ -523,6 +525,12 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
           const errStr = simError.message || simError.toString()
           if (errStr.includes('InvalidEmailProof')) {
             errorMessage = 'Email proof verification failed. The proof may be invalid or the verifier contract may not recognize the format.'
+          } else if (errStr.includes('InvalidPubkeyHash') || errStr.includes('0x0eb96912')) {
+            const receivedHash = state.emailProof.publicInputs[0]
+            errorMessage = `DKIM public key not recognized. The email may be from a domain not supported by Mintmarks. Received pubkey hash: ${receivedHash?.slice(0, 18)}...`
+            if (import.meta.env.DEV) {
+              console.error('[MarkIt] InvalidPubkeyHash - received:', receivedHash)
+            }
           } else if (errStr.includes('InvalidPassportProof')) {
             errorMessage = 'Passport proof verification failed. Please re-verify your passport.'
           } else if (errStr.includes('InvalidPassportScope')) {
@@ -531,12 +539,16 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
             errorMessage = 'Bound address mismatch. The passport proof was generated for a different wallet.'
           } else if (errStr.includes('InvalidBoundChain')) {
             errorMessage = 'Bound chain mismatch. The passport proof was generated for a different chain.'
-          } else if (errStr.includes('InvalidBoundEmailNullifier')) {
-            errorMessage = 'Email nullifier mismatch. The passport proof was generated for a different email.'
           } else if (errStr.includes('EmailNullifierAlreadyUsed')) {
             errorMessage = 'This email has already been used to mint.'
-          } else if (errStr.includes('PassportIdAlreadyUsed')) {
-            errorMessage = 'This passport has already been used to mint.'
+          } else if (errStr.includes('AlreadyMintedThisEvent')) {
+            errorMessage = 'You have already minted this event.'
+          } else if (errStr.includes('PassportAlreadyUsedForEvent')) {
+            errorMessage = 'This passport has already been used to mint this event.'
+          } else if (errStr.includes('WalletBoundToDifferentPassport')) {
+            errorMessage = 'This wallet is already bound to a different passport.'
+          } else if (errStr.includes('PassportBoundToDifferentWallet')) {
+            errorMessage = 'This passport is already bound to a different wallet.'
           }
         }
         
@@ -549,7 +561,7 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
 
       const data = encodeFunctionData({
         abi: MINTMARKS_ABI,
-        functionName: 'mint',
+        functionName: 'mintWithPassport',
         args: [
           state.emailProof.proof as `0x${string}`,
           state.emailProof.publicInputs as `0x${string}`[],
@@ -564,17 +576,13 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
         chainId: selectedNetwork.chainId,
       }
 
-      console.log('[MarkIt] Transaction prepared, waiting for user confirmation')
-      console.log('[MarkIt] To:', mintmarksAddress)
-      console.log('[MarkIt] Network:', selectedNetwork.name)
-      console.log('[MarkIt] Chain ID:', selectedNetwork.chainId)
-      console.log('[MarkIt] Data length:', data.length)
-
       // Set state to ready-to-mint, waiting for user to click "Mint NFT" button
       updateState({ mintSubStep: 'ready-to-mint' })
 
     } catch (error) {
-      console.error('[MarkIt] Mint preparation failed:', error)
+      if (import.meta.env.DEV) {
+        console.error('[MarkIt] Mint preparation failed:', error)
+      }
       updateState({
         error: error instanceof Error ? error.message : 'Failed to prepare mint transaction',
         mintSubStep: 'error',
@@ -617,10 +625,7 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
     try {
       updateState({ mintSubStep: 'confirming' })
 
-      console.log('[MarkIt] Sending transaction on', selectedNetwork.name)
       const result = await sendTransaction(preparedTxRef.current)
-      
-      console.log('[MarkIt] Transaction sent:', result.hash)
 
       updateState({
         transactionHash: result.hash,
@@ -650,7 +655,9 @@ export function useMarkItFlow(): UseMarkItFlowReturn {
       // Clear prepared tx
       preparedTxRef.current = null
     } catch (error) {
-      console.error('[MarkIt] Transaction failed:', error)
+      if (import.meta.env.DEV) {
+        console.error('[MarkIt] Transaction failed:', error)
+      }
       updateState({
         error: error instanceof Error ? error.message : 'Failed to send transaction',
         mintSubStep: 'error',

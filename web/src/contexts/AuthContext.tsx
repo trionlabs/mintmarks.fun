@@ -108,7 +108,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.setItem(USER_INFO_KEY, JSON.stringify(info))
       return info
     } catch (error) {
-      console.error('Failed to fetch user info:', error)
+      if (import.meta.env.DEV) {
+        console.error('Failed to fetch user info:', error)
+      }
       return null
     }
   }, [])
@@ -162,7 +164,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
     if (!clientId) {
-      console.error('Missing VITE_GOOGLE_CLIENT_ID environment variable')
+      if (import.meta.env.DEV) {
+        console.error('Missing VITE_GOOGLE_CLIENT_ID environment variable')
+      }
       return
     }
 
@@ -232,7 +236,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const timer = setTimeout(() => {
-      console.log('[AuthContext] Token expired, logging out')
       logout()
     }, msUntilExpiry)
 
@@ -256,7 +259,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Handle OAuth error
       if (error) {
-        console.error('OAuth error:', error)
+        if (import.meta.env.DEV) {
+          console.error('OAuth error:', error)
+        }
         window.history.replaceState(null, '', window.location.pathname)
         return
       }
@@ -276,7 +281,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // State validation
       if (!storedState) {
         // No stored state - could be tab restore, HMR reload, or expired session
-        console.warn('[AuthContext] No stored OAuth state found - session may have expired')
+        if (import.meta.env.DEV) {
+          console.warn('[AuthContext] No stored OAuth state found - session may have expired')
+        }
         // In production, reject for security. In dev, allow for easier testing.
         if (!import.meta.env.DEV) {
           window.history.replaceState(null, '', window.location.pathname)
@@ -284,10 +291,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       } else if (returnedState !== storedState) {
         // State mismatch - possible CSRF attack
-        console.error('[AuthContext] OAuth state mismatch - possible CSRF attack', {
-          expected: storedState,
-          received: returnedState,
-        })
+        if (import.meta.env.DEV) {
+          console.error('[AuthContext] OAuth state mismatch - possible CSRF attack', {
+            expected: storedState,
+            received: returnedState,
+          })
+        }
         sessionStorage.removeItem(OAUTH_STATE_KEY)
         window.history.replaceState(null, '', window.location.pathname)
         return

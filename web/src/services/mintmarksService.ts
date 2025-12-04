@@ -10,6 +10,7 @@ import { sepolia, baseSepolia, mainnet, base } from 'viem/chains'
 import { MINTMARKS_ABI } from '@/config/sepolia'
 import { MINT_NETWORKS, type MintNetworkId } from '@/config/mintNetworks'
 import type { MintmarkNFT, NetworkId } from '@/types/nft'
+import { generateMintmarksSVGDataUri } from '@/utils/svgGenerator'
 
 // ============================================
 // Types
@@ -72,7 +73,7 @@ function getPublicClient(networkId: MintNetworkId) {
 // ============================================
 
 const MINTED_EVENT = parseAbiItem(
-  'event Minted(address indexed to, uint256 indexed tokenId, string eventName, bytes32 emailNullifier, bytes32 passportId)'
+  'event Minted(address indexed to, uint256 indexed tokenId, string eventName, bytes32 emailNullifier, bytes32 passportId, bool withPassport)'
 )
 
 // ============================================
@@ -141,9 +142,12 @@ export async function fetchMintedEvents(
             blockNumber: log.blockNumber,
           })
         })
-      } catch {
-        // Chunk failed - continue with other chunks silently
+      } catch (err) {
+        // Chunk failed - continue with other chunks
         // Network issues are common, and partial data is better than none
+        if (import.meta.env.DEV) {
+          console.warn('[mintmarksService] Chunk fetch failed:', startBlock.toString(), '-', endBlock.toString(), err)
+        }
       }
       
       startBlock = endBlock + 1n
@@ -270,7 +274,7 @@ export async function fetchAllMintmarks(
         // Get block timestamp
         const mintedAt = await getBlockTimestamp(mintNetworkId, event.blockNumber)
         
-        // Try to get metadata for image
+        // Try to get metadata for image, fallback to client-side SVG generation
         let imageUri: string | undefined
         try {
           const uri = await fetchTokenUri(mintNetworkId, event.tokenId)
@@ -279,7 +283,13 @@ export async function fetchAllMintmarks(
             imageUri = metadata.image
           }
         } catch {
-          // Silently fail - image is optional
+          // Silently fallback to client-side SVG generation
+        }
+        
+        // Always use client-side SVG generator for cleaner token ID display
+        // Contract SVG has full token ID which is too long for UI
+        if (event.eventName) {
+          imageUri = generateMintmarksSVGDataUri(event.eventName, true, event.tokenId.toString())
         }
 
         const nft: MintmarkNFT = {

@@ -569,7 +569,6 @@ export function TestCenter() {
           if (!isCdpConnected) {
             setShowCdpModal(false)
             setIsConnectingCdp(false)
-            console.log('[TestCenter] CDP modal dismissed without auth')
           }
         }, 100)
       }
@@ -593,7 +592,6 @@ export function TestCenter() {
       if (!isCdpConnected) {
         setShowCdpModal(false)
         setIsConnectingCdp(false)
-        console.log('[TestCenter] CDP connection timeout')
       }
     }, 30000)
     
@@ -611,8 +609,8 @@ export function TestCenter() {
     try {
       const bal = await publicClient.getBalance({ address: wallet.address as `0x${string}` })
       setBalance(bal)
-    } catch (err) {
-      console.error('Failed to fetch balance:', err)
+    } catch {
+      // Silently fail balance fetch
     } finally {
       setBalanceLoading(false)
     }
@@ -631,7 +629,6 @@ export function TestCenter() {
     if (isConnectingCdp || isConnectingExternal) return
     setIsConnectingCdp(true)
     setShowCdpModal(true)
-    console.log('[TestCenter] Starting CDP connection')
   }
   
   const handleConnectExternal = () => {
@@ -642,14 +639,12 @@ export function TestCenter() {
       // Reset after modal opens (RainbowKit handles the rest)
       setTimeout(() => setIsConnectingExternal(false), 500)
     }, 100)
-    console.log('[TestCenter] Starting external connection')
   }
   
   const handleCdpComplete = () => {
     setShowCdpModal(false)
     setIsConnectingCdp(false)
     refreshState()
-    console.log('[TestCenter] CDP auth completed')
   }
   
   const handleDisconnect = async () => {

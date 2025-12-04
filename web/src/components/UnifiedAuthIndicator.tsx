@@ -432,7 +432,9 @@ export function UnifiedAuthIndicator({
       }
       setTimeout(() => setCopied(false), 2000)
     } catch (error) {
-      console.error('[UnifiedAuthIndicator] Copy failed:', error)
+      if (import.meta.env.DEV) {
+        console.error('[UnifiedAuthIndicator] Copy failed:', error)
+      }
       showToast('Failed to copy address', 'error')
     }
   }, [walletAddress, showToast])

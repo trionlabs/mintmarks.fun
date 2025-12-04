@@ -266,7 +266,7 @@ export async function generateEmailProof(
   onProgress('Executing circuit...', 40)
   const { witness, returnValue } = await noir.execute(inputs)
 
-  if (returnValue && Array.isArray(returnValue) && returnValue.length >= 4) {
+  if (import.meta.env.DEV && returnValue && Array.isArray(returnValue) && returnValue.length >= 4) {
     console.log('[EmailProver] Circuit outputs:', {
       pubkeyHash: returnValue[0],
       emailNullifier: returnValue[1],

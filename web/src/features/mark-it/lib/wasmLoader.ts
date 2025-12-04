@@ -37,9 +37,13 @@ export async function initializeWasm(): Promise<void> {
       ])
 
       wasmInitialized = true
-      console.log('[WASM] Modules initialized successfully')
+      if (import.meta.env.DEV) {
+        console.log('[WASM] Modules initialized successfully')
+      }
     } catch (error) {
-      console.error('[WASM] Failed to initialize modules:', error)
+      if (import.meta.env.DEV) {
+        console.error('[WASM] Failed to initialize modules:', error)
+      }
       initPromise = null
       throw new Error(`WASM initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }

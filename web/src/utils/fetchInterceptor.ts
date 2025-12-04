@@ -43,7 +43,9 @@ function handleCdp401Error(source: 'fetch' | 'xhr', url: string): void {
     return
   }
   
-  console.warn(`[NetworkInterceptor] CDP auth failed with 401 (${source}), clearing stale state`)
+  if (import.meta.env.DEV) {
+    console.warn(`[NetworkInterceptor] CDP auth failed with 401 (${source}), clearing stale state`)
+  }
   clearAllCdpState()
   // Note: Page will need refresh for wagmi reconnect to work
   // This is acceptable - stale auth is a rare edge case

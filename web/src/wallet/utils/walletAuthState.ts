@@ -64,7 +64,9 @@ export function setCdpActive(): void {
       console.log('[walletAuthState] CDP marked as active')
     }
   } catch (error) {
-    console.error('[walletAuthState] Failed to set CDP active:', error)
+    if (import.meta.env.DEV) {
+      console.error('[walletAuthState] Failed to set CDP active:', error)
+    }
   }
 }
 
@@ -79,7 +81,9 @@ export function clearCdpActive(): void {
       console.log('[walletAuthState] CDP active marker cleared')
     }
   } catch (error) {
-    console.error('[walletAuthState] Failed to clear CDP active:', error)
+    if (import.meta.env.DEV) {
+      console.error('[walletAuthState] Failed to clear CDP active:', error)
+    }
   }
 }
 
@@ -206,7 +210,9 @@ export function clearAllCdpState(): void {
       cdpKeys.forEach(key => localStorage.removeItem(key))
     }
   } catch (error) {
-    console.error('[walletAuthState] Failed to clear CDP state:', error)
+    if (import.meta.env.DEV) {
+      console.error('[walletAuthState] Failed to clear CDP state:', error)
+    }
   }
 }
 
@@ -230,7 +236,9 @@ export function clearWagmiState(): void {
       wagmiKeys.forEach(key => localStorage.removeItem(key))
     }
   } catch (error) {
-    console.error('[walletAuthState] Failed to clear wagmi state:', error)
+    if (import.meta.env.DEV) {
+      console.error('[walletAuthState] Failed to clear wagmi state:', error)
+    }
   }
 }
 

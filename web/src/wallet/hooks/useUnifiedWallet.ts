@@ -124,7 +124,7 @@ export function useUnifiedWallet(): UnifiedWallet {
       const results = await Promise.allSettled(disconnectPromises)
       // Log any failures for debugging
       results.forEach((result) => {
-        if (result.status === 'rejected') {
+        if (result.status === 'rejected' && import.meta.env.DEV) {
           console.error('[useUnifiedWallet] Disconnect failed:', result.reason)
         }
       })

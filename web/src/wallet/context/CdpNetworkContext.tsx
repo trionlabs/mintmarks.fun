@@ -81,8 +81,10 @@ export function CdpNetworkProvider({ children }: { children: ReactNode }) {
     }
     
     if (import.meta.env.DEV) {
-      const network = Object.values(NETWORKS).find(n => n.chainId === chainId)
-      console.log('[CdpNetworkContext] Selected network:', network?.name ?? chainId)
+      if (import.meta.env.DEV) {
+        const network = Object.values(NETWORKS).find(n => n.chainId === chainId)
+        console.log('[CdpNetworkContext] Selected network:', network?.name ?? chainId)
+      }
     }
   }, [])
 
