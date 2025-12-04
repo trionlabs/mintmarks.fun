@@ -1,6 +1,6 @@
 # mintmarks.fun
 
-Soulbound NFTs that prove you actually attended an event—using zk-proofs of DKIM-signed emails.
+Soulbound NFTs that prove you actually attended an event, using zk-proofs of DKIM-signed emails.
 
 ## How It Works
 
