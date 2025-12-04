@@ -22,9 +22,9 @@ mintmarks.fun/
 ## Tech Stack
 
 - **Circuits**: [Noir](https://noir-lang.org/) + [ZK-Email](https://prove.email/) for DKIM verification
-- **Contracts**: Solidity, Foundry, deployed on Ethereum and Base Sepolia 
+- **Contracts**: Solidity, Foundry, deployed on Ethereum Sepolia and Base Sepolia 
 - **Frontend**: React, Vite, TailwindCSS
-- **Wallets**: [Coinbase Smart Wallets](https://www.coinbase.com/en-gb/developer-platform) (gasless, email login) + [RainbowKit](https://rainbowkit.com) (EOA)
+- **Wallets**: [Coinbase CDP](https://www.coinbase.com/en-gb/developer-platform) (email login) + [RainbowKit](https://rainbowkit.com) (EOA)
 - **Identity**: [ZKPassport](https://zkpassport.id/) for sybil resistance
 
 ## Prerequisites
