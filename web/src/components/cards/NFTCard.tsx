@@ -1,12 +1,17 @@
 /**
- * NFTCard - Reusable NFT gallery card component
+ * NFTCard - Modern minimal NFT card
+ * 
+ * Design:
+ * - Square image at top
+ * - Title + Source/Date below
+ * - Hover: Dark overlay + centered "Post on X" CTA
+ * - Click only works on specific icons, not whole card
  * 
  * Used in: MyMarks.tsx, ComponentShowcase.tsx
- * Styles from: glassmorphism.css (.nft-card)
  */
 
-import { useState } from 'react'
-import { Bookmark, Fingerprint } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Bookmark, Fingerprint, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface NFTCardProps {
@@ -16,7 +21,7 @@ export interface NFTCardProps {
   title: string
   /** Date string */
   date: string
-  /** Token ID (shortened format, e.g., "#9311…8397") */
+  /** Token ID (shortened format, e.g., "…8397") */
   tokenId?: string
   /** Image URL (optional) */
   imageUrl?: string
@@ -28,8 +33,8 @@ export interface NFTCardProps {
   href?: string
   /** Additional className */
   className?: string
-  /** Children for additional content (e.g., Share button) - shown on hover */
-  children?: React.ReactNode
+  /** Share handler - main CTA */
+  onShare?: () => void
 }
 
 export function NFTCard({
@@ -42,107 +47,162 @@ export function NFTCard({
   onClick,
   href,
   className,
-  children,
+  onShare,
 }: NFTCardProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const cardContent = (
-    <div className="nft-card p-4 h-full flex flex-col">
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center">
-        {/* Image/Icon - Glassmorphic Circle */}
-        <div className="nft-card-icon-circle w-28 h-28 rounded-full flex items-center justify-center mb-2 overflow-hidden flex-shrink-0">
+  // Handle extended hover for fingerprint
+  useEffect(() => {
+    if (isHovered) {
+      hoverTimeoutRef.current = setTimeout(() => {
+        setShowDetails(true)
+      }, 600)
+    } else {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current)
+      }
+      setShowDetails(false)
+    }
+
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current)
+      }
+    }
+  }, [isHovered])
+
+  const handleExplorerClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (href) {
+      window.open(href, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onShare?.()
+  }
+
+  return (
+    <div 
+      className={cn(
+        'block',
+        'transition-transform duration-300 ease-out',
+        'hover:scale-[1.01]',
+        className
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+    >
+      <div className="flex flex-col">
+        {/* Image Container - Square */}
+        <div className="relative aspect-square overflow-hidden rounded-xl">
+          {/* Main Image */}
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={title}
               className={cn(
-                'w-full h-full',
-                isSvgImage ? 'object-contain p-1.5' : 'object-cover'
+                'w-full h-full transition-all duration-500 ease-out',
+                isSvgImage ? 'object-contain' : 'object-cover',
+                isHovered && 'scale-[1.02]'
               )}
               loading="lazy"
             />
           ) : (
-            <Bookmark
-              className="h-10 w-10"
-              style={{ color: 'var(--Controls-Selected)' }}
-            />
-          )}
-        </div>
-
-        {/* Source Label */}
-        <p className="text-[9px] font-medium uppercase tracking-wider glass-text-muted">
-          {source}
-        </p>
-
-        {/* Title */}
-        <h3 className="font-semibold text-center text-[13px] leading-tight line-clamp-2 glass-text-primary">
-          {title}
-        </h3>
-
-        {/* Bottom Section - Date + Token ID / Hover content */}
-        <div className="w-full mt-2 relative min-h-[28px] flex items-center justify-center">
-          {/* Normal State - Date + Token ID */}
-          <div
-            className="absolute inset-0 flex items-center justify-center gap-2 transition-opacity duration-200"
-            style={{
-              opacity: children && isHovered ? 0 : 1,
-              pointerEvents: children && isHovered ? 'none' : 'auto',
-            }}
-          >
-            <span className="text-xs glass-text-muted">{date}</span>
-            {tokenId && (
-              <>
-                <span className="glass-text-muted">•</span>
-                <div className="flex items-center gap-1 glass-text-muted">
-                  <Fingerprint className="w-3 h-3" />
-                  <span className="text-xs font-mono">#{tokenId}</span>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Hover State - Children (e.g., Share button) */}
-          {children && (
-            <div
-              className="absolute inset-0 flex items-center justify-center transition-opacity duration-200"
-              style={{
-                opacity: isHovered ? 1 : 0,
-                pointerEvents: isHovered ? 'auto' : 'none',
-              }}
+            <div 
+              className="w-full h-full flex items-center justify-center"
+              style={{ background: 'var(--muted)' }}
             >
-              {children}
+              <Bookmark
+                className="h-12 w-12"
+                style={{ color: 'var(--page-text-muted)' }}
+              />
             </div>
           )}
+
+          {/* Hover Overlay - Dark + Centered Share CTA */}
+          <div 
+            className={cn(
+              "absolute inset-0 flex flex-col items-center justify-center transition-all duration-400 ease-out",
+              isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
+            )}
+            style={{
+              background: 'rgba(0, 0, 0, 0.6)'
+            }}
+          >
+            {/* Centered Share CTA */}
+            {onShare && (
+              <button
+                onClick={handleShareClick}
+                className="text-white text-sm font-medium tracking-wide hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none"
+              >
+                Post on 𝕏
+              </button>
+            )}
+
+            {/* Bottom Right: Explorer icon */}
+            {href && (
+              <button
+                onClick={handleExplorerClick}
+                className="absolute bottom-4 right-4 cursor-pointer bg-transparent border-none p-0"
+                title="View on Explorer"
+              >
+                <ExternalLink 
+                  className="w-4 h-4 text-white/50 hover:text-white transition-colors duration-200" 
+                  strokeWidth={1.5}
+                />
+              </button>
+            )}
+
+            {/* Bottom Left: Token fingerprint */}
+            {tokenId && (
+              <div 
+                className={cn(
+                  "absolute bottom-4 left-4 flex items-center gap-1.5 transition-all duration-500",
+                  showDetails ? "opacity-60" : "opacity-0"
+                )}
+              >
+                <Fingerprint className="w-3 h-3 text-white" strokeWidth={1.5} />
+                <span className="text-[9px] font-mono text-white tracking-wider">
+                  {tokenId}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Text Content - Below Image */}
+        <div className="px-2 pt-3 pb-1">
+          {/* Title */}
+          <h3 
+            className="font-semibold text-[14px] leading-snug line-clamp-2"
+            style={{ color: 'var(--page-text-primary)' }}
+          >
+            {title}
+          </h3>
+
+          {/* Source (left) + Date (right) */}
+          <div className="flex items-center justify-between mt-2">
+            <span 
+              className="text-[10px] font-semibold uppercase tracking-wider"
+              style={{ color: 'var(--page-text-muted)' }}
+            >
+              {source}
+            </span>
+
+            <span 
+              className="text-[11px]"
+              style={{ color: 'var(--page-text-muted)' }}
+            >
+              {date}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
-  )
-
-  // Common props for both wrapper types
-  const wrapperProps = {
-    className: cn('block h-full group cursor-pointer', className),
-    onMouseEnter: () => setIsHovered(true),
-    onMouseLeave: () => setIsHovered(false),
-  }
-
-  // Render as anchor if href provided, otherwise div
-  if (href) {
-    return (
-      <a
-        {...wrapperProps}
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {cardContent}
-      </a>
-    )
-  }
-
-  return (
-    <div {...wrapperProps} onClick={onClick}>
-      {cardContent}
     </div>
   )
 }
